@@ -23,7 +23,7 @@ from functions_framework import create_app
 @click.option("--target", envvar="FUNCTION_TARGET", type=click.STRING, required=True)
 @click.option("--source", envvar="FUNCTION_SOURCE", type=click.Path(), default=None)
 @click.option(
-    "--signature_type",
+    "--signature-type",
     envvar="FUNCTION_SIGNATURE_TYPE",
     type=click.Choice(["http", "event"]),
     default="http",
