@@ -1,4 +1,5 @@
-# Functions Framework for Python
+# Functions Framework for Python [![Build Status](https://travis-ci.com/GoogleCloudPlatform/functions-framework-python.svg?branch=master)](https://travis-ci.com/GoogleCloudPlatform/functions-framework-python) [![PyPI version](https://badge.fury.io/py/functions-framework.svg)](https://badge.fury.io/py/functions-framework)
+
 An open source FaaS (Function as a service) framework for writing portable
 Python functions -- brought to you by the Google Cloud Functions team.
 
