@@ -1,5 +1,7 @@
 # Deploy a function to Cloud Run
 
+[![Run on Google Cloud](https://deploy.cloud.run/button.svg)](https://deploy.cloud.run)
+
 This guide will show you how to deploy the following example function to [Cloud Run](https://cloud.google.com/run):
 
 ```python
