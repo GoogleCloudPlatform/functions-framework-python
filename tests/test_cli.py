@@ -55,7 +55,7 @@ def test_cli_no_arguments():
             pretend.call("foo", "/path/to/source.py", "http"),
         ),
         (
-            ["--target", "foo", "--signature_type", "event"],
+            ["--target", "foo", "--signature-type", "event"],
             {},
             pretend.call("foo", None, "event"),
         ),
