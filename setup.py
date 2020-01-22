@@ -47,7 +47,7 @@ setup(
     namespace_packages=["google", "google.cloud"],
     package_dir={"": "src"},
     python_requires=">=3.5, <4",
-    install_requires=["flask>=1.0<=2.0", "click>=7.0<=8.0"],
+    install_requires=["flask>=1.0<=2.0", "click>=7.0<=8.0", "watchdog==0.9.0"],
     extras_require={"test": ["pytest", "tox"]},
     entry_points={
         "console_scripts": [
