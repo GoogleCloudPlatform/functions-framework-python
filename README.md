@@ -128,7 +128,7 @@ Command-line flag         | Environment variable      | Description
 ------------------------- | ------------------------- | -----------
 `--port`                    | `PORT`                    | The port on which the Functions Framework listens for requests. Default: `8080`
 `--target`         | `FUNCTION_TARGET`         | The name of the exported function to be invoked in response to requests. Default: `function`
-`--signature-type` | `FUNCTION_SIGNATURE_TYPE` | The signature used when writing your function. Controls unmarshalling rules and determines which arguments are used to invoke your function. Default: `http`; accepted values: `http` or `event`
+`--signature_type` | `FUNCTION_SIGNATURE_TYPE` | The signature used when writing your function. Controls unmarshalling rules and determines which arguments are used to invoke your function. Default: `http`; accepted values: `http` or `event`
 `--source`         | `FUNCTION_SOURCE`         | The path to the file containing your function. Default: `main.py` (in the current working directory)
 
 # Enable CloudEvents
