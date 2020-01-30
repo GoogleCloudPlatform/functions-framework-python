@@ -130,6 +130,7 @@ Command-line flag         | Environment variable      | Description
 `--target`         | `FUNCTION_TARGET`         | The name of the exported function to be invoked in response to requests. Default: `function`
 `--signature-type` | `FUNCTION_SIGNATURE_TYPE` | The signature used when writing your function. Controls unmarshalling rules and determines which arguments are used to invoke your function. Default: `http`; accepted values: `http` or `event`
 `--source`         | `FUNCTION_SOURCE`         | The path to the file containing your function. Default: `main.py` (in the current working directory)
+`--debug`          | `DEBUG`                   | A boolean flag that allows to run functions-framework to run in debug mode, including live reloading. Default: `False`
 
 # Enable CloudEvents
 
