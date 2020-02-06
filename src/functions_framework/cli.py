@@ -29,7 +29,7 @@ from functions_framework import create_app
     default="http",
 )
 @click.option("--port", envvar="PORT", type=click.INT, default=8080)
-@click.option("--debug", envvar="DEBUG", type=click.BOOL, default=False)
+@click.option("--debug", envvar="DEBUG", is_flag=True)
 def cli(target, source, signature_type, port, debug):
     host = "0.0.0.0"
     app = create_app(target, source, signature_type)
