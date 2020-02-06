@@ -30,7 +30,13 @@ from functions_framework import create_app
 )
 @click.option("--port", envvar="PORT", type=click.INT, default=8080)
 @click.option("--debug", envvar="DEBUG", is_flag=True)
-def cli(target, source, signature_type, port, debug):
+@click.option("--dry-run", envvar="DRY_RUN", is_flag=True)
+def cli(target, source, signature_type, port, debug, dry_run):
     host = "0.0.0.0"
     app = create_app(target, source, signature_type)
-    app.run(host, port, debug)
+    if dry_run:
+        click.echo("Function: {}".format(target))
+        click.echo("URL: http://{}:{}/".format(host, port))
+        click.echo("Dry run successful, shutting down.")
+    else:
+        app.run(host, port, debug)

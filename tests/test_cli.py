@@ -81,6 +81,13 @@ def test_cli_no_arguments():
             [pretend.call("foo", None, "event")],
             [pretend.call("0.0.0.0", 8080, False)],
         ),
+        (["--target", "foo", "--dry-run"], {}, [pretend.call("foo", None, "http")], []),
+        (
+            [],
+            {"FUNCTION_TARGET": "foo", "DRY_RUN": "True"},
+            [pretend.call("foo", None, "http")],
+            [],
+        ),
     ],
 )
 def test_cli_arguments(create_app, run, args, env, create_app_calls, run_calls):
