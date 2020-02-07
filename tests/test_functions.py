@@ -176,6 +176,16 @@ def test_background_function_executes(background_json):
     assert resp.status_code == 200
 
 
+def test_background_function_supports_get(background_json):
+    source = TEST_FUNCTIONS_DIR / "background_trigger" / "main.py"
+    target = "function"
+
+    client = create_app(target, source, "event").test_client()
+
+    resp = client.get("/")
+    assert resp.status_code == 200
+
+
 def test_background_function_executes_entry_point_one(background_json):
     source = TEST_FUNCTIONS_DIR / "background_multiple_entry_points" / "main.py"
     target = "myFunctionFoo"
@@ -225,6 +235,16 @@ def test_pubsub_payload(background_json):
         assert f.read() == '{{"entryPoint": "function", "value": "{}"}}'.format(
             background_json["data"]["value"]
         )
+
+
+def test_background_function_no_data(background_json):
+    source = TEST_FUNCTIONS_DIR / "background_trigger" / "main.py"
+    target = "function"
+
+    client = create_app(target, source, "event").test_client()
+
+    resp = client.post("/")
+    assert resp.status_code == 400
 
 
 def test_invalid_function_definition_missing_function_file():

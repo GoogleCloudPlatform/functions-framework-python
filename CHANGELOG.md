@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Make `--debug` a flag instead of a boolean option
 
+### Fixed
+- Better support for CloudEvent functions and error handling
+
 ## [1.0.1] - 2020-01-30
 ### Added
 - Add Cloud Run Button ([#1])
