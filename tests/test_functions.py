@@ -176,6 +176,16 @@ def test_background_function_executes(background_json):
     assert resp.status_code == 200
 
 
+def test_background_function_supports_get(background_json):
+    source = TEST_FUNCTIONS_DIR / "background_trigger" / "main.py"
+    target = "function"
+
+    client = create_app(target, source, "event").test_client()
+
+    resp = client.get("/")
+    assert resp.status_code == 200
+
+
 def test_background_function_executes_entry_point_one(background_json):
     source = TEST_FUNCTIONS_DIR / "background_multiple_entry_points" / "main.py"
     target = "myFunctionFoo"

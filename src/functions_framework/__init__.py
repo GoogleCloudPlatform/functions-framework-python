@@ -186,6 +186,9 @@ def create_app(target=None, source=None, signature_type=None):
             werkzeug.routing.Rule("/<path:path>", endpoint="run", methods=["POST"])
         )
         app.view_functions["run"] = _event_view_func_wrapper(function, flask.request)
+        # Add a dummy endpoint for GET /
+        app.url_map.add(werkzeug.routing.Rule("/", endpoint="get", methods=["GET"]))
+        app.view_functions["get"] = lambda: ""
     else:
         raise FunctionsFrameworkException(
             "Invalid signature type: {signature_type}".format(
