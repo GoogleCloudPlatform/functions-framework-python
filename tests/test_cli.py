@@ -23,10 +23,13 @@ from functions_framework.cli import cli
 
 
 @pytest.fixture
-def create_app(monkeypatch):
-    create_app = pretend.call_recorder(
-        lambda *a, **kw: pretend.stub(run=pretend.call_recorder(lambda *a, **kw: None))
-    )
+def run():
+    return pretend.call_recorder(lambda *a, **kw: None)
+
+
+@pytest.fixture
+def create_app(monkeypatch, run):
+    create_app = pretend.call_recorder(lambda *a, **kw: pretend.stub(run=run))
     monkeypatch.setattr(functions_framework.cli, "create_app", create_app)
     return create_app
 
@@ -40,38 +43,57 @@ def test_cli_no_arguments():
 
 
 @pytest.mark.parametrize(
-    "args, env, call",
+    "args, env, create_app_calls, run_calls",
     [
-        (["--target", "foo"], {}, pretend.call("foo", None, "http")),
-        ([], {"FUNCTION_TARGET": "foo"}, pretend.call("foo", None, "http")),
+        (
+            ["--target", "foo"],
+            {},
+            [pretend.call("foo", None, "http")],
+            [pretend.call("0.0.0.0", 8080, False)],
+        ),
+        (
+            [],
+            {"FUNCTION_TARGET": "foo"},
+            [pretend.call("foo", None, "http")],
+            [pretend.call("0.0.0.0", 8080, False)],
+        ),
         (
             ["--target", "foo", "--source", "/path/to/source.py"],
             {},
-            pretend.call("foo", "/path/to/source.py", "http"),
+            [pretend.call("foo", "/path/to/source.py", "http")],
+            [pretend.call("0.0.0.0", 8080, False)],
         ),
         (
             [],
             {"FUNCTION_TARGET": "foo", "FUNCTION_SOURCE": "/path/to/source.py"},
-            pretend.call("foo", "/path/to/source.py", "http"),
+            [pretend.call("foo", "/path/to/source.py", "http")],
+            [pretend.call("0.0.0.0", 8080, False)],
         ),
         (
             ["--target", "foo", "--signature-type", "event"],
             {},
-            pretend.call("foo", None, "event"),
+            [pretend.call("foo", None, "event")],
+            [pretend.call("0.0.0.0", 8080, False)],
         ),
         (
             [],
             {"FUNCTION_TARGET": "foo", "FUNCTION_SIGNATURE_TYPE": "event"},
-            pretend.call("foo", None, "event"),
+            [pretend.call("foo", None, "event")],
+            [pretend.call("0.0.0.0", 8080, False)],
+        ),
+        (["--target", "foo", "--dry-run"], {}, [pretend.call("foo", None, "http")], []),
+        (
+            [],
+            {"FUNCTION_TARGET": "foo", "DRY_RUN": "True"},
+            [pretend.call("foo", None, "http")],
+            [],
         ),
     ],
 )
-def test_cli_arguments(create_app, args, env, call):
+def test_cli_arguments(create_app, run, args, env, create_app_calls, run_calls):
     runner = CliRunner(env=env)
     result = runner.invoke(cli, args)
 
-    if result.output:
-        print(result.output)
-
     assert result.exit_code == 0
-    assert create_app.calls == [call]
+    assert create_app.calls == create_app_calls
+    assert run.calls == run_calls
