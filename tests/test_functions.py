@@ -227,6 +227,16 @@ def test_pubsub_payload(background_json):
         )
 
 
+def test_background_function_no_data(background_json):
+    source = TEST_FUNCTIONS_DIR / "background_trigger" / "main.py"
+    target = "function"
+
+    client = create_app(target, source, "event").test_client()
+
+    resp = client.post("/")
+    assert resp.status_code == 400
+
+
 def test_invalid_function_definition_missing_function_file():
     source = TEST_FUNCTIONS_DIR / "missing_function_file" / "main.py"
     target = "functions"

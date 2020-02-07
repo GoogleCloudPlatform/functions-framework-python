@@ -93,6 +93,8 @@ def _event_view_func_wrapper(function, request):
         else:
             # This is a regular CloudEvent
             event_data = request.get_json()
+            if not event_data:
+                flask.abort(400)
             event_object = _Event(**event_data)
             data = event_object.data
             context = Context(**event_object.context)
