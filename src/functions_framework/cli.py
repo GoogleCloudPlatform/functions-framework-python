@@ -28,11 +28,11 @@ from functions_framework import create_app
     type=click.Choice(["http", "event"]),
     default="http",
 )
+@click.option("--host", envvar="HOST", type=click.STRING, default="0.0.0.0")
 @click.option("--port", envvar="PORT", type=click.INT, default=8080)
 @click.option("--debug", envvar="DEBUG", is_flag=True)
 @click.option("--dry-run", envvar="DRY_RUN", is_flag=True)
-def cli(target, source, signature_type, port, debug, dry_run):
-    host = "0.0.0.0"
+def cli(target, source, signature_type, host, port, debug, dry_run):
     app = create_app(target, source, signature_type)
     if dry_run:
         click.echo("Function: {}".format(target))
