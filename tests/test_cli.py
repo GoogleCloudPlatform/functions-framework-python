@@ -88,6 +88,12 @@ def test_cli_no_arguments():
             [pretend.call("foo", None, "http")],
             [],
         ),
+        (
+            ["--target", "foo", "--host", "127.0.0.1"],
+            {},
+            [pretend.call("foo", None, "http")],
+            [pretend.call("127.0.0.1", 8080, False)],
+        ),
     ],
 )
 def test_cli_arguments(create_app, run, args, env, create_app_calls, run_calls):
