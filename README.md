@@ -124,13 +124,14 @@ Cloud Run and Cloud Run on GKE both implement the [Knative Serving API](https://
 
 You can configure the Functions Framework using command-line flags or environment variables. If you specify both, the environment variable will be ignored.
 
-Command-line flag         | Environment variable      | Description
-------------------------- | ------------------------- | -----------
-`--port`                    | `PORT`                    | The port on which the Functions Framework listens for requests. Default: `8080`
-`--target`         | `FUNCTION_TARGET`         | The name of the exported function to be invoked in response to requests. Default: `function`
-`--signature-type` | `FUNCTION_SIGNATURE_TYPE` | The signature used when writing your function. Controls unmarshalling rules and determines which arguments are used to invoke your function. Default: `http`; accepted values: `http` or `event`
-`--source`         | `FUNCTION_SOURCE`         | The path to the file containing your function. Default: `main.py` (in the current working directory)
-`--debug`          | `DEBUG`                   | A flag that allows to run functions-framework to run in debug mode, including live reloading. Default: `False`
+| Command-line flag  | Environment variable      | Description                                                                                                                                                                                      |
+| ------------------ | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `--host`           | `HOST`                    | The host on which the Functions Framework listens for requests. Default: `0.0.0.0`                                                                                                               |
+| `--port`           | `PORT`                    | The port on which the Functions Framework listens for requests. Default: `8080`                                                                                                                  |
+| `--target`         | `FUNCTION_TARGET`         | The name of the exported function to be invoked in response to requests. Default: `function`                                                                                                     |
+| `--signature-type` | `FUNCTION_SIGNATURE_TYPE` | The signature used when writing your function. Controls unmarshalling rules and determines which arguments are used to invoke your function. Default: `http`; accepted values: `http` or `event` |
+| `--source`         | `FUNCTION_SOURCE`         | The path to the file containing your function. Default: `main.py` (in the current working directory)                                                                                             |
+| `--debug`          | `DEBUG`                   | A flag that allows to run functions-framework to run in debug mode, including live reloading. Default: `False`                                                                                   |
 
 # Enable CloudEvents
 
