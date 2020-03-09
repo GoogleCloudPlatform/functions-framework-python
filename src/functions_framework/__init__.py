@@ -43,6 +43,7 @@ class _Event(object):
         self,
         context=None,
         data="",
+        attributes=None,
         eventId="",
         timestamp="",
         eventType="",
@@ -57,7 +58,7 @@ class _Event(object):
                 "eventType": eventType,
                 "resource": resource,
             }
-        self.data = data
+        self.data = {'data': data, 'attributes': attributes}
 
 
 def _http_view_func_wrapper(function, request):
