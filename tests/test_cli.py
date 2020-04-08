@@ -39,7 +39,7 @@ def test_cli_no_arguments():
     result = runner.invoke(cli)
 
     assert result.exit_code == 2
-    assert 'Missing option "--target"' in result.output
+    assert "Missing option '--target'" in result.output
 
 
 @pytest.mark.parametrize(
