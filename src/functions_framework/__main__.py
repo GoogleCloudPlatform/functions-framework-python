@@ -1,3 +1,3 @@
-from functions_framework.cli import cli
+from functions_framework._cli import _cli
 
-cli()
+_cli()
