@@ -51,9 +51,9 @@ setup(
     extras_require={"test": ["pytest", "tox"]},
     entry_points={
         "console_scripts": [
-            "functions-framework=functions_framework.cli:cli",
-            "functions_framework=functions_framework.cli:cli",
-            "ff=functions_framework.cli:cli",
+            "functions-framework=functions_framework._cli:_cli",
+            "functions_framework=functions_framework._cli:_cli",
+            "ff=functions_framework._cli:_cli",
         ]
     },
 )

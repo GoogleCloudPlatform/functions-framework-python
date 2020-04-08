@@ -19,7 +19,7 @@ from click.testing import CliRunner
 
 import functions_framework
 
-from functions_framework.cli import cli
+from functions_framework._cli import _cli
 
 
 @pytest.fixture
@@ -30,13 +30,13 @@ def run():
 @pytest.fixture
 def create_app(monkeypatch, run):
     create_app = pretend.call_recorder(lambda *a, **kw: pretend.stub(run=run))
-    monkeypatch.setattr(functions_framework.cli, "create_app", create_app)
+    monkeypatch.setattr(functions_framework._cli, "create_app", create_app)
     return create_app
 
 
 def test_cli_no_arguments():
     runner = CliRunner()
-    result = runner.invoke(cli)
+    result = runner.invoke(_cli)
 
     assert result.exit_code == 2
     assert "Missing option '--target'" in result.output
@@ -98,7 +98,7 @@ def test_cli_no_arguments():
 )
 def test_cli_arguments(create_app, run, args, env, create_app_calls, run_calls):
     runner = CliRunner(env=env)
-    result = runner.invoke(cli, args)
+    result = runner.invoke(_cli, args)
 
     assert result.exit_code == 0
     assert create_app.calls == create_app_calls
