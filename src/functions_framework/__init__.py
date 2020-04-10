@@ -174,8 +174,11 @@ def create_app(target=None, source=None, signature_type=None):
         app.url_map.add(
             werkzeug.routing.Rule("/", defaults={"path": ""}, endpoint="run")
         )
+        app.url_map.add(werkzeug.routing.Rule("/robots.txt", endpoint="error"))
+        app.url_map.add(werkzeug.routing.Rule("/favicon.ico", endpoint="error"))
         app.url_map.add(werkzeug.routing.Rule("/<path:path>", endpoint="run"))
         app.view_functions["run"] = _http_view_func_wrapper(function, flask.request)
+        app.view_functions["error"] = lambda: flask.abort(404)
     elif signature_type == "event":
         app.url_map.add(
             werkzeug.routing.Rule(
