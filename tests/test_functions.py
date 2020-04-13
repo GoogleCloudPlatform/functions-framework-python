@@ -376,3 +376,16 @@ def test_http_function_all_methods(method, data):
 
     assert resp.status_code == 200
     assert resp.data == data
+
+
+@pytest.mark.parametrize("path", ["robots.txt", "favicon.ico"])
+def test_error_paths(path):
+    source = TEST_FUNCTIONS_DIR / "http_trigger" / "main.py"
+    target = "function"
+
+    client = create_app(target, source).test_client()
+
+    resp = client.get("/{}".format(path))
+
+    assert resp.status_code == 404
+    assert b"Not Found" in resp.data
