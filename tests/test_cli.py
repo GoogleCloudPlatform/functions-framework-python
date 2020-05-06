@@ -22,16 +22,9 @@ import functions_framework
 from functions_framework._cli import _cli
 
 
-@pytest.fixture
-def run():
-    return pretend.call_recorder(lambda *a, **kw: None)
-
-
-@pytest.fixture
-def create_app(monkeypatch, run):
-    create_app = pretend.call_recorder(lambda *a, **kw: pretend.stub(run=run))
-    monkeypatch.setattr(functions_framework._cli, "create_app", create_app)
-    return create_app
+@pytest.fixture()
+def wsgi_app():
+    return pretend.stub(run=pretend.call_recorder(lambda *a, **kw: None))
 
 
 def test_cli_no_arguments():
@@ -43,63 +36,106 @@ def test_cli_no_arguments():
 
 
 @pytest.mark.parametrize(
-    "args, env, create_app_calls, run_calls",
+    "args, env, create_app_calls, app_run_calls, wsgi_server_run_calls",
     [
         (
             ["--target", "foo"],
             {},
             [pretend.call("foo", None, "http")],
-            [pretend.call("0.0.0.0", 8080, False)],
+            [],
+            [pretend.call("0.0.0.0", 8080)],
         ),
         (
             [],
             {"FUNCTION_TARGET": "foo"},
             [pretend.call("foo", None, "http")],
-            [pretend.call("0.0.0.0", 8080, False)],
+            [],
+            [pretend.call("0.0.0.0", 8080)],
         ),
         (
             ["--target", "foo", "--source", "/path/to/source.py"],
             {},
             [pretend.call("foo", "/path/to/source.py", "http")],
-            [pretend.call("0.0.0.0", 8080, False)],
+            [],
+            [pretend.call("0.0.0.0", 8080)],
         ),
         (
             [],
             {"FUNCTION_TARGET": "foo", "FUNCTION_SOURCE": "/path/to/source.py"},
             [pretend.call("foo", "/path/to/source.py", "http")],
-            [pretend.call("0.0.0.0", 8080, False)],
+            [],
+            [pretend.call("0.0.0.0", 8080)],
         ),
         (
             ["--target", "foo", "--signature-type", "event"],
             {},
             [pretend.call("foo", None, "event")],
-            [pretend.call("0.0.0.0", 8080, False)],
+            [],
+            [pretend.call("0.0.0.0", 8080)],
         ),
         (
             [],
             {"FUNCTION_TARGET": "foo", "FUNCTION_SIGNATURE_TYPE": "event"},
             [pretend.call("foo", None, "event")],
-            [pretend.call("0.0.0.0", 8080, False)],
+            [],
+            [pretend.call("0.0.0.0", 8080)],
         ),
-        (["--target", "foo", "--dry-run"], {}, [pretend.call("foo", None, "http")], []),
+        (
+            ["--target", "foo", "--dry-run"],
+            {},
+            [pretend.call("foo", None, "http")],
+            [],
+            [],
+        ),
         (
             [],
             {"FUNCTION_TARGET": "foo", "DRY_RUN": "True"},
             [pretend.call("foo", None, "http")],
+            [],
             [],
         ),
         (
             ["--target", "foo", "--host", "127.0.0.1"],
             {},
             [pretend.call("foo", None, "http")],
-            [pretend.call("127.0.0.1", 8080, False)],
+            [],
+            [pretend.call("127.0.0.1", 8080)],
+        ),
+        (
+            ["--target", "foo", "--debug"],
+            {},
+            [pretend.call("foo", None, "http")],
+            [pretend.call("0.0.0.0", 8080, True)],
+            [],
+        ),
+        (
+            [],
+            {"FUNCTION_TARGET": "foo", "DEBUG": "True"},
+            [pretend.call("foo", None, "http")],
+            [pretend.call("0.0.0.0", 8080, True)],
+            [],
         ),
     ],
 )
-def test_cli_arguments(create_app, run, args, env, create_app_calls, run_calls):
+def test_cli(
+    monkeypatch,
+    wsgi_app,
+    args,
+    env,
+    create_app_calls,
+    app_run_calls,
+    wsgi_server_run_calls,
+):
+    wsgi_server = pretend.stub(run=pretend.call_recorder(lambda *a, **kw: None))
+    create_app = pretend.call_recorder(lambda *a, **kw: wsgi_app)
+    monkeypatch.setattr(functions_framework._cli, "create_app", create_app)
+    create_server = pretend.call_recorder(lambda *a, **kw: wsgi_server)
+    monkeypatch.setattr(functions_framework._cli, "create_server", create_server)
+
     runner = CliRunner(env=env)
     result = runner.invoke(_cli, args)
 
     assert result.exit_code == 0
     assert create_app.calls == create_app_calls
-    assert run.calls == run_calls
+    assert wsgi_app.run.calls == app_run_calls
+    assert wsgi_server.run.calls == wsgi_server_run_calls

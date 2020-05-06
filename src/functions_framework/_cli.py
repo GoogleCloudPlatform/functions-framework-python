@@ -17,6 +17,7 @@ import os
 import click
 
 from functions_framework import create_app
+from functions_framework._http import create_server
 
 
 @click.command()
@@ -38,5 +39,9 @@ def _cli(target, source, signature_type, host, port, debug, dry_run):
         click.echo("Function: {}".format(target))
         click.echo("URL: http://{}:{}/".format(host, port))
         click.echo("Dry run successful, shutting down.")
-    else:
+    elif debug:
+        # Run with Flask's development WSGI server
         app.run(host, port, debug)
+    else:
+        # Run with Gunicorn's production WSGI server
+        create_server(app).run(host, port)
