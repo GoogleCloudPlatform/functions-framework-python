@@ -22,11 +22,6 @@ import functions_framework
 from functions_framework._cli import _cli
 
 
-@pytest.fixture()
-def wsgi_app():
-    return pretend.stub(run=pretend.call_recorder(lambda *a, **kw: None))
-
-
 def test_cli_no_arguments():
     runner = CliRunner()
     result = runner.invoke(_cli)
@@ -118,15 +113,10 @@ def test_cli_no_arguments():
     ],
 )
 def test_cli(
-    monkeypatch,
-    wsgi_app,
-    args,
-    env,
-    create_app_calls,
-    app_run_calls,
-    wsgi_server_run_calls,
+    monkeypatch, args, env, create_app_calls, app_run_calls, wsgi_server_run_calls,
 ):
     wsgi_server = pretend.stub(run=pretend.call_recorder(lambda *a, **kw: None))
+    wsgi_app = pretend.stub(run=pretend.call_recorder(lambda *a, **kw: None))
     create_app = pretend.call_recorder(lambda *a, **kw: wsgi_app)
     monkeypatch.setattr(functions_framework._cli, "create_app", create_app)
     create_server = pretend.call_recorder(lambda *a, **kw: wsgi_server)
