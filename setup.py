@@ -51,7 +51,7 @@ setup(
         "flask>=1.0,<2.0",
         "click>=7.0,<8.0",
         "watchdog>=0.10.0",
-        "gunicorn>=19.2.0",
+        "gunicorn>=19.2.0,<21.0",
     ],
     extras_require={"test": ["pytest", "tox"]},
     entry_points={
