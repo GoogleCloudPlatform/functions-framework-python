@@ -45,7 +45,7 @@ pip install functions-framework
 Or, for deployment, add the Functions Framework to your `requirements.txt` file:
 
 ```
-functions-framework==1.3.0
+functions-framework==1.4.0rc1
 ```
 
 # Quickstart: Hello, World on your local machine
@@ -84,7 +84,7 @@ pip install functions-framework
 Use the `functions-framework` command to start the built-in local development server:
 
 ```sh
-functions-framework --target hello
+functions-framework --target hello --debug
  * Serving Flask app "hello" (lazy loading)
  * Environment: production
    WARNING: This is a development server. Do not use it in a production deployment.

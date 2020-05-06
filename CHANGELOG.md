@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0] - 2020-05-06
+- Use gunicorn as a production HTTP server
+
 ## [1.3.0] - 2020-04-13
 - Add support for running `python -m functions_framework` ([#31])
 - Move `functions_framework.cli.cli` to `functions_framework._cli._cli`

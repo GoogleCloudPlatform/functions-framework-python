@@ -16,9 +16,12 @@ import pathlib
 import re
 import time
 
+import pretend
 import pytest
 
-from functions_framework import create_app, exceptions
+import functions_framework
+
+from functions_framework import LazyWSGIApp, create_app, exceptions
 
 TEST_FUNCTIONS_DIR = pathlib.Path.cwd() / "tests" / "test_functions"
 
@@ -323,6 +326,24 @@ def test_invalid_function_definition_missing_dependency():
     assert "No module named 'nonexistentpackage'" in str(excinfo.value)
 
 
+def test_invalid_configuration():
+    with pytest.raises(exceptions.InvalidConfigurationException) as excinfo:
+        create_app(None, None, None)
+
+    assert (
+        "Target is not specified (FUNCTION_TARGET environment variable not set)"
+        == str(excinfo.value)
+    )
+
+
+def test_invalid_signature_type():
+    source = TEST_FUNCTIONS_DIR / "http_trigger" / "main.py"
+    target = "function"
+
+    with pytest.raises(exceptions.FunctionsFrameworkException) as excinfo:
+        create_app(target, source, "invalid_signature_type")
+
+
 def test_http_function_flask_render_template():
     source = TEST_FUNCTIONS_DIR / "http_flask_render_template" / "main.py"
     target = "function"
@@ -389,3 +410,38 @@ def test_error_paths(path):
 
     assert resp.status_code == 404
     assert b"Not Found" in resp.data
+
+
+@pytest.mark.parametrize(
+    "target, source, signature_type",
+    [(None, None, None), (pretend.stub(), pretend.stub(), pretend.stub()),],
+)
+def test_lazy_wsgi_app(monkeypatch, target, source, signature_type):
+    actual_app_stub = pretend.stub()
+    wsgi_app = pretend.call_recorder(lambda *a, **kw: actual_app_stub)
+    create_app = pretend.call_recorder(lambda *a: wsgi_app)
+    monkeypatch.setattr(functions_framework, "create_app", create_app)
+
+    # Test that it's lazy
+    lazy_app = LazyWSGIApp(target, source, signature_type)
+
+    assert lazy_app.app == None
+
+    args = [pretend.stub(), pretend.stub()]
+    kwargs = {"a": pretend.stub(), "b": pretend.stub()}
+
+    # Test that it's initialized when called
+    app = lazy_app(*args, **kwargs)
+
+    assert app == actual_app_stub
+    assert create_app.calls == [pretend.call(target, source, signature_type)]
+    assert wsgi_app.calls == [pretend.call(*args, **kwargs)]
+
+    # Test that it's only initialized once
+    app = lazy_app(*args, **kwargs)
+
+    assert app == actual_app_stub
+    assert wsgi_app.calls == [
+        pretend.call(*args, **kwargs),
+        pretend.call(*args, **kwargs),
+    ]

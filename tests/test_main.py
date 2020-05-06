@@ -12,6 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from functions_framework._cli import _cli
+import pretend
 
-_cli(prog_name="python -m functions_framework")
+import functions_framework._cli
+
+
+def test_main(monkeypatch):
+    _cli = pretend.call_recorder(lambda prog_name: None)
+    monkeypatch.setattr(functions_framework._cli, "_cli", _cli)
+
+    from functions_framework import __main__
+
+    assert _cli.calls == [pretend.call(prog_name="python -m functions_framework")]

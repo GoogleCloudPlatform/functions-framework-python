@@ -25,7 +25,7 @@ with open(path.join(here, "README.md"), encoding="utf-8") as f:
 
 setup(
     name="functions-framework",
-    version="1.3.0",
+    version="1.4.0rc1",
     description="An open source FaaS (Function as a service) framework for writing portable Python functions -- brought to you by the Google Cloud Functions team.",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -47,7 +47,12 @@ setup(
     namespace_packages=["google", "google.cloud"],
     package_dir={"": "src"},
     python_requires=">=3.5, <4",
-    install_requires=["flask>=1.0,<2.0", "click>=7.0,<8.0", "watchdog>=0.10.0"],
+    install_requires=[
+        "flask>=1.0,<2.0",
+        "click>=7.0,<8.0",
+        "watchdog>=0.10.0",
+        "gunicorn>=19.2.0,<21.0",
+    ],
     extras_require={"test": ["pytest", "tox"]},
     entry_points={
         "console_scripts": [
