@@ -21,7 +21,7 @@ from functions_framework.exceptions import FunctionsFrameworkException
 
 try:
     from functions_framework._http import create_server
-except ModuleNotFoundError:
+except ModuleNotFoundError:  # pragma: no cover
 
     def create_server(*a, **kw):
         raise FunctionsFrameworkException(
