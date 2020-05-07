@@ -32,4 +32,4 @@ jobs:
       - name: Install tox
         run: python -m pip install tox
       - name: Run tests
-        run: python -m tox -e py  # Run tox using the version of Python in `PATH`
+        run: python -m tox -e py-${{ matrix.platform }}

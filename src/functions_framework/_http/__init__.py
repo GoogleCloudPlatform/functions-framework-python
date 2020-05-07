@@ -12,39 +12,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import gunicorn.app.base
-
-
-class GunicornApplication(gunicorn.app.base.BaseApplication):
-    def __init__(self, app, host, port, **options):
-        self.options = {
-            "bind": "%s:%s" % (host, port),
-            "workers": 1,
-            "threads": 8,
-            "timeout": 0,
-        }
-        self.options.update(options)
-        self.app = app
-        super().__init__()
-
-    def load_config(self):
-        for key, value in self.options.items():
-            self.cfg.set(key, value)
-
-    def load(self):
-        return self.app
+from functions_framework._http.flask import FlaskApplication
 
 
 class HTTPServer:
-    def __init__(self, app, server_class, **options):
+    def __init__(self, app, debug, **options):
         self.app = app
-        self.server_class = server_class
         self.options = options
+
+        if debug:
+            self.server_class = FlaskApplication
+        else:
+            try:
+                from functions_framework._http.gunicorn import GunicornApplication
+
+                self.server_class = GunicornApplication
+            except ImportError as e:
+                self.server_class = FlaskApplication
 
     def run(self, host, port):
         http_server = self.server_class(self.app, host, port, **self.options)
         http_server.run()
 
 
-def create_server(wsgi_app, **options):
-    return HTTPServer(wsgi_app, server_class=GunicornApplication, **options)
+def create_server(wsgi_app, debug, **options):
+    return HTTPServer(wsgi_app, debug, **options)
