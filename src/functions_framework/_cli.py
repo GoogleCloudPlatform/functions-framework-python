@@ -17,7 +17,7 @@ import os
 import click
 
 from functions_framework import create_app
-from functions_framework._http import create_server
+from functions_framework.exceptions import FunctionsFrameworkException
 
 
 @click.command()
@@ -43,5 +43,13 @@ def _cli(target, source, signature_type, host, port, debug, dry_run):
         # Run with Flask's development WSGI server
         app.run(host, port, debug)
     else:
-        # Run with Gunicorn's production WSGI server
-        create_server(app).run(host, port)
+        # Defer import here to avoid insta-crash on Windows
+        try:
+            from functions_framework._http import create_server
+        except ModuleNotFoundError:
+            raise FunctionsFrameworkException(
+                "Production server is not available on Windows yet. Use `--debug` for testing."
+            ) from None
+        else:
+            # Run with Gunicorn's production WSGI server
+            create_server(app).run(host, port)
