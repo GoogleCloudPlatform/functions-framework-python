@@ -18,9 +18,10 @@ from functions_framework._http.flask import FlaskApplication
 class HTTPServer:
     def __init__(self, app, debug, **options):
         self.app = app
+        self.debug = debug
         self.options = options
 
-        if debug:
+        if self.debug:
             self.server_class = FlaskApplication
         else:
             try:
@@ -31,7 +32,9 @@ class HTTPServer:
                 self.server_class = FlaskApplication
 
     def run(self, host, port):
-        http_server = self.server_class(self.app, host, port, **self.options)
+        http_server = self.server_class(
+            self.app, host, port, self.debug, **self.options
+        )
         http_server.run()
 
 
