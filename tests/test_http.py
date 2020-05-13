@@ -75,12 +75,15 @@ def test_httpserver(monkeypatch, debug, gunicorn_missing, expected):
 
     wrapper.run(host, port)
 
-    assert wrapper.server_class.calls == [pretend.call(app, host, port, **options)]
+    assert wrapper.server_class.calls == [
+        pretend.call(app, host, port, debug, **options)
+    ]
     assert http_server.run.calls == [pretend.call()]
 
 
 @pytest.mark.skipif("platform.system() == 'Windows'")
-def test_gunicorn_application():
+@pytest.mark.parametrize("debug", [True, False])
+def test_gunicorn_application(debug):
     app = pretend.stub()
     host = "1.2.3.4"
     port = "1234"
@@ -89,7 +92,7 @@ def test_gunicorn_application():
     import functions_framework._http.gunicorn
 
     gunicorn_app = functions_framework._http.gunicorn.GunicornApplication(
-        app, host, port, **options
+        app, host, port, debug, **options
     )
 
     assert gunicorn_app.app == app
@@ -107,23 +110,25 @@ def test_gunicorn_application():
     assert gunicorn_app.load() == app
 
 
-def test_flask_application():
+@pytest.mark.parametrize("debug", [True, False])
+def test_flask_application(debug):
     app = pretend.stub(run=pretend.call_recorder(lambda *a, **kw: None))
     host = pretend.stub()
     port = pretend.stub()
     options = {"a": pretend.stub(), "b": pretend.stub()}
 
     flask_app = functions_framework._http.flask.FlaskApplication(
-        app, host, port, **options
+        app, host, port, debug, **options
     )
 
     assert flask_app.app == app
     assert flask_app.host == host
     assert flask_app.port == port
+    assert flask_app.debug == debug
     assert flask_app.options == options
 
     flask_app.run()
 
     assert app.run.calls == [
-        pretend.call(host, port, debug=True, a=options["a"], b=options["b"]),
+        pretend.call(host, port, debug=debug, a=options["a"], b=options["b"]),
     ]

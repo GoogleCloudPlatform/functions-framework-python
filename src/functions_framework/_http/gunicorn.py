@@ -16,7 +16,7 @@ import gunicorn.app.base
 
 
 class GunicornApplication(gunicorn.app.base.BaseApplication):
-    def __init__(self, app, host, port, **options):
+    def __init__(self, app, host, port, debug, **options):
         self.options = {
             "bind": "%s:%s" % (host, port),
             "workers": 1,
