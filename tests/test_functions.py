@@ -445,3 +445,13 @@ def test_lazy_wsgi_app(monkeypatch, target, source, signature_type):
         pretend.call(*args, **kwargs),
         pretend.call(*args, **kwargs),
     ]
+
+
+def test_class_in_main_is_in_right_module():
+    source = TEST_FUNCTIONS_DIR / "module_is_correct" / "main.py"
+    target = "function"
+
+    client = create_app(target, source).test_client()
+    resp = client.get("/")
+
+    assert resp.status_code == 200
