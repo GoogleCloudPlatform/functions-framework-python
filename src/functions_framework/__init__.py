@@ -141,7 +141,7 @@ def create_app(target=None, source=None, signature_type=None):
     os.environ["FUNCTION_SIGNATURE_TYPE"] = signature_type
 
     # Load the source file
-    spec = importlib.util.spec_from_file_location("main", source)
+    spec = importlib.util.spec_from_file_location("__main__", source)
     source_module = importlib.util.module_from_spec(spec)
     sys.path.append(os.path.dirname(os.path.realpath(source)))
     spec.loader.exec_module(source_module)
