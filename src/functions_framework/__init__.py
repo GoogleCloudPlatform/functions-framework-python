@@ -140,6 +140,14 @@ def create_app(target=None, source=None, signature_type=None):
     # Set the environment variable if it wasn't already
     os.environ["FUNCTION_SIGNATURE_TYPE"] = signature_type
 
+    # Initialize the debugger if possible
+    try:
+        import googleclouddebugger
+
+        googleclouddebugger.enable(module="[MODULE]", version="[VERSION]")
+    except ImportError:
+        pass
+
     # Load the source file:
     # 1. Extract the module name from the source path
     realpath = os.path.realpath(source)

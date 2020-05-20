@@ -52,6 +52,7 @@ setup(
         "click>=7.0,<8.0",
         "watchdog>=0.10.0",
         "gunicorn>=19.2.0,<21.0; platform_system!='Windows'",
+        "google-python-cloud-debugger>=1.0<3.0; platform_system=='Linux'",
     ],
     extras_require={"test": ["pytest", "tox"]},
     entry_points={
