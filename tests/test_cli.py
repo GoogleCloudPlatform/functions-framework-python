@@ -70,18 +70,6 @@ def test_cli_no_arguments():
             [pretend.call("0.0.0.0", 8080)],
         ),
         (
-            ["--target", "foo", "--dry-run"],
-            {},
-            [pretend.call("foo", None, "http")],
-            [],
-        ),
-        (
-            [],
-            {"FUNCTION_TARGET": "foo", "DRY_RUN": "True"},
-            [pretend.call("foo", None, "http")],
-            [],
-        ),
-        (
             ["--target", "foo", "--host", "127.0.0.1"],
             {},
             [pretend.call("foo", None, "http")],
