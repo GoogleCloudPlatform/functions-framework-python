@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
+from functools import partial
 
 import click
 
@@ -33,5 +33,5 @@ from functions_framework._http import create_server
 @click.option("--port", envvar="PORT", type=click.INT, default=8080)
 @click.option("--debug", envvar="DEBUG", is_flag=True)
 def _cli(target, source, signature_type, host, port, debug):
-    app = create_app(target, source, signature_type)
-    create_server(app, debug).run(host, port)
+    load_app = partial(create_app, target, source, signature_type)
+    create_server(load_app, debug).run(host, port)

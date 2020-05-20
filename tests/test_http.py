@@ -26,12 +26,12 @@ def test_create_server(monkeypatch, debug):
     server_stub = pretend.stub()
     httpserver = pretend.call_recorder(lambda *a, **kw: server_stub)
     monkeypatch.setattr(functions_framework._http, "HTTPServer", httpserver)
-    wsgi_app = pretend.stub()
+    load_app = pretend.stub()
     options = {"a": pretend.stub(), "b": pretend.stub()}
 
-    functions_framework._http.create_server(wsgi_app, debug, **options)
+    functions_framework._http.create_server(load_app, debug, **options)
 
-    assert httpserver.calls == [pretend.call(wsgi_app, debug, **options)]
+    assert httpserver.calls == [pretend.call(load_app, debug, **options)]
 
 
 @pytest.mark.parametrize(
@@ -44,7 +44,7 @@ def test_create_server(monkeypatch, debug):
     ],
 )
 def test_httpserver(monkeypatch, debug, gunicorn_missing, expected):
-    app = pretend.stub()
+    load_app = pretend.stub()
     http_server = pretend.stub(run=pretend.call_recorder(lambda: None))
     server_classes = {
         "flask": pretend.call_recorder(lambda *a, **kw: http_server),
@@ -64,9 +64,9 @@ def test_httpserver(monkeypatch, debug, gunicorn_missing, expected):
             gunicorn, "GunicornApplication", server_classes["gunicorn"],
         )
 
-    wrapper = functions_framework._http.HTTPServer(app, debug, **options)
+    wrapper = functions_framework._http.HTTPServer(load_app, debug, **options)
 
-    assert wrapper.app == app
+    assert wrapper.load_app == load_app
     assert wrapper.server_class == server_classes[expected]
     assert wrapper.options == options
 
@@ -76,7 +76,7 @@ def test_httpserver(monkeypatch, debug, gunicorn_missing, expected):
     wrapper.run(host, port)
 
     assert wrapper.server_class.calls == [
-        pretend.call(app, host, port, debug, **options)
+        pretend.call(load_app, host, port, debug, **options)
     ]
     assert http_server.run.calls == [pretend.call()]
 
@@ -85,6 +85,7 @@ def test_httpserver(monkeypatch, debug, gunicorn_missing, expected):
 @pytest.mark.parametrize("debug", [True, False])
 def test_gunicorn_application(debug):
     app = pretend.stub()
+    load_app = pretend.call_recorder(lambda: app)
     host = "1.2.3.4"
     port = "1234"
     options = {}
@@ -92,10 +93,10 @@ def test_gunicorn_application(debug):
     import functions_framework._http.gunicorn
 
     gunicorn_app = functions_framework._http.gunicorn.GunicornApplication(
-        app, host, port, debug, **options
+        load_app, host, port, debug, **options
     )
 
-    assert gunicorn_app.app == app
+    assert gunicorn_app.load_app == load_app
     assert gunicorn_app.options == {
         "bind": "%s:%s" % (host, port),
         "workers": 1,
@@ -108,17 +109,19 @@ def test_gunicorn_application(debug):
     assert gunicorn_app.cfg.threads == 8
     assert gunicorn_app.cfg.timeout == 0
     assert gunicorn_app.load() == app
+    assert gunicorn_app.load_app.calls == [pretend.call()]
 
 
 @pytest.mark.parametrize("debug", [True, False])
 def test_flask_application(debug):
     app = pretend.stub(run=pretend.call_recorder(lambda *a, **kw: None))
+    load_app = pretend.call_recorder(lambda: app)
     host = pretend.stub()
     port = pretend.stub()
     options = {"a": pretend.stub(), "b": pretend.stub()}
 
     flask_app = functions_framework._http.flask.FlaskApplication(
-        app, host, port, debug, **options
+        load_app, host, port, debug, **options
     )
 
     assert flask_app.app == app
@@ -126,6 +129,7 @@ def test_flask_application(debug):
     assert flask_app.port == port
     assert flask_app.debug == debug
     assert flask_app.options == options
+    assert load_app.calls == [pretend.call()]
 
     flask_app.run()
 

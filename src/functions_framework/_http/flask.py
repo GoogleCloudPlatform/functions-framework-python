@@ -14,8 +14,8 @@
 
 
 class FlaskApplication:
-    def __init__(self, app, host, port, debug, **options):
-        self.app = app
+    def __init__(self, load_app, host, port, debug, **options):
+        self.app = load_app()
         self.host = host
         self.port = port
         self.debug = debug

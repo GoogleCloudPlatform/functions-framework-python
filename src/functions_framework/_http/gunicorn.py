@@ -15,8 +15,8 @@
 import gunicorn.app.base
 
 
-class GunicornApplication(gunicorn.app.base.BaseApplication):
-    def __init__(self, app, host, port, debug, **options):
+class GunicornApplication(gunicorn.app.base.Application):
+    def __init__(self, load_app, host, port, debug, **options):
         self.options = {
             "bind": "%s:%s" % (host, port),
             "workers": 1,
@@ -24,7 +24,7 @@ class GunicornApplication(gunicorn.app.base.BaseApplication):
             "timeout": 0,
         }
         self.options.update(options)
-        self.app = app
+        self.load_app = load_app
         super().__init__()
 
     def load_config(self):
@@ -32,4 +32,6 @@ class GunicornApplication(gunicorn.app.base.BaseApplication):
             self.cfg.set(key, value)
 
     def load(self):
-        return self.app
+        # The WSGI app MUST be initalized here in order for the debugger to
+        # correctly trigger breakpoints
+        return self.load_app()
