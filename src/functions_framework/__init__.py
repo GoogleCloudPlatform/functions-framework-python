@@ -142,9 +142,12 @@ def create_app(target=None, source=None, signature_type=None):
     # Initialize the debugger if possible
     try:
         import googleclouddebugger
+        from google.auth.exceptions import DefaultCredentialsError
 
         googleclouddebugger.enable(module="[MODULE]", version="[VERSION]")
     except ImportError:
+        pass
+    except DefaultCredentialsError:
         pass
 
     # Load the source file:
