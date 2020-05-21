@@ -149,6 +149,8 @@ def create_app(target=None, source=None, signature_type=None):
         pass
     except DefaultCredentialsError:
         pass
+    except RuntimeError:
+        pass
 
     # Load the source file:
     # 1. Extract the module name from the source path
