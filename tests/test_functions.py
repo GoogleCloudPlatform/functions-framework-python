@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 import pathlib
 import re
 import time
@@ -23,8 +24,7 @@ import functions_framework
 
 from functions_framework import LazyWSGIApp, create_app, exceptions
 
-TEST_FUNCTIONS_DIR = pathlib.Path.cwd() / "tests" / "test_functions"
-
+TEST_FUNCTIONS_DIR = pathlib.Path(os.path.dirname(os.path.abspath(__file__))) / "test_functions"
 
 # Python 3.5: ModuleNotFoundError does not exist
 try:
