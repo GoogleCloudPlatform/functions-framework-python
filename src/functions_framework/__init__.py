@@ -14,6 +14,8 @@
 
 import functools
 import importlib.util
+import io
+import json
 import os.path
 import pathlib
 import sys
@@ -30,6 +32,10 @@ from functions_framework.exceptions import (
     MissingTargetException,
 )
 from google.cloud.functions.context import Context
+
+
+from cloudevents.sdk.event import v1
+from cloudevents.sdk import marshaller
 
 DEFAULT_SOURCE = os.path.realpath("./main.py")
 DEFAULT_SIGNATURE_TYPE = "http"
@@ -60,9 +66,29 @@ class _Event(object):
         self.data = data
 
 
+def _get_cloud_event_version(request):
+    headers = request.headers
+    # TODO: not 100% robust
+    if headers.get("Content-Type") == "application/cloudevents+json":
+        return v1.Event()
+
+    return None
+
+def _convert_request_to_event(request, cloud_event_def):
+    # TODO: not 100% robust
+    m = marshaller.NewDefaultHTTPMarshaller()
+    data = io.StringIO(request.get_data(as_text=True))
+    return m.FromRequest(cloud_event_def, request.headers, data, json.loads)
+
+
 def _http_view_func_wrapper(function, request):
     def view_func(path):
-        return function(request._get_current_object())
+        # How do we preserve backwards compatibility?
+        cloud_event_def = _get_cloud_event_version(request._get_current_object())
+        if cloud_event_def is None:
+            return function(request._get_current_object())
+        else:
+            return function(_convert_request_to_event(request, cloud_event_def))
 
     return view_func
 
@@ -91,14 +117,23 @@ def _event_view_func_wrapper(function, request):
             )
             function(data, context)
         else:
-            # This is a regular CloudEvent
-            event_data = request.get_json()
-            if not event_data:
-                flask.abort(400)
-            event_object = _Event(**event_data)
-            data = event_object.data
-            context = Context(**event_object.context)
-            function(data, context)
+            cloud_event_def = _get_cloud_event_version(request)
+            if cloud_event_def is None:
+                # This is a regular CloudEvent
+                event_data = request.get_json()
+                if not event_data:
+                    flask.abort(400)
+                event_object = _Event(**event_data)
+                data = event_object.data
+                context = Context(**event_object.context)
+                function(data, context)
+            else:
+                # We have a bonafide event from the SDK. Let's use it.
+                # TODO(joelgerard): Starting to become a long fn.
+                event = _convert_request_to_event(request, cloud_event_def)
+                # TODO: Fix context
+                # context = Context(**event.context)
+                function(event) #, context)
 
         return "OK"
 
