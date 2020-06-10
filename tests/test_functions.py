@@ -22,6 +22,7 @@ import pytest
 from cloudevents.sdk import marshaller
 from cloudevents.sdk.converters import structured
 from cloudevents.sdk.event import v1
+from cloudevents.sdk.event import v03
 from cloudevents.sdk import converters
 
 import functions_framework
@@ -49,13 +50,7 @@ def background_json(tmpdir):
         "data": {"filename": str(tmpdir / "filename.txt"), "value": "some-value"},
     }
 
-
-def test_event():
-    source = TEST_FUNCTIONS_DIR / "events" / "main.py"
-    target = "function"
-
-    client = create_app(target, source, "event").test_client()
-
+def _createTestEvent():
     event = (
         v1.Event()
             .SetContentType("application/json")
@@ -65,6 +60,15 @@ def test_event():
             .SetEventTime("tomorrow")
             .SetEventType("cloudevent.greet.you")
     )
+    return event
+
+def test_event_1_0():
+    source = TEST_FUNCTIONS_DIR / "events" / "main.py"
+    target = "function"
+
+    client = create_app(target, source, "event").test_client()
+    event = _createTestEvent()
+
     m = marshaller.NewDefaultHTTPMarshaller()
     structured_headers, structured_data = m.ToRequest(
         event, converters.TypeStructured, json.dumps
@@ -73,6 +77,28 @@ def test_event():
     resp = client.post("/", headers=structured_headers,
                         data=structured_data.getvalue())
     assert resp.status_code == 200
+
+    # TODO: Note this returns success not OK. Change?
+    assert resp.data == b"success"
+
+
+def test_event_0_3():
+    source = TEST_FUNCTIONS_DIR / "events" / "main.py"
+    target = "function"
+
+    client = create_app(target, source, "event").test_client()
+
+    event = _createTestEvent()
+    m = marshaller.NewDefaultHTTPMarshaller()
+    structured_headers, structured_data = m.ToRequest(
+        event, converters.TypeStructured, json.dumps
+    )
+
+    resp = client.post("/", headers=structured_headers,
+                        data=structured_data.getvalue())
+    assert resp.status_code == 200
+
+    # TODO: Note this returns success not OK. Change?
     assert resp.data == b"success"
 
 

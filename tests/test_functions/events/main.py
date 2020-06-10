@@ -27,17 +27,14 @@ def function(event):
   on the given mode.
 
   Args:
-    request: The HTTP request which triggered this function. Must contain name
-      of the requested mode in the 'mode' field in JSON document in request
-      body.
+    event: A Cloud event as defined by https://github.com/cloudevents/sdk-python.
 
   Returns:
     Value and status code defined for the given mode.
 
-  Raises:
-    Exception: Thrown when requested in the incoming mode specification.
   """
 
+    # todo(joelgerard): Should probably check some of this as well. 
     if (event.EventID() == "my-id"):
         return "success", 200
     else:
