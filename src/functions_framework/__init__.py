@@ -68,30 +68,26 @@ class _Event(object):
 
 def _get_cloud_event_version(request):
     headers = request.headers
-    # TODO: not 100% robust
+    # TODO(joelgerard): Should there be further inspection of the payload for versioning considerations?
     if headers.get("Content-Type") == "application/cloudevents+json":
         return v1.Event()
-
     return None
 
 def _convert_request_to_event(request, cloud_event_def):
-    # TODO: not 100% robust
-    m = marshaller.NewDefaultHTTPMarshaller()
-    data = io.StringIO(request.get_data(as_text=True))
-    return m.FromRequest(cloud_event_def, request.headers, data, json.loads)
+    try:
+        m = marshaller.NewDefaultHTTPMarshaller()
+        data = io.StringIO(request.get_data(as_text=True))
+        return m.FromRequest(cloud_event_def, request.headers, data, json.loads)
+    except:
+        raise FunctionsFrameworkException("Content-Type header indicated a Cloud Event, "
+                                          "but it could not be parsed.")
 
 
 def _http_view_func_wrapper(function, request):
     def view_func(path):
-        # How do we preserve backwards compatibility?
-        cloud_event_def = _get_cloud_event_version(request._get_current_object())
-        if cloud_event_def is None:
-            return function(request._get_current_object())
-        else:
-            return function(_convert_request_to_event(request, cloud_event_def))
+        return function(request._get_current_object())
 
     return view_func
-
 
 def _is_binary_cloud_event(request):
     return (
@@ -102,38 +98,47 @@ def _is_binary_cloud_event(request):
     )
 
 
+# TODO(joelgerard): is this really legacy as I have stated?
+def _run_binary_legacy_cloud_event(function, request):
+    # Support CloudEvents in binary content mode, with data being the
+    # whole request body and context attributes retrieved from request
+    # headers.
+    data = request.get_data()
+    context = Context(
+        eventId=request.headers.get("ce-eventId"),
+        timestamp=request.headers.get("ce-timestamp"),
+        eventType=request.headers.get("ce-eventType"),
+        resource=request.headers.get("ce-resource"),
+    )
+    function(data, context)
+
+def _run_legacy_event(function, request):
+    # This is a regular CloudEvent
+    event_data = request.get_json()
+    if not event_data:
+        flask.abort(400)
+    event_object = _Event(**event_data)
+    data = event_object.data
+    context = Context(**event_object.context)
+    function(data, context)
+
+def _run_cloud_event(function, request, cloud_event_def):
+    event = _convert_request_to_event(request, cloud_event_def)
+    function(event)
+
 def _event_view_func_wrapper(function, request):
     def view_func(path):
         if _is_binary_cloud_event(request):
-            # Support CloudEvents in binary content mode, with data being the
-            # whole request body and context attributes retrieved from request
-            # headers.
-            data = request.get_data()
-            context = Context(
-                eventId=request.headers.get("ce-eventId"),
-                timestamp=request.headers.get("ce-timestamp"),
-                eventType=request.headers.get("ce-eventType"),
-                resource=request.headers.get("ce-resource"),
-            )
-            function(data, context)
+            _run_binary_legacy_cloud_event(function, request)
         else:
             cloud_event_def = _get_cloud_event_version(request)
             if cloud_event_def is None:
-                # This is a regular CloudEvent
-                event_data = request.get_json()
-                if not event_data:
-                    flask.abort(400)
-                event_object = _Event(**event_data)
-                data = event_object.data
-                context = Context(**event_object.context)
-                function(data, context)
+                _run_legacy_event(function, request)
             else:
-                # We have a bonafide event from the SDK. Let's use it.
-                # TODO(joelgerard): Starting to become a long fn.
-                event = _convert_request_to_event(request, cloud_event_def)
-                # TODO: Fix context
-                # context = Context(**event.context)
-                function(event) #, context)
+                # We have a bonafide event from the Cloud Event SDK. Let's use it.
+                # TODO(joelgerard): Note that I return the function value. This seems better
+                # going forward rather than returning "OK". ??
+                _run_cloud_event(function, request, cloud_event_def)
 
         return "OK"
 
