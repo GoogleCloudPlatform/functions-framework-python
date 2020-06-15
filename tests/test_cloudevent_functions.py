@@ -16,6 +16,7 @@ import pathlib
 import pytest
 from cloudevents.sdk import marshaller
 from cloudevents.sdk.event import v1
+from cloudevents.sdk.event import v03
 from cloudevents.sdk import converters
 
 from functions_framework import LazyWSGIApp, create_app, exceptions
@@ -46,7 +47,7 @@ def event_1_10():
 @pytest.fixture
 def event_0_3():
     event = (
-        v1.Event()
+        v03.Event()
             .SetContentType("application/json")
             .SetData('{"name":"john"}')
             .SetEventID("my-id")
@@ -58,10 +59,10 @@ def event_0_3():
 
 
 def test_event_1_0(event_1_10):
-    source = TEST_FUNCTIONS_DIR / "events" / "main.py"
+    source = TEST_FUNCTIONS_DIR / "cloudevents" / "main.py"
     target = "function"
 
-    client = create_app(target, source, "event").test_client()
+    client = create_app(target, source, "cloudevent").test_client()
 
     m = marshaller.NewDefaultHTTPMarshaller()
     structured_headers, structured_data = m.ToRequest(
@@ -73,13 +74,29 @@ def test_event_1_0(event_1_10):
     assert resp.status_code == 200
     assert resp.data == b"OK"
 
+def test_binary_event_1_0(event_1_10):
+    source = TEST_FUNCTIONS_DIR / "cloudevents" / "main.py"
+    target = "function"
+
+    client = create_app(target, source, "cloudevent").test_client()
+
+    m = marshaller.NewDefaultHTTPMarshaller()
+
+    binary_headers, binary_data = m.ToRequest(
+        event_1_10, converters.TypeBinary, json.dumps)
+
+    resp = client.post(
+        "/", headers=binary_headers, data=binary_data)
+
+    assert resp.status_code == 200
+    assert resp.data == b"OK"
 
 
 def test_event_0_3(event_0_3):
-    source = TEST_FUNCTIONS_DIR / "events" / "main.py"
+    source = TEST_FUNCTIONS_DIR / "cloudevents" / "main.py"
     target = "function"
 
-    client = create_app(target, source, "event").test_client()
+    client = create_app(target, source, "cloudevent").test_client()
 
     m = marshaller.NewDefaultHTTPMarshaller()
     structured_headers, structured_data = m.ToRequest(
