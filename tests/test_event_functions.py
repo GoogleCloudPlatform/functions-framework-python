@@ -39,8 +39,6 @@ def background_json(tmpdir):
     }
 
 
-
-
 def test_background_function_executes(background_json):
     source = TEST_FUNCTIONS_DIR / "background_trigger" / "main.py"
     target = "function"
@@ -122,9 +120,6 @@ def test_background_function_no_data(background_json):
     assert resp.status_code == 400
 
 
-
-
-
 def test_invalid_function_definition_multiple_entry_points():
     source = TEST_FUNCTIONS_DIR / "background_multiple_entry_points" / "main.py"
     target = "function"
@@ -187,4 +182,3 @@ def test_invalid_function_definition_missing_dependency():
         create_app(target, source, "event")
 
     assert "No module named 'nonexistentpackage'" in str(excinfo.value)
-

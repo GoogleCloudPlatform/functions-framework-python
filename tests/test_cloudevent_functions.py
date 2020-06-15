@@ -34,12 +34,12 @@ except:
 def event_1_10():
     event = (
         v1.Event()
-            .SetContentType("application/json")
-            .SetData('{"name":"john"}')
-            .SetEventID("my-id")
-            .SetSource("from-galaxy-far-far-away")
-            .SetEventTime("tomorrow")
-            .SetEventType("cloudevent.greet.you")
+        .SetContentType("application/json")
+        .SetData('{"name":"john"}')
+        .SetEventID("my-id")
+        .SetSource("from-galaxy-far-far-away")
+        .SetEventTime("tomorrow")
+        .SetEventType("cloudevent.greet.you")
     )
     return event
 
@@ -48,12 +48,12 @@ def event_1_10():
 def event_0_3():
     event = (
         v03.Event()
-            .SetContentType("application/json")
-            .SetData('{"name":"john"}')
-            .SetEventID("my-id")
-            .SetSource("from-galaxy-far-far-away")
-            .SetEventTime("tomorrow")
-            .SetEventType("cloudevent.greet.you")
+        .SetContentType("application/json")
+        .SetData('{"name":"john"}')
+        .SetEventID("my-id")
+        .SetSource("from-galaxy-far-far-away")
+        .SetEventTime("tomorrow")
+        .SetEventType("cloudevent.greet.you")
     )
     return event
 
@@ -69,10 +69,10 @@ def test_event_1_0(event_1_10):
         event_1_10, converters.TypeStructured, json.dumps
     )
 
-    resp = client.post("/", headers=structured_headers,
-                        data=structured_data.getvalue())
+    resp = client.post("/", headers=structured_headers, data=structured_data.getvalue())
     assert resp.status_code == 200
     assert resp.data == b"OK"
+
 
 def test_binary_event_1_0(event_1_10):
     source = TEST_FUNCTIONS_DIR / "cloudevents" / "main.py"
@@ -83,10 +83,10 @@ def test_binary_event_1_0(event_1_10):
     m = marshaller.NewDefaultHTTPMarshaller()
 
     binary_headers, binary_data = m.ToRequest(
-        event_1_10, converters.TypeBinary, json.dumps)
+        event_1_10, converters.TypeBinary, json.dumps
+    )
 
-    resp = client.post(
-        "/", headers=binary_headers, data=binary_data)
+    resp = client.post("/", headers=binary_headers, data=binary_data)
 
     assert resp.status_code == 200
     assert resp.data == b"OK"
@@ -103,7 +103,6 @@ def test_event_0_3(event_0_3):
         event_0_3, converters.TypeStructured, json.dumps
     )
 
-    resp = client.post("/", headers=structured_headers,
-                        data=structured_data.getvalue())
+    resp = client.post("/", headers=structured_headers, data=structured_data.getvalue())
     assert resp.status_code == 200
     assert resp.data == b"OK"

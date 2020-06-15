@@ -27,11 +27,13 @@ def function(cloud_event):
     HTTP status code indicating whether valid event was sent or not.
 
   """
-    valid_event = cloud_event.EventID() == "my-id" and \
-                  cloud_event.Data() == '{"name":"john"}' and \
-                  cloud_event.Source() == "from-galaxy-far-far-away" and \
-                  cloud_event.EventTime() == "tomorrow" and \
-                  cloud_event.EventType() == "cloudevent.greet.you"
+    valid_event = (
+        cloud_event.EventID() == "my-id"
+        and cloud_event.Data() == '{"name":"john"}'
+        and cloud_event.Source() == "from-galaxy-far-far-away"
+        and cloud_event.EventTime() == "tomorrow"
+        and cloud_event.EventType() == "cloudevent.greet.you"
+    )
 
     if valid_event:
         return 200

@@ -42,6 +42,7 @@ def background_json(tmpdir):
         "data": {"filename": str(tmpdir / "filename.txt"), "value": "some-value"},
     }
 
+
 def test_http_function_executes_success():
     source = TEST_FUNCTIONS_DIR / "http_trigger" / "main.py"
     target = "function"
@@ -165,9 +166,6 @@ def test_http_function_execution_time():
     assert resp.data == b"OK"
 
 
-
-
-
 def test_invalid_function_definition_missing_function_file():
     source = TEST_FUNCTIONS_DIR / "missing_function_file" / "main.py"
     target = "functions"
@@ -178,8 +176,6 @@ def test_invalid_function_definition_missing_function_file():
     assert re.match(
         "File .* that is expected to define function doesn't exist", str(excinfo.value)
     )
-
-
 
 
 def test_invalid_configuration():
