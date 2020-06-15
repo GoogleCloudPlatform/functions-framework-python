@@ -40,6 +40,7 @@ from cloudevents.sdk import marshaller
 DEFAULT_SOURCE = os.path.realpath("./main.py")
 DEFAULT_SIGNATURE_TYPE = "http"
 
+
 class _EventType(Enum):
     LEGACY = 1
     CLOUD_EVENT_BINARY = 2
@@ -70,6 +71,7 @@ class _Event(object):
             }
         self.data = data
 
+
 def _http_view_func_wrapper(function, request):
     def view_func(path):
         return function(request._get_current_object())
@@ -95,7 +97,8 @@ def _run_binary_cloud_event(function, request, cloud_event_def):
     data = io.BytesIO(request.get_data())
     http_marshaller = marshaller.NewDefaultHTTPMarshaller()
     event = http_marshaller.FromRequest(
-        cloud_event_def, request.headers, data, json.load)
+        cloud_event_def, request.headers, data, json.load
+    )
 
     function(event)
 
@@ -108,10 +111,12 @@ def _run_text_cloud_event(function, request, cloud_event_def):
 
 
 def _get_event_type(request):
-    if request.headers.get("ce-type") \
-            and request.headers.get("ce-specversion") \
-            and request.headers.get("ce-source") \
-            and request.headers.get("ce-id"):
+    if (
+        request.headers.get("ce-type")
+        and request.headers.get("ce-specversion")
+        and request.headers.get("ce-source")
+        and request.headers.get("ce-id")
+    ):
         return _EventType.CLOUD_EVENT_BINARY
     elif request.headers.get("Content-Type") == "application/cloudevents+json":
         return _EventType.CLOUD_EVENT_TEXT
@@ -125,10 +130,11 @@ def _event_view_func_wrapper(function, request):
             _run_legacy_event(function, request)
         else:
             # here for defensive backwards compatibility in case we make a mistake in rollout.
-            raise InvalidConfigurationException("The FUNCTION_SIGNATURE_TYPE for this function is set to event "
-                                                "but no legacy event was given. If you are using CloudEvents set "
-                                                "FUNCTION_SIGNATURE_TYPE=cloudevent")
-
+            raise InvalidConfigurationException(
+                "The FUNCTION_SIGNATURE_TYPE for this function is set to event "
+                "but no legacy event was given. If you are using CloudEvents set "
+                "FUNCTION_SIGNATURE_TYPE=cloudevent"
+            )
 
         return "OK"
 
@@ -144,12 +150,15 @@ def _cloudevent_view_func_wrapper(function, request):
         elif event_type == _EventType.CLOUD_EVENT_BINARY:
             _run_binary_cloud_event(function, request, cloud_event_def)
         else:
-            raise InvalidConfigurationException("Function was defined with FUNCTION_SIGNATURE_TYPE=cloudevent "
-                                                " but it did not receive a cloudevent as a request.")
+            raise InvalidConfigurationException(
+                "Function was defined with FUNCTION_SIGNATURE_TYPE=cloudevent "
+                " but it did not receive a cloudevent as a request."
+            )
 
         return "OK"
 
     return view_func
+
 
 def _setup_event_routes(app):
     app.url_map.add(
@@ -164,6 +173,7 @@ def _setup_event_routes(app):
     # Add a dummy endpoint for GET /
     app.url_map.add(werkzeug.routing.Rule("/", endpoint="get", methods=["GET"]))
     app.view_functions["get"] = lambda: ""
+
 
 def create_app(target=None, source=None, signature_type=None):
     # Get the configured function target
@@ -244,7 +254,9 @@ def create_app(target=None, source=None, signature_type=None):
         app.view_functions["run"] = _event_view_func_wrapper(function, flask.request)
     elif signature_type == "cloudevent":
         _setup_event_routes(app)
-        app.view_functions["run"] = _cloudevent_view_func_wrapper(function, flask.request)
+        app.view_functions["run"] = _cloudevent_view_func_wrapper(
+            function, flask.request
+        )
     else:
         raise FunctionsFrameworkException(
             "Invalid signature type: {signature_type}".format(
