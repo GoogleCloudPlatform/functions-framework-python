@@ -16,7 +16,7 @@
 # https://github.com/cloudevents/sdk-python
 import sys
 
+
 def hello(cloud_event):
     print("Received event with ID: %s" % cloud_event.EventID(), file=sys.stdout, flush=True)
     return 200
-

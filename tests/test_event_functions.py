@@ -14,10 +14,11 @@
 import json
 import pathlib
 import re
-import pytest
+
 import cloudevents.sdk
 import cloudevents.sdk.event.v1
 import cloudevents.sdk.marshaller
+import pytest
 
 from functions_framework import LazyWSGIApp, create_app, exceptions
 

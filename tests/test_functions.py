@@ -17,6 +17,7 @@ import time
 
 import pretend
 import pytest
+
 import functions_framework
 
 from functions_framework import LazyWSGIApp, create_app, exceptions
