@@ -15,7 +15,9 @@ import json
 import pathlib
 import pytest
 import cloudevents.sdk
-import cloudevents.sdk.event
+import cloudevents.sdk.event.v1
+import cloudevents.sdk.event.v03
+import cloudevents.sdk.marshaller
 
 from functions_framework import LazyWSGIApp, create_app, exceptions
 
@@ -31,7 +33,7 @@ except:
 @pytest.fixture
 def event_1_10():
     event = (
-        v1.Event()
+        cloudevents.sdk.event.v1.Event()
         .SetContentType("application/json")
         .SetData('{"name":"john"}')
         .SetEventID("my-id")
@@ -45,7 +47,7 @@ def event_1_10():
 @pytest.fixture
 def event_0_3():
     event = (
-        v03.Event()
+        cloudevents.sdk.event.v03.Event()
         .SetContentType("application/json")
         .SetData('{"name":"john"}')
         .SetEventID("my-id")
@@ -62,9 +64,9 @@ def test_event_1_0(event_1_10):
 
     client = create_app(target, source, "cloudevent").test_client()
 
-    m = marshaller.NewDefaultHTTPMarshaller()
+    m = cloudevents.sdk.marshaller.NewDefaultHTTPMarshaller()
     structured_headers, structured_data = m.ToRequest(
-        event_1_10, converters.TypeStructured, json.dumps
+        event_1_10, cloudevents.sdk.converters.TypeStructured, json.dumps
     )
 
     resp = client.post("/", headers=structured_headers, data=structured_data.getvalue())
@@ -81,7 +83,7 @@ def test_binary_event_1_0(event_1_10):
     m = cloudevents.sdk.marshaller.NewDefaultHTTPMarshaller()
 
     binary_headers, binary_data = m.ToRequest(
-        event_1_10, converters.TypeBinary, json.dumps
+        event_1_10, cloudevents.sdk.converters.TypeBinary, json.dumps
     )
 
     resp = client.post("/", headers=binary_headers, data=binary_data)
@@ -96,9 +98,9 @@ def test_event_0_3(event_0_3):
 
     client = create_app(target, source, "cloudevent").test_client()
 
-    m = marshaller.NewDefaultHTTPMarshaller()
+    m = cloudevents.sdk.marshaller.NewDefaultHTTPMarshaller()
     structured_headers, structured_data = m.ToRequest(
-        event_0_3, converters.TypeStructured, json.dumps
+        event_0_3, cloudevents.sdk.converters.TypeStructured, json.dumps
     )
 
     resp = client.post("/", headers=structured_headers, data=structured_data.getvalue())

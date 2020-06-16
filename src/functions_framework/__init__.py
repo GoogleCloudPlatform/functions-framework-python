@@ -34,8 +34,8 @@ from functions_framework.exceptions import (
 from google.cloud.functions.context import Context
 
 
-from cloudevents.sdk.event import v1
-from cloudevents.sdk import marshaller
+import cloudevents.sdk.event
+import cloudevents.sdk
 
 DEFAULT_SOURCE = os.path.realpath("./main.py")
 DEFAULT_SIGNATURE_TYPE = "http"
@@ -80,7 +80,7 @@ def _http_view_func_wrapper(function, request):
 
 
 def _get_cloud_event_version():
-    return v1.Event()
+    return cloudevents.sdk .event.v1.Event()
 
 
 def _run_legacy_event(function, request):
@@ -95,7 +95,7 @@ def _run_legacy_event(function, request):
 
 def _run_binary_cloud_event(function, request, cloud_event_def):
     data = io.BytesIO(request.get_data())
-    http_marshaller = marshaller.NewDefaultHTTPMarshaller()
+    http_marshaller = cloudevents.sdk .marshaller.NewDefaultHTTPMarshaller()
     event = http_marshaller.FromRequest(
         cloud_event_def, request.headers, data, json.load
     )
@@ -105,7 +105,7 @@ def _run_binary_cloud_event(function, request, cloud_event_def):
 
 def _run_text_cloud_event(function, request, cloud_event_def):
     data = io.StringIO(request.get_data(as_text=True))
-    m = cloudevent.sdk.marshaller.NewDefaultHTTPMarshaller()
+    m = cloudevents.sdk.marshaller.NewDefaultHTTPMarshaller()
     event = m.FromRequest(cloud_event_def, request.headers, data, json.loads)
     function(event)
 
