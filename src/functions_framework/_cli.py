@@ -26,7 +26,7 @@ from functions_framework._http import create_server
 @click.option(
     "--signature-type",
     envvar="FUNCTION_SIGNATURE_TYPE",
-    type=click.Choice(["http", "event"]),
+    type=click.Choice(["http", "event","cloudevent"]),
     default="http",
 )
 @click.option("--host", envvar="HOST", type=click.STRING, default="0.0.0.0")
