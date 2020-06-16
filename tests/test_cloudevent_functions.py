@@ -14,10 +14,8 @@
 import json
 import pathlib
 import pytest
-from cloudevents.sdk import marshaller
-from cloudevents.sdk.event import v1
-from cloudevents.sdk.event import v03
-from cloudevents.sdk import converters
+import cloudevents.sdk
+import cloudevents.sdk.event
 
 from functions_framework import LazyWSGIApp, create_app, exceptions
 
