@@ -78,7 +78,7 @@ def test_binary_event_1_0(event_1_10):
 
     client = create_app(target, source, "cloudevent").test_client()
 
-    m = marshaller.NewDefaultHTTPMarshaller()
+    m = cloudevents.sdk.marshaller.NewDefaultHTTPMarshaller()
 
     binary_headers, binary_data = m.ToRequest(
         event_1_10, converters.TypeBinary, json.dumps
