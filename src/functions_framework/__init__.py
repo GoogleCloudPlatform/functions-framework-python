@@ -80,7 +80,7 @@ def _http_view_func_wrapper(function, request):
 
 
 def _get_cloud_event_version():
-    return cloudevents.sdk .event.v1.Event()
+    return cloudevents.sdk.event.v1.Event()
 
 
 def _run_legacy_event(function, request):
@@ -95,7 +95,7 @@ def _run_legacy_event(function, request):
 
 def _run_binary_cloud_event(function, request, cloud_event_def):
     data = io.BytesIO(request.get_data())
-    http_marshaller = cloudevents.sdk .marshaller.NewDefaultHTTPMarshaller()
+    http_marshaller = cloudevents.sdk.marshaller.NewDefaultHTTPMarshaller()
     event = http_marshaller.FromRequest(
         cloud_event_def, request.headers, data, json.load
     )
@@ -158,21 +158,6 @@ def _cloudevent_view_func_wrapper(function, request):
         return "OK"
 
     return view_func
-
-
-def _setup_event_routes(app):
-    app.url_map.add(
-        werkzeug.routing.Rule(
-            "/", defaults={"path": ""}, endpoint="run", methods=["POST"]
-        )
-    )
-    app.url_map.add(
-        werkzeug.routing.Rule("/<path:path>", endpoint="run", methods=["POST"])
-    )
-
-    # Add a dummy endpoint for GET /
-    app.url_map.add(werkzeug.routing.Rule("/", endpoint="get", methods=["GET"]))
-    app.view_functions["get"] = lambda: ""
 
 
 def create_app(target=None, source=None, signature_type=None):
@@ -249,12 +234,25 @@ def create_app(target=None, source=None, signature_type=None):
         app.url_map.add(werkzeug.routing.Rule("/<path:path>", endpoint="run"))
         app.view_functions["run"] = _http_view_func_wrapper(function, flask.request)
         app.view_functions["error"] = lambda: flask.abort(404, description="Not Found")
-    elif signature_type == "event":
-        _setup_event_routes(app)
-        app.view_functions["run"] = _event_view_func_wrapper(function, flask.request)
-    elif signature_type == "cloudevent":
-        _setup_event_routes(app)
-        app.view_functions["run"] = _cloudevent_view_func_wrapper(
+    elif signature_type == "event" or signature_type == "cloudevent":
+        app.url_map.add(
+            werkzeug.routing.Rule(
+                "/", defaults={"path": ""}, endpoint=signature_type, methods=["POST"]
+            )
+        )
+        app.url_map.add(
+            werkzeug.routing.Rule(
+                "/<path:path>", endpoint=signature_type, methods=["POST"]
+            )
+        )
+
+        # Add a dummy endpoint for GET /
+        app.url_map.add(werkzeug.routing.Rule("/", endpoint="get", methods=["GET"]))
+        app.view_functions["get"] = lambda: ""
+
+        # Add the view functions
+        app.view_functions["event"] = _event_view_func_wrapper(function, flask.request)
+        app.view_functions["cloudevent"] = _cloudevent_view_func_wrapper(
             function, flask.request
         )
     else:
