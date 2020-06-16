@@ -11,9 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import json
 import pathlib
 import re
 import pytest
+import cloudevents.sdk
+import cloudevents.sdk.event.v1
+import cloudevents.sdk.marshaller
 
 from functions_framework import LazyWSGIApp, create_app, exceptions
 
@@ -37,6 +41,30 @@ def background_json(tmpdir):
         },
         "data": {"filename": str(tmpdir / "filename.txt"), "value": "some-value"},
     }
+
+
+def test_non_legacy_event_fails():
+    cloud_event = (
+        cloudevents.sdk.event.v1.Event()
+        .SetContentType("application/json")
+        .SetData('{"name":"john"}')
+        .SetEventID("my-id")
+        .SetSource("from-galaxy-far-far-away")
+        .SetEventTime("tomorrow")
+        .SetEventType("cloudevent.greet.you")
+    )
+    m = cloudevents.sdk.marshaller.NewDefaultHTTPMarshaller()
+    structured_headers, structured_data = m.ToRequest(
+        cloud_event, cloudevents.sdk.converters.TypeStructured, json.dumps
+    )
+
+    source = TEST_FUNCTIONS_DIR / "background_trigger" / "main.py"
+    target = "function"
+
+    client = create_app(target, source, "event").test_client()
+    resp = client.post("/", headers=structured_headers, data=structured_data.getvalue())
+    assert resp.status_code == 400
+    assert resp.data != b"OK"
 
 
 def test_background_function_executes(background_json):

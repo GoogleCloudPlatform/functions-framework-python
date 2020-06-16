@@ -106,3 +106,14 @@ def test_event_0_3(event_0_3):
     resp = client.post("/", headers=structured_headers, data=structured_data.getvalue())
     assert resp.status_code == 200
     assert resp.data == b"OK"
+
+
+def test_non_cloud_event_():
+    source = TEST_FUNCTIONS_DIR / "cloudevents" / "main.py"
+    target = "function"
+
+    client = create_app(target, source, "cloudevent").test_client()
+
+    resp = client.post("/", json="{not_event}")
+    assert resp.status_code == 400
+    assert resp.data != b"OK"
