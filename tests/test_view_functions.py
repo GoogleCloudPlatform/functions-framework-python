@@ -89,6 +89,7 @@ def test_legacy_event_view_func_wrapper(monkeypatch):
         )
     ]
 
+
 # TODO(#57): This test needs to be updated or moved to integration tests once the
 # event adapter is working.
 # def test_binary_event_view_func_wrapper(monkeypatch):
