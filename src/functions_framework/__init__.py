@@ -33,9 +33,10 @@ from functions_framework.exceptions import (
 )
 from google.cloud.functions.context import Context
 
-
-import cloudevents.sdk.event
 import cloudevents.sdk
+import cloudevents.sdk.event
+import cloudevents.sdk.event.v1
+import cloudevents.sdk.marshaller
 
 DEFAULT_SOURCE = os.path.realpath("./main.py")
 DEFAULT_SIGNATURE_TYPE = "http"
