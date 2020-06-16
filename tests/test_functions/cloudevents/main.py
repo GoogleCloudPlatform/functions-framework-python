@@ -15,7 +15,7 @@
 """Function used to test handling Cloud Event functions."""
 
 
-def function(cloud_event):
+def function(cloudevent):
     """Test Event function that checks to see if a valid CloudEvent was sent.
 
   The function returns 200 if it received the expected event, otherwise 500.
