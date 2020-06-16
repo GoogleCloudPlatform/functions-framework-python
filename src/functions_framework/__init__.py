@@ -105,7 +105,7 @@ def _run_binary_cloud_event(function, request, cloud_event_def):
 
 def _run_text_cloud_event(function, request, cloud_event_def):
     data = io.StringIO(request.get_data(as_text=True))
-    m = marshaller.NewDefaultHTTPMarshaller()
+    m = cloudevent.sdk.marshaller.NewDefaultHTTPMarshaller()
     event = m.FromRequest(cloud_event_def, request.headers, data, json.loads)
     function(event)
 
