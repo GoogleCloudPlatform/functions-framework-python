@@ -15,24 +15,24 @@
 """Function used to test handling Cloud Event functions."""
 
 
-def function(cloud_event):
+def function(cloudevent):
     """Test Event function that checks to see if a valid CloudEvent was sent.
 
   The function returns 200 if it received the expected event, otherwise 500.
 
   Args:
-    cloud_event: A Cloud event as defined by https://github.com/cloudevents/sdk-python.
+    cloudevent: A Cloud event as defined by https://github.com/cloudevents/sdk-python.
 
   Returns:
     HTTP status code indicating whether valid event was sent or not.
 
   """
     valid_event = (
-        cloud_event.EventID() == "my-id"
-        and cloud_event.Data() == '{"name":"john"}'
-        and cloud_event.Source() == "from-galaxy-far-far-away"
-        and cloud_event.EventTime() == "tomorrow"
-        and cloud_event.EventType() == "cloudevent.greet.you"
+        cloudevent.EventID() == "my-id"
+        and cloudevent.Data() == '{"name":"john"}'
+        and cloudevent.Source() == "from-galaxy-far-far-away"
+        and cloudevent.EventTime() == "tomorrow"
+        and cloudevent.EventType() == "cloudevent.greet.you"
     )
 
     if valid_event:

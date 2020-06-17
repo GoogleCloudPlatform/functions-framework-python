@@ -109,7 +109,7 @@ def test_event_0_3(event_0_3):
     assert resp.data == b"OK"
 
 
-def test_non_cloud_event_():
+def test_non_cloudevent_():
     source = TEST_FUNCTIONS_DIR / "cloudevents" / "main.py"
     target = "function"
 

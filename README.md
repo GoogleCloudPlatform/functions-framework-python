@@ -140,8 +140,8 @@ In this case, you can create a function that accepts a single argument, `event`,
 
 
 ```python
-def hello(cloud_event):
-    print("Received event with ID: %s" % cloud_event.EventID())
+def hello(cloudevent):
+    print("Received event with ID: %s" % cloudevent.EventID())
     return 200
 ```
 

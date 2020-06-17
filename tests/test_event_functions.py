@@ -45,7 +45,7 @@ def background_json(tmpdir):
 
 
 def test_non_legacy_event_fails():
-    cloud_event = (
+    cloudevent = (
         cloudevents.sdk.event.v1.Event()
         .SetContentType("application/json")
         .SetData('{"name":"john"}')
@@ -56,7 +56,7 @@ def test_non_legacy_event_fails():
     )
     m = cloudevents.sdk.marshaller.NewDefaultHTTPMarshaller()
     structured_headers, structured_data = m.ToRequest(
-        cloud_event, cloudevents.sdk.converters.TypeStructured, json.dumps
+        cloudevent, cloudevents.sdk.converters.TypeStructured, json.dumps
     )
 
     source = TEST_FUNCTIONS_DIR / "background_trigger" / "main.py"

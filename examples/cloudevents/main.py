@@ -17,6 +17,6 @@
 import sys
 
 
-def hello(cloud_event):
-    print("Received event with ID: %s" % cloud_event.EventID(), file=sys.stdout, flush=True)
+def hello(cloudevent):
+    print("Received event with ID: %s" % cloudevent.EventID(), file=sys.stdout, flush=True)
     return 200
