@@ -1,2 +1,3 @@
-# Events Example (legacy)
-This example demonstrates how to write an event function. This will be retired in favor of Cloud Events. Please see [this example](../cloudevents). 
+# Google Cloud Functions Events Example
+This example demonstrates how to write an event function. Note that you can also use [CloudEvents](https://github.com/cloudevents/sdk-python)
+([example](../cloudevents)), which is a different construct. 

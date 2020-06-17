@@ -134,7 +134,7 @@ def _event_view_func_wrapper(function, request):
             flask.abort(
                 400,
                 description="The FUNCTION_SIGNATURE_TYPE for this function is set to event "
-                "but no legacy event was given. If you are using CloudEvents set "
+                "but no Google Cloud Functions Event was given. If you are using CloudEvents set "
                 "FUNCTION_SIGNATURE_TYPE=cloudevent",
             )
 
