@@ -8,7 +8,7 @@ Build the Docker image:
 docker build --tag ff_example .
 ```
 
-Run the image and bind the correct ports.
+Run the image and bind the correct ports:
 
 ```commandline
 docker run -p:8080:8080 ff_example
