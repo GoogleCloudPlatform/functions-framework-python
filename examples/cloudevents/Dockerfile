@@ -7,8 +7,6 @@ ENV APP_HOME /app
 WORKDIR $APP_HOME
 COPY . .
 
-RUN apt-get update && apt-get install -y git
-
 # Install production dependencies.
 RUN pip install gunicorn cloudevents functions-framework
 RUN pip install -r requirements.txt
