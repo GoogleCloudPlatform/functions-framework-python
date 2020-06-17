@@ -13,6 +13,7 @@
 # limitations under the License.
 
 """Function used to test handling Cloud Event functions."""
+import flask
 
 
 def function(cloudevent):
@@ -35,7 +36,5 @@ def function(cloudevent):
         and cloudevent.EventType() == "cloudevent.greet.you"
     )
 
-    if valid_event:
-        return 200
-    else:
-        return 500
+    if not valid_event:
+        flask.abort(500)

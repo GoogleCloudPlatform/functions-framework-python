@@ -131,9 +131,9 @@ def _event_view_func_wrapper(function, request):
             _run_legacy_event(function, request)
         else:
             # here for defensive backwards compatibility in case we make a mistake in rollout.
-            werkzeug.exceptions.abort(
+            flask.abort(
                 400,
-                "The FUNCTION_SIGNATURE_TYPE for this function is set to event "
+                description="The FUNCTION_SIGNATURE_TYPE for this function is set to event "
                 "but no legacy event was given. If you are using CloudEvents set "
                 "FUNCTION_SIGNATURE_TYPE=cloudevent",
             )
@@ -152,9 +152,9 @@ def _cloudevent_view_func_wrapper(function, request):
         elif event_type == _EventType.CLOUDEVENT_BINARY:
             _run_binary_cloudevent(function, request, cloudevent_def)
         else:
-            werkzeug.exceptions.abort(
+            flask.abort(
                 400,
-                "Function was defined with FUNCTION_SIGNATURE_TYPE=cloudevent "
+                description="Function was defined with FUNCTION_SIGNATURE_TYPE=cloudevent "
                 " but it did not receive a cloudevent as a request.",
             )
 
