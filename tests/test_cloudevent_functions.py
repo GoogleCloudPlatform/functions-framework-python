@@ -32,7 +32,7 @@ except:
 
 
 @pytest.fixture
-def event_1_10():
+def event_1_0():
     event = (
         cloudevents.sdk.event.v1.Event()
         .SetContentType("application/json")
@@ -59,7 +59,7 @@ def event_0_3():
     return event
 
 
-def test_event_1_0(event_1_10):
+def test_event_1_0(event_1_0):
     source = TEST_FUNCTIONS_DIR / "cloudevents" / "main.py"
     target = "function"
 
@@ -67,7 +67,7 @@ def test_event_1_0(event_1_10):
 
     m = cloudevents.sdk.marshaller.NewDefaultHTTPMarshaller()
     structured_headers, structured_data = m.ToRequest(
-        event_1_10, cloudevents.sdk.converters.TypeStructured, json.dumps
+        event_1_0, cloudevents.sdk.converters.TypeStructured, json.dumps
     )
 
     resp = client.post("/", headers=structured_headers, data=structured_data.getvalue())
@@ -75,7 +75,7 @@ def test_event_1_0(event_1_10):
     assert resp.data == b"OK"
 
 
-def test_binary_event_1_0(event_1_10):
+def test_binary_event_1_0(event_1_0):
     source = TEST_FUNCTIONS_DIR / "cloudevents" / "main.py"
     target = "function"
 
@@ -84,7 +84,7 @@ def test_binary_event_1_0(event_1_10):
     m = cloudevents.sdk.marshaller.NewDefaultHTTPMarshaller()
 
     binary_headers, binary_data = m.ToRequest(
-        event_1_10, cloudevents.sdk.converters.TypeBinary, json.dumps
+        event_1_0, cloudevents.sdk.converters.TypeBinary, json.dumps
     )
 
     resp = client.post("/", headers=binary_headers, data=binary_data)
