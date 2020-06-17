@@ -14,7 +14,7 @@ Run the image and bind the correct ports.
 docker run -p:8080:8080 ff_example
 ```
 
-Send an event to the container.
+Send an event to the container:
 
 ```python
 from cloudevents.sdk import converters
