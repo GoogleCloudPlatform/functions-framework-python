@@ -1,7 +1,8 @@
-# Python Functions Frameworks Cloud Event Sample
-This sample uses the [Cloud Events SDK](https://github.com/cloudevents/sdk-python) to receive an event.
+# Deploying a CloudEvent function to Cloud Run with the Functions Framework
+This sample uses the [Cloud Events SDK](https://github.com/cloudevents/sdk-python) to send and receive a CloudEvent on Cloud Run.
+
 ## How to run this locally
-Build the docker image.
+Build the Docker image:
 
 ```commandline
 docker build --tag ff_example .
