@@ -6,19 +6,23 @@ import docker
 import pytest
 import requests
 
-SAMPLES_DIR = pathlib.Path(__file__).resolve().parent.parent / "examples"
+EXAMPLES_DIR = pathlib.Path(__file__).resolve().parent.parent / "examples"
 
 
 @pytest.mark.skipif(sys.platform != "linux", reason="only works on linux")
 class TestSamples:
+    def stop_all_containers(self, docker_client):
+        containers = docker_client.containers.list()
+        for container in containers:
+            container.stop()
 
     @pytest.mark.slow_integration_test
     def test_cloud_run_http(self):
         client = docker.from_env()
-        TAG = "cloud_run_http"
+        self.stop_all_containers(client)
 
-        client.images.build(path=str(SAMPLES_DIR / "cloud_run_http"), tag={TAG})
-        # TODO(joelgerard): Check port and deflake, etc.
+        TAG = "cloud_run_http"
+        client.images.build(path=str(EXAMPLES_DIR / "cloud_run_http"), tag={TAG})
         container = client.containers.run(image=TAG, detach=True, ports={8080: 8080})
         timeout = 10
         success = False
