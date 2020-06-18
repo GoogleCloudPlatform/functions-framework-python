@@ -161,7 +161,7 @@ See the [running example](examples/cloud_run_event).
 # Enable CloudEvents
 
 The Functions Framework can unmarshall incoming
-[CloudEvents](http://cloudevents.io) payloads to a `cloudevent` object.
+[CloudEvent](http://cloudevents.io) payloads to a `cloudevent` object.
 It will be passed as an argument to your function when it receives a request.
 Note that your function must use the `cloudevent`-style function signature
 
@@ -174,7 +174,7 @@ def hello(cloudevent):
 
 To enable automatic unmarshalling, set the function signature type to `cloudevent` using the `--signature-type` command-line flag or the `FUNCTION_SIGNATURE_TYPE` environment variable. By default, the HTTP signature type will be used and automatic event unmarshalling will be disabled.
 
-See the [running example](examples/cloudevents).
+See the [running example](examples/cloud_run_cloudevents).
 
 # Advanced Examples
 
