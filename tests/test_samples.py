@@ -2,10 +2,12 @@ import pytest
 import os
 import sh
 import time
+import docker
 
 
 @pytest.mark.slow_integration_test
 def test_cloud_run_http():
+    client = docker.from_env()
 
     cwd = os.getcwd()
     os.chdir(cwd + "/../examples/cloud_run_http")
