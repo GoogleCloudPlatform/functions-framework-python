@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import enum
 import importlib.util
 import io
 import json
@@ -19,8 +20,6 @@ import os.path
 import pathlib
 import sys
 import types
-
-from enum import Enum
 
 import cloudevents.sdk
 import cloudevents.sdk.event
