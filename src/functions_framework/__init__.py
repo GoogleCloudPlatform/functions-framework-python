@@ -42,7 +42,7 @@ DEFAULT_SOURCE = os.path.realpath("./main.py")
 DEFAULT_SIGNATURE_TYPE = "http"
 
 
-class _EventType(Enum):
+class _EventType(enum.Enum):
     LEGACY = 1
     CLOUDEVENT_BINARY = 2
     CLOUDEVENT_TEXT = 3
