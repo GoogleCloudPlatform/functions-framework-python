@@ -1,4 +1,5 @@
 import pathlib
+import sys
 import time
 
 import docker
@@ -8,27 +9,30 @@ import requests
 SAMPLES_DIR = pathlib.Path(__file__).resolve().parent.parent / "examples"
 
 
-@pytest.mark.slow_integration_test
-def test_cloud_run_http():
-    client = docker.from_env()
-    TAG = "cloud_run_http"
+@pytest.mark.skipif(sys.platform != "linux", reason="only works on linux")
+class TestSamples:
 
-    client.images.build(path=str(SAMPLES_DIR / "cloud_run_http"), tag={TAG})
-    # TODO(joelgerard): Check port and deflake, etc.
-    container = client.containers.run(image=TAG, detach=True, ports={8080: 8080})
-    timeout = 10
-    success = False
-    while success == False and timeout > 0:
-        try:
-            response = requests.get("http://localhost:8080")
-            if response.text == "Hello world!":
-                success = True
-        except:
-            pass
+    @pytest.mark.slow_integration_test
+    def test_cloud_run_http(self):
+        client = docker.from_env()
+        TAG = "cloud_run_http"
 
-        time.sleep(1)
-        timeout -= 1
+        client.images.build(path=str(SAMPLES_DIR / "cloud_run_http"), tag={TAG})
+        # TODO(joelgerard): Check port and deflake, etc.
+        container = client.containers.run(image=TAG, detach=True, ports={8080: 8080})
+        timeout = 10
+        success = False
+        while success == False and timeout > 0:
+            try:
+                response = requests.get("http://localhost:8080")
+                if response.text == "Hello world!":
+                    success = True
+            except:
+                pass
 
-    container.stop()
+            time.sleep(1)
+            timeout -= 1
 
-    assert success
+        container.stop()
+
+        assert success
