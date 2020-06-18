@@ -9,7 +9,9 @@ import requests
 EXAMPLES_DIR = pathlib.Path(__file__).resolve().parent.parent / "examples"
 
 
-@pytest.mark.skipif(sys.platform != "linux", reason="docker only works on linux in GH actions")
+@pytest.mark.skipif(
+    sys.platform != "linux", reason="docker only works on linux in GH actions"
+)
 class TestSamples:
     def stop_all_containers(self, docker_client):
         containers = docker_client.containers.list()
