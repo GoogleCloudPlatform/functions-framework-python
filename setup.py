@@ -53,7 +53,6 @@ setup(
         "watchdog>=0.10.0",
         "gunicorn>=19.2.0,<21.0; platform_system!='Windows'",
     ],
-    extras_require={"test": ["pytest", "tox"]},
     entry_points={
         "console_scripts": [
             "functions-framework=functions_framework._cli:_cli",
