@@ -44,7 +44,7 @@ DEFAULT_SIGNATURE_TYPE = "http"
 class _EventType(enum.Enum):
     LEGACY = 1
     CLOUDEVENT_BINARY = 2
-    CLOUDEVENT_TEXT = 3
+    CLOUDEVENT_STRUCTURED = 3
 
 
 class _Event(object):
@@ -103,7 +103,7 @@ def _run_binary_cloudevent(function, request, cloudevent_def):
     function(event)
 
 
-def _run_text_cloudevent(function, request, cloudevent_def):
+def _run_structured_cloudevent(function, request, cloudevent_def):
     data = io.StringIO(request.get_data(as_text=True))
     m = cloudevents.sdk.marshaller.NewDefaultHTTPMarshaller()
     event = m.FromRequest(cloudevent_def, request.headers, data, json.loads)
@@ -119,7 +119,7 @@ def _get_event_type(request):
     ):
         return _EventType.CLOUDEVENT_BINARY
     elif request.headers.get("Content-Type") == "application/cloudevents+json":
-        return _EventType.CLOUDEVENT_TEXT
+        return _EventType.CLOUDEVENT_STRUCTURED
     else:
         return _EventType.LEGACY
 
@@ -146,8 +146,8 @@ def _cloudevent_view_func_wrapper(function, request):
     def view_func(path):
         cloudevent_def = _get_cloudevent_version()
         event_type = _get_event_type(request)
-        if event_type == _EventType.CLOUDEVENT_TEXT:
-            _run_text_cloudevent(function, request, cloudevent_def)
+        if event_type == _EventType.CLOUDEVENT_STRUCTURED:
+            _run_structured_cloudevent(function, request, cloudevent_def)
         elif event_type == _EventType.CLOUDEVENT_BINARY:
             _run_binary_cloudevent(function, request, cloudevent_def)
         else:
