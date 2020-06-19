@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os.path
 import typing
 
 
@@ -21,7 +22,9 @@ class TestClass:
 
 def function(request):
     # Ensure that the module for any object in this file is set correctly
-    assert TestClass.__mro__[0].__module__ == "__main__"
+    _, filename = os.path.split(__file__)
+    name, _ = os.path.splitext(filename)
+    assert TestClass.__mro__[0].__module__ == name
 
     # Ensure that calling `get_type_hints` on an object in this file succeeds
     assert typing.get_type_hints(TestClass) == {}

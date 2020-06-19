@@ -140,10 +140,24 @@ def create_app(target=None, source=None, signature_type=None):
     # Set the environment variable if it wasn't already
     os.environ["FUNCTION_SIGNATURE_TYPE"] = signature_type
 
-    # Load the source file
-    spec = importlib.util.spec_from_file_location("__main__", source)
+    # Load the source file:
+    # 1. Extract the module name from the source path
+    realpath = os.path.realpath(source)
+    directory, filename = os.path.split(realpath)
+    name, extension = os.path.splitext(filename)
+
+    # 2. Create a new module
+    spec = importlib.util.spec_from_file_location(name, realpath)
     source_module = importlib.util.module_from_spec(spec)
-    sys.path.append(os.path.dirname(os.path.realpath(source)))
+
+    # 3. Add the directory of the source to sys.path to allow the function to
+    # load modules relative to its location
+    sys.path.append(directory)
+
+    # 4. Add the module to sys.modules
+    sys.modules[name] = source_module
+
+    # 5. Execute the module
     spec.loader.exec_module(source_module)
 
     app = flask.Flask(target, template_folder=template_folder)
