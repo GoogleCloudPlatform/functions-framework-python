@@ -39,6 +39,7 @@ from google.cloud.functions.context import Context
 
 DEFAULT_SOURCE = os.path.realpath("./main.py")
 DEFAULT_SIGNATURE_TYPE = "http"
+MAX_CONTENT_LENGTH = 10 * 1024 * 1024
 
 
 class _EventType(enum.Enum):
@@ -162,6 +163,16 @@ def _cloudevent_view_func_wrapper(function, request):
     return view_func
 
 
+def read_request(response):
+    """
+    Force the framework to read the entire request before responding, to avoid
+    connection errors when returning prematurely.
+    """
+
+    flask.request.get_data()
+    return response
+
+
 def create_app(target=None, source=None, signature_type=None):
     # Get the configured function target
     target = target or os.environ.get("FUNCTION_TARGET", "")
@@ -218,6 +229,7 @@ def create_app(target=None, source=None, signature_type=None):
     spec.loader.exec_module(source_module)
 
     app = flask.Flask(target, template_folder=template_folder)
+    app.config["MAX_CONTENT_LENGTH"] = MAX_CONTENT_LENGTH
 
     # Extract the target function from the source file
     try:
@@ -250,6 +262,7 @@ def create_app(target=None, source=None, signature_type=None):
         app.url_map.add(werkzeug.routing.Rule("/<path:path>", endpoint="run"))
         app.view_functions["run"] = _http_view_func_wrapper(function, flask.request)
         app.view_functions["error"] = lambda: flask.abort(404, description="Not Found")
+        app.after_request(read_request)
     elif signature_type == "event" or signature_type == "cloudevent":
         app.url_map.add(
             werkzeug.routing.Rule(
