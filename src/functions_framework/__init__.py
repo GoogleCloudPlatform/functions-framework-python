@@ -164,6 +164,11 @@ def _cloudevent_view_func_wrapper(function, request):
 
 
 def read_request(response):
+    """
+    Force the framework to read the entire request before responding, to avoid
+    connection errors when returning prematurely.
+    """
+
     flask.request.get_data()
     return response
 
