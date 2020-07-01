@@ -229,7 +229,7 @@ def create_app(target=None, source=None, signature_type=None):
     spec.loader.exec_module(source_module)
 
     app = flask.Flask(target, template_folder=template_folder)
-    app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT_LENGTH
+    app.config["MAX_CONTENT_LENGTH"] = MAX_CONTENT_LENGTH
 
     # Extract the target function from the source file
     try:
