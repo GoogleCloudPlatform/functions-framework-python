@@ -6,13 +6,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [2.0.0] - 2020-07-01
-### Added
-- Support `cloudevent` signature type ([#55], [#56])
-
-### Changed
-- Framework will consume entire request before responding ([#66])
-
 ## [1.4.4] - 2020-06-19
 ### Fixed
 - Improve module loading ([#61])
@@ -70,8 +63,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Initial release
 
-[Unreleased]: https://github.com/GoogleCloudPlatform/functions-framework-python/compare/v2.0.0...HEAD
-[2.0.0]: https://github.com/GoogleCloudPlatform/functions-framework-python/releases/tag/v2.0.0
+[Unreleased]: https://github.com/GoogleCloudPlatform/functions-framework-python/compare/v1.4.4...HEAD
 [1.4.4]: https://github.com/GoogleCloudPlatform/functions-framework-python/releases/tag/v1.4.4
 [1.4.3]: https://github.com/GoogleCloudPlatform/functions-framework-python/releases/tag/v1.4.3
 [1.4.2]: https://github.com/GoogleCloudPlatform/functions-framework-python/releases/tag/v1.4.2
@@ -84,10 +76,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [1.0.1]: https://github.com/GoogleCloudPlatform/functions-framework-python/releases/tag/v1.0.1
 [1.0.0]: https://github.com/GoogleCloudPlatform/functions-framework-python/releases/tag/v1.0.0
 
-[#66]: https://github.com/GoogleCloudPlatform/functions-framework-python/pull/66
 [#61]: https://github.com/GoogleCloudPlatform/functions-framework-python/pull/61
-[#56]: https://github.com/GoogleCloudPlatform/functions-framework-python/pull/56
-[#55]: https://github.com/GoogleCloudPlatform/functions-framework-python/pull/55
 [#49]: https://github.com/GoogleCloudPlatform/functions-framework-python/pull/49
 [#44]: https://github.com/GoogleCloudPlatform/functions-framework-python/pull/44
 [#38]: https://github.com/GoogleCloudPlatform/functions-framework-python/pull/38
