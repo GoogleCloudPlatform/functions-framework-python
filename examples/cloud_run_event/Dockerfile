@@ -12,4 +12,4 @@ RUN pip install gunicorn functions-framework
 RUN pip install -r requirements.txt
 
 # Run the web service on container startup.
-CMD exec functions-framework --target=hello --signature_type=event
+CMD exec functions-framework --target=hello --signature-type=event

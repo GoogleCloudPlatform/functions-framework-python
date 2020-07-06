@@ -45,7 +45,7 @@ pip install functions-framework
 Or, for deployment, add the Functions Framework to your `requirements.txt` file:
 
 ```
-functions-framework==2.0.0
+functions-framework==1.5.0
 ```
 
 # Quickstart: Hello, World on your local machine
@@ -129,18 +129,13 @@ You can configure the Functions Framework using command-line flags or environmen
 | `--host`           | `HOST`                    | The host on which the Functions Framework listens for requests. Default: `0.0.0.0`                                                                                                               |
 | `--port`           | `PORT`                    | The port on which the Functions Framework listens for requests. Default: `8080`                                                                                                                  |
 | `--target`         | `FUNCTION_TARGET`         | The name of the exported function to be invoked in response to requests. Default: `function`                                                                                                     |
-| `--signature-type` | `FUNCTION_SIGNATURE_TYPE` | The signature used when writing your function. Controls unmarshalling rules and determines which arguments are used to invoke your function. Default: `http`; accepted values: `http` or `event` or `cloudevent` |
+| `--signature-type` | `FUNCTION_SIGNATURE_TYPE` | The signature used when writing your function. Controls unmarshalling rules and determines which arguments are used to invoke your function. Default: `http`; accepted values: `http` or `event` |
 | `--source`         | `FUNCTION_SOURCE`         | The path to the file containing your function. Default: `main.py` (in the current working directory)                                                                                             |
 | `--debug`          | `DEBUG`                   | A flag that allows to run functions-framework to run in debug mode, including live reloading. Default: `False`                                                                                   |
 
+# Enable CloudEvents
 
-# Enable Google Cloud Functions Events
-
-The Functions Framework can unmarshall incoming
-Google Cloud Functions [event](https://cloud.google.com/functions/docs/concepts/events-triggers#events) payloads to `data` and `context` objects.
-These will be passed as arguments to your function when it receives a request.
-Note that your function must use the `event`-style function signature:
-
+The Functions Framework can unmarshall incoming [CloudEvents](http://cloudevents.io) payloads to `data` and `context` objects.  These will be passed as arguments to your function when it receives a request.  Note that your function must use the event-style function signature:
 
 ```python
 def hello(data, context):
@@ -148,38 +143,13 @@ def hello(data, context):
     print(context)
 ```
 
-To enable automatic unmarshalling, set the function signature type to `event`
-using a command-line flag or an environment variable. By default, the HTTP
-signature will be used and automatic event unmarshalling will be disabled.
+To enable automatic unmarshalling, set the function signature type to `event` using the `--signature-type` command-line flag or the `FUNCTION_SIGNATURE_TYPE` environment variable. By default, the HTTP signature type will be used and automatic event unmarshalling will be disabled.
 
-For more details on this signature type, check out the Google Cloud Functions
-documentation on
-[background functions](https://cloud.google.com/functions/docs/writing/background#cloud_pubsub_example).
-
-See the [running example](examples/cloud_run_event).
-
-# Enable CloudEvents
-
-The Functions Framework can unmarshall incoming
-[CloudEvent](http://cloudevents.io) payloads to a `cloudevent` object.
-It will be passed as an argument to your function when it receives a request.
-Note that your function must use the `cloudevent`-style function signature
-
-
-```python
-def hello(cloudevent):
-    print("Received event with ID: %s" % cloudevent.EventID())
-    return 200
-```
-
-To enable automatic unmarshalling, set the function signature type to `cloudevent` using the `--signature-type` command-line flag or the `FUNCTION_SIGNATURE_TYPE` environment variable. By default, the HTTP signature type will be used and automatic event unmarshalling will be disabled.
-
-See the [running example](examples/cloud_run_cloudevents).
+For more details on this signature type, check out the Google Cloud Functions documentation on [background functions](https://cloud.google.com/functions/docs/writing/background#cloud_pubsub_example).
 
 # Advanced Examples
 
-More advanced guides can be found in the [`examples/`](./examples/) directory. You can also find examples
-on using the CloudEvent Python SDK [here](https://github.com/cloudevents/sdk-python).
+More advanced guides can be found in the [`examples/`](./examples/) directory.
 
 # Contributing
 
