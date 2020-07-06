@@ -60,6 +60,41 @@ def test_event_view_func_wrapper(monkeypatch):
     ]
 
 
+def test_binary_event_view_func_wrapper(monkeypatch):
+    data = pretend.stub()
+    request = pretend.stub(
+        headers={
+            "ce-type": "something",
+            "ce-specversion": "something",
+            "ce-source": "something",
+            "ce-id": "something",
+            "ce-eventId": "some-eventId",
+            "ce-timestamp": "some-timestamp",
+            "ce-eventType": "some-eventType",
+            "ce-resource": "some-resource",
+        },
+        get_data=lambda: data,
+    )
+
+    context_stub = pretend.stub()
+    context_class = pretend.call_recorder(lambda *a, **kw: context_stub)
+    monkeypatch.setattr(functions_framework, "Context", context_class)
+    function = pretend.call_recorder(lambda data, context: "Hello")
+
+    view_func = functions_framework._event_view_func_wrapper(function, request)
+    view_func("/some/path")
+
+    assert function.calls == [pretend.call(data, context_stub)]
+    assert context_class.calls == [
+        pretend.call(
+            eventId="some-eventId",
+            timestamp="some-timestamp",
+            eventType="some-eventType",
+            resource="some-resource",
+        )
+    ]
+
+
 def test_legacy_event_view_func_wrapper(monkeypatch):
     data = pretend.stub()
     json = {
