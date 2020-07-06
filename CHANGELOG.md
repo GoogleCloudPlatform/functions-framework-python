@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Support `cloudevent` signature type ([#55], [#56])
 
+## [1.5.0] - 2020-07-06
 ### Changed
 - Framework will consume entire request before responding ([#66])
 
@@ -74,6 +75,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [Unreleased]: https://github.com/GoogleCloudPlatform/functions-framework-python/compare/v2.0.0...HEAD
 [2.0.0]: https://github.com/GoogleCloudPlatform/functions-framework-python/releases/tag/v2.0.0
+[1.5.0]: https://github.com/GoogleCloudPlatform/functions-framework-python/releases/tag/v1.5.0
 [1.4.4]: https://github.com/GoogleCloudPlatform/functions-framework-python/releases/tag/v1.4.4
 [1.4.3]: https://github.com/GoogleCloudPlatform/functions-framework-python/releases/tag/v1.4.3
 [1.4.2]: https://github.com/GoogleCloudPlatform/functions-framework-python/releases/tag/v1.4.2
