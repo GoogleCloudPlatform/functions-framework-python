@@ -112,7 +112,7 @@ After you've written your function, you can simply deploy it from your local mac
 
 ## Cloud Run/Cloud Run on GKE
 
-Once you've written your function and added the Functions Framework to your `requirements.txt` file, all that's left is to create a container image. [Check out the Cloud Run quickstart](https://cloud.google.com/run/docs/quickstarts/build-and-deploy) for Python to create a container image and deploy it to Cloud Run. You'll write a `Dockerfile` when you build your container. This `Dockerfile` allows you to specify exactly what goes into your container (including custom binaries, a specific operating system, and more). [Here is an example `Dockerfile` that calls Functions Framework.](./examples/cloud_run_http/Dockerfile)
+Once you've written your function and added the Functions Framework to your `requirements.txt` file, all that's left is to create a container image. [Check out the Cloud Run quickstart](https://cloud.google.com/run/docs/quickstarts/build-and-deploy) for Python to create a container image and deploy it to Cloud Run. You'll write a `Dockerfile` when you build your container. This `Dockerfile` allows you to specify exactly what goes into your container (including custom binaries, a specific operating system, and more). [Here is an example `Dockerfile` that calls Functions Framework.](https://github.com/GoogleCloudPlatform/functions-framework-python/blob/master/examples/cloud_run_http)
 
 If you want even more control over the environment, you can [deploy your container image to Cloud Run on GKE](https://cloud.google.com/run/docs/quickstarts/prebuilt-deploy-gke). With Cloud Run on GKE, you can run your function on a GKE cluster, which gives you additional control over the environment (including use of GPU-based instances, longer timeouts and more).
 
@@ -149,7 +149,7 @@ For more details on this signature type, check out the Google Cloud Functions do
 
 # Advanced Examples
 
-More advanced guides can be found in the [`examples/`](./examples/) directory.
+More advanced guides can be found in the [`examples/`](https://github.com/GoogleCloudPlatform/functions-framework-python/blob/master/examples/) directory.
 
 # Contributing
 
