@@ -8,7 +8,7 @@ WORKDIR $APP_HOME
 COPY . .
 
 # Install production dependencies.
-RUN pip install gunicorn functions-framework
+RUN pip install functions-framework
 RUN pip install -r requirements.txt
 
 # Run the web service on container startup.
