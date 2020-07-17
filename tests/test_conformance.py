@@ -1,10 +1,8 @@
 import pathlib
 import sys
-import time
 
 import docker
 import pytest
-import requests
 
 ROOT_DIR = pathlib.Path(__file__).resolve().parent.parent
 TAG = "py_ff_conformance_tests"
@@ -29,7 +27,7 @@ class TestConformance:
 
     def run_test(self, source, signature_type, test_type):
         client = docker.from_env()
-        return client.containers.run(image=TAG, environment={"signature" : signature_type, "source" : source, "test_type" : test_type})
+        return client.containers.run(image=TAG,ports={8080: 8080}, environment={"signature" : signature_type, "source" : source, "test_type" : test_type})
 
     @pytest.mark.slow_integration_test
     def test_cloud_event(self):
