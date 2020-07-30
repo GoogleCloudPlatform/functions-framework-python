@@ -1,8 +1,13 @@
 # Builds the conformance tester and runs it.
 # To build this file, ensure you are in the root directory, i.e. one level up from here, and run
-# $ docker build -t conformance -f conformance_tests/Dockerfile .
+# $ docker build -t conformance -f conformance_runner/Dockerfile .
 # then, to run it
 # $ docker run -e source="tests/conformance_tests/cloud_event_test.py" -e signature="cloudevent" -e test_type="cloudevent" -t conformance
+# If you want to be interactive, run
+# $ docker run -it conformance /bin/bash
+# $ ./client -cmd "functions-framework --target=test --signature-type=$signature --source=$source" -type=$test_type
+# e.g.
+# $ ./client -cmd "functions-framework --target=test --signature-type=cloudevent --source=tests/conformance_tests/cloud_event_test.py" -type=cloudevent
 FROM golang:1.14.5 AS builder
 WORKDIR /src
 RUN apt-get update && apt-get install -y git
