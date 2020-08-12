@@ -458,6 +458,16 @@ def test_class_in_main_is_in_right_module():
     assert resp.status_code == 200
 
 
+def test_function_returns_none():
+    source = TEST_FUNCTIONS_DIR / "returns_none" / "main.py"
+    target = "function"
+
+    client = create_app(target, source).test_client()
+    resp = client.get("/")
+
+    assert resp.status_code == 500
+
+
 def test_legacy_function_check_env():
     source = TEST_FUNCTIONS_DIR / "http_check_env" / "main.py"
     target = "function"
