@@ -21,10 +21,9 @@ import pathlib
 import sys
 import types
 
-import cloudevents.sdk
-import cloudevents.sdk.event
-import cloudevents.sdk.event.v1
-import cloudevents.sdk.marshaller
+from cloudevents.http import from_http
+from cloudevents.sdk.converters import is_binary
+
 import flask
 import werkzeug
 
@@ -80,10 +79,6 @@ def _http_view_func_wrapper(function, request):
     return view_func
 
 
-def _get_cloudevent_version():
-    return cloudevents.sdk.event.v1.Event()
-
-
 def _run_legacy_event(function, request):
     event_data = request.get_json()
     if not event_data:
@@ -94,30 +89,14 @@ def _run_legacy_event(function, request):
     function(data, context)
 
 
-def _run_binary_cloudevent(function, request, cloudevent_def):
-    data = io.BytesIO(request.get_data())
-    http_marshaller = cloudevents.sdk.marshaller.NewDefaultHTTPMarshaller()
-    event = http_marshaller.FromRequest(
-        cloudevent_def, request.headers, data, json.load
-    )
-
-    function(event)
-
-
-def _run_structured_cloudevent(function, request, cloudevent_def):
-    data = io.StringIO(request.get_data(as_text=True))
-    m = cloudevents.sdk.marshaller.NewDefaultHTTPMarshaller()
-    event = m.FromRequest(cloudevent_def, request.headers, data, json.loads)
+def _run_cloudevent(function, request):
+    data = request.get_data()
+    event = from_http(data, request.headers)
     function(event)
 
 
 def _get_event_type(request):
-    if (
-        request.headers.get("ce-type")
-        and request.headers.get("ce-specversion")
-        and request.headers.get("ce-source")
-        and request.headers.get("ce-id")
-    ):
+    if is_binary(request.headers):
         return _EventType.CLOUDEVENT_BINARY
     elif request.headers.get("Content-Type") == "application/cloudevents+json":
         return _EventType.CLOUDEVENT_STRUCTURED
@@ -145,19 +124,15 @@ def _event_view_func_wrapper(function, request):
 
 def _cloudevent_view_func_wrapper(function, request):
     def view_func(path):
-        cloudevent_def = _get_cloudevent_version()
         event_type = _get_event_type(request)
-        if event_type == _EventType.CLOUDEVENT_STRUCTURED:
-            _run_structured_cloudevent(function, request, cloudevent_def)
-        elif event_type == _EventType.CLOUDEVENT_BINARY:
-            _run_binary_cloudevent(function, request, cloudevent_def)
+        if event_type in [_EventType.CLOUDEVENT_STRUCTURED, _EventType.CLOUDEVENT_BINARY]:
+            _run_cloudevent(function, request)
         else:
             flask.abort(
                 400,
                 description="Function was defined with FUNCTION_SIGNATURE_TYPE=cloudevent "
-                " but it did not receive a cloudevent as a request.",
+                " but it did not receive a valid cloudevent as a request.",
             )
-
         return "OK"
 
     return view_func
@@ -258,10 +233,13 @@ def create_app(target=None, source=None, signature_type=None):
             werkzeug.routing.Rule("/", defaults={"path": ""}, endpoint="run")
         )
         app.url_map.add(werkzeug.routing.Rule("/robots.txt", endpoint="error"))
-        app.url_map.add(werkzeug.routing.Rule("/favicon.ico", endpoint="error"))
+        app.url_map.add(werkzeug.routing.Rule(
+            "/favicon.ico", endpoint="error"))
         app.url_map.add(werkzeug.routing.Rule("/<path:path>", endpoint="run"))
-        app.view_functions["run"] = _http_view_func_wrapper(function, flask.request)
-        app.view_functions["error"] = lambda: flask.abort(404, description="Not Found")
+        app.view_functions["run"] = _http_view_func_wrapper(
+            function, flask.request)
+        app.view_functions["error"] = lambda: flask.abort(
+            404, description="Not Found")
         app.after_request(read_request)
     elif signature_type == "event" or signature_type == "cloudevent":
         app.url_map.add(
@@ -276,11 +254,13 @@ def create_app(target=None, source=None, signature_type=None):
         )
 
         # Add a dummy endpoint for GET /
-        app.url_map.add(werkzeug.routing.Rule("/", endpoint="get", methods=["GET"]))
+        app.url_map.add(werkzeug.routing.Rule(
+            "/", endpoint="get", methods=["GET"]))
         app.view_functions["get"] = lambda: ""
 
         # Add the view functions
-        app.view_functions["event"] = _event_view_func_wrapper(function, flask.request)
+        app.view_functions["event"] = _event_view_func_wrapper(
+            function, flask.request)
         app.view_functions["cloudevent"] = _cloudevent_view_func_wrapper(
             function, flask.request
         )
@@ -314,7 +294,8 @@ class LazyWSGIApp:
 
     def __call__(self, *args, **kwargs):
         if not self.app:
-            self.app = create_app(self.target, self.source, self.signature_type)
+            self.app = create_app(
+                self.target, self.source, self.signature_type)
         return self.app(*args, **kwargs)
 
 

@@ -52,7 +52,7 @@ setup(
         "click>=7.0,<8.0",
         "watchdog>=0.10.0",
         "gunicorn>=19.2.0,<21.0; platform_system!='Windows'",
-        "cloudevents<1.0",
+        "cloudevents>=1.0",
     ],
     entry_points={
         "console_scripts": [

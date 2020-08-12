@@ -63,7 +63,7 @@ def test_non_legacy_event_fails():
     target = "function"
 
     client = create_app(target, source, "event").test_client()
-    resp = client.post("/", headers=structured_headers, data=structured_data.getvalue())
+    resp = client.post("/", headers=structured_headers, data=structured_data)
     assert resp.status_code == 400
     assert resp.data != b"OK"
 
@@ -157,7 +157,8 @@ def test_invalid_function_definition_multiple_entry_points():
         create_app(target, source, "event")
 
     assert re.match(
-        "File .* is expected to contain a function named function", str(excinfo.value)
+        "File .* is expected to contain a function named function", str(
+            excinfo.value)
     )
 
 
