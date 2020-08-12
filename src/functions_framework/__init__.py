@@ -112,9 +112,11 @@ def _event_view_func_wrapper(function, request):
             # here for defensive backwards compatibility in case we make a mistake in rollout.
             flask.abort(
                 400,
-                description="The FUNCTION_SIGNATURE_TYPE for this function is set to event "
-                "but no Google Cloud Functions Event was given. If you are using CloudEvents set "
-                "FUNCTION_SIGNATURE_TYPE=cloudevent",
+                description=(
+                    "The FUNCTION_SIGNATURE_TYPE for this function is set to event but"
+                    " no Google Cloud Functions Event was given. If you are using"
+                    " CloudEvents set FUNCTION_SIGNATURE_TYPE=cloudevent"
+                ),
             )
 
         return "OK"
@@ -124,15 +126,16 @@ def _event_view_func_wrapper(function, request):
 
 def _cloudevent_view_func_wrapper(function, request):
     def view_func(path):
-        event_type = _get_event_type(request)
-        if event_type in [_EventType.CLOUDEVENT_STRUCTURED, _EventType.CLOUDEVENT_BINARY]:
-            _run_cloudevent(function, request)
-        else:
+        if _get_event_type(request) == _EventType.LEGACY:
             flask.abort(
                 400,
-                description="Function was defined with FUNCTION_SIGNATURE_TYPE=cloudevent "
-                " but it did not receive a valid cloudevent as a request.",
+                description=(
+                    "Function was defined with FUNCTION_SIGNATURE_TYPE=cloudevent "
+                    " but it did not receive a valid cloudevent as a request."
+                ),
             )
+        else:
+            _run_cloudevent(function, request)
         return "OK"
 
     return view_func
@@ -233,13 +236,10 @@ def create_app(target=None, source=None, signature_type=None):
             werkzeug.routing.Rule("/", defaults={"path": ""}, endpoint="run")
         )
         app.url_map.add(werkzeug.routing.Rule("/robots.txt", endpoint="error"))
-        app.url_map.add(werkzeug.routing.Rule(
-            "/favicon.ico", endpoint="error"))
+        app.url_map.add(werkzeug.routing.Rule("/favicon.ico", endpoint="error"))
         app.url_map.add(werkzeug.routing.Rule("/<path:path>", endpoint="run"))
-        app.view_functions["run"] = _http_view_func_wrapper(
-            function, flask.request)
-        app.view_functions["error"] = lambda: flask.abort(
-            404, description="Not Found")
+        app.view_functions["run"] = _http_view_func_wrapper(function, flask.request)
+        app.view_functions["error"] = lambda: flask.abort(404, description="Not Found")
         app.after_request(read_request)
     elif signature_type == "event" or signature_type == "cloudevent":
         app.url_map.add(
@@ -254,13 +254,11 @@ def create_app(target=None, source=None, signature_type=None):
         )
 
         # Add a dummy endpoint for GET /
-        app.url_map.add(werkzeug.routing.Rule(
-            "/", endpoint="get", methods=["GET"]))
+        app.url_map.add(werkzeug.routing.Rule("/", endpoint="get", methods=["GET"]))
         app.view_functions["get"] = lambda: ""
 
         # Add the view functions
-        app.view_functions["event"] = _event_view_func_wrapper(
-            function, flask.request)
+        app.view_functions["event"] = _event_view_func_wrapper(function, flask.request)
         app.view_functions["cloudevent"] = _cloudevent_view_func_wrapper(
             function, flask.request
         )
@@ -294,8 +292,7 @@ class LazyWSGIApp:
 
     def __call__(self, *args, **kwargs):
         if not self.app:
-            self.app = create_app(
-                self.target, self.source, self.signature_type)
+            self.app = create_app(self.target, self.source, self.signature_type)
         return self.app(*args, **kwargs)
 
 
