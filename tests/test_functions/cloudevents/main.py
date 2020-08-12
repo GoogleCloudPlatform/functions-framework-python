@@ -30,11 +30,11 @@ def function(cloudevent):
     """
 
     valid_event = (
-        cloudevent['id'] == "my-id"
+        cloudevent["id"] == "my-id"
         and cloudevent.data == {"name": "john"}
-        and cloudevent['source'] == "from-galaxy-far-far-away"
-        and cloudevent['time'] == "tomorrow"
-        and cloudevent['type'] == "cloudevent.greet.you"
+        and cloudevent["source"] == "from-galaxy-far-far-away"
+        and cloudevent["time"] == "tomorrow"
+        and cloudevent["type"] == "cloudevent.greet.you"
     )
 
     if not valid_event:

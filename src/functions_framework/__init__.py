@@ -21,11 +21,11 @@ import pathlib
 import sys
 import types
 
-from cloudevents.http import from_http
-from cloudevents.sdk.converters import is_binary
-
 import flask
 import werkzeug
+
+from cloudevents.http import from_http
+from cloudevents.sdk.converters import is_binary
 
 from functions_framework.exceptions import (
     FunctionsFrameworkException,

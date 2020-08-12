@@ -14,9 +14,9 @@
 import json
 import pathlib
 
-from cloudevents.http import CloudEvent, to_structured_http, to_binary_http, from_http
-
 import pytest
+
+from cloudevents.http import CloudEvent, from_http, to_binary_http, to_structured_http
 
 from functions_framework import LazyWSGIApp, create_app, exceptions
 
@@ -36,7 +36,7 @@ def cloudevent_1_0():
         "id": "my-id",
         "source": "from-galaxy-far-far-away",
         "time": "tomorrow",
-        "type": "cloudevent.greet.you"
+        "type": "cloudevent.greet.you",
     }
     data = {"name": "john"}
     return CloudEvent(attributes, data)
@@ -50,7 +50,7 @@ def cloudevent_0_3():
         "source": "from-galaxy-far-far-away",
         "time": "tomorrow",
         "type": "cloudevent.greet.you",
-        "specversion": "0.3"
+        "specversion": "0.3",
     }
     data = {"name": "john"}
     return CloudEvent(attributes, data)
