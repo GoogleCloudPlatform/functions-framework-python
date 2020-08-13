@@ -93,3 +93,13 @@ def test_event_0_3(cloudevent_0_3):
     resp = client.post("/", headers=headers, data=data)
     assert resp.status_code == 200
     assert resp.data == b"OK"
+
+
+def test_invalid_cloudevent():
+    source = TEST_FUNCTIONS_DIR / "cloudevents" / "main.py"
+    target = "function"
+
+    client = create_app(target, source, "cloudevent").test_client()
+
+    resp = client.post("/", headers={}, data="data")
+    assert resp.status_code == 400

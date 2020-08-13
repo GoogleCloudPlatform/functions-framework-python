@@ -79,9 +79,9 @@ def _run_cloudevent(function, request):
 
 def _cloudevent_view_func_wrapper(function, request):
     def view_func(path):
-        if is_binary(request.headers) or is_structured(request.headers):
+        try:
             _run_cloudevent(function, request)
-        else:
+        except ValueError:
             flask.abort(
                 400,
                 description=(

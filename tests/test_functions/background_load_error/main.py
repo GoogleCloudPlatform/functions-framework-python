@@ -16,14 +16,14 @@
 
 
 def function(event, context):
-    """Test function with a syntax error.
+  """Test function with a syntax error.
 
-    The Worker is expected to detect this error when loading the function, and
-    return appropriate load response.
+  The Worker is expected to detect this error when loading the function, and
+  return appropriate load response.
 
-    Args:
-      event: The event data which triggered this background function.
-      context (google.cloud.functions.Context): The Cloud Functions event context.
-    """
-    # Syntax error: an extra closing parenthesis in the line below.
-    print('foo')
+  Args:
+    event: The event data which triggered this background function.
+    context (google.cloud.functions.Context): The Cloud Functions event context.
+  """
+  # Syntax error: an extra closing parenthesis in the line below.
+  print('foo'))
