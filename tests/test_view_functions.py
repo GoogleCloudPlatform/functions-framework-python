@@ -64,7 +64,7 @@ def test_event_view_func_wrapper(monkeypatch):
     ]
 
 
-def test_cloudevent_view_func_wrapper(monkeypatch):
+def test_cloudevent_view_func_wrapper():
     headers = {'Content-Type': 'application/cloudevents+json'}
     data = json.dumps({
         "source": "from-galaxy-far-far-away",
@@ -94,7 +94,7 @@ def test_cloudevent_view_func_wrapper(monkeypatch):
         "f6a65fcd-eed2-429d-9f71-ec0663d83025"
 
 
-def test_binary_cloudevent_view_func_wrapper(monkeypatch):
+def test_binary_cloudevent_view_func_wrapper():
     headers = {
         "ce-specversion": "1.0",
         "ce-source": "from-galaxy-far-far-away",
