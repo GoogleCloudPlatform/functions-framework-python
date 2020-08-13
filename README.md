@@ -133,15 +133,27 @@ You can configure the Functions Framework using command-line flags or environmen
 | `--source`         | `FUNCTION_SOURCE`         | The path to the file containing your function. Default: `main.py` (in the current working directory)                                                                                             |
 | `--debug`          | `DEBUG`                   | A flag that allows to run functions-framework to run in debug mode, including live reloading. Default: `False`                                                                                   |
 
-# Enable CloudEvents
-
-The Functions Framework can unmarshall incoming [CloudEvents](http://cloudevents.io) payloads to `data` and `context` objects.  These will be passed as arguments to your function when it receives a request.  Note that your function must use the event-style function signature:
+# Enable Google Cloud Functions Events
+The Functions Framework can unmarshall incoming
+Google Cloud Functions [event](https://cloud.google.com/functions/docs/concepts/events-triggers#events) payloads to `data` and `context` objects.
+These will be passed as arguments to your function when it receives a request.
+Note that your function must use the `event`-style function signature:
 
 ```python
 def hello(data, context):
     print(data)
     print(context)
 ```
+
+To enable automatic unmarshalling, set the function signature type to `event`
+using a command-line flag or an environment variable. By default, the HTTP
+signature will be used and automatic event unmarshalling will be disabled.
+
+For more details on this signature type, check out the Google Cloud Functions
+documentation on
+[background functions](https://cloud.google.com/functions/docs/writing/background#cloud_pubsub_example).
+
+# Enable CloudEvents
 
 The Functions framework can also unmarshall incoming [CloudEvents](http://cloudevents.io) payloads to the `cloudevent` object. This will be passed as a [cloudevent](https://github.com/cloudevents/sdk-python) to your function when it receives a request.  Note that your function must use the cloudevents-style function signature:
 
