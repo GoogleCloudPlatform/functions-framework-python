@@ -64,8 +64,8 @@ def test_event_1_0(cloudevent_1_0):
     headers, data = to_structured_http(cloudevent_1_0)
 
     resp = client.post("/", headers=headers, data=data)
-    # assert resp.status_code == 200
-    # assert resp.data == b"OK"
+    assert resp.status_code == 200
+    assert resp.data == b"OK"
 
 
 def test_binary_event_1_0(cloudevent_1_0):
@@ -93,14 +93,3 @@ def test_event_0_3(cloudevent_0_3):
     resp = client.post("/", headers=headers, data=data)
     assert resp.status_code == 200
     assert resp.data == b"OK"
-
-
-def test_non_cloudevent_():
-    source = TEST_FUNCTIONS_DIR / "cloudevents" / "main.py"
-    target = "function"
-
-    client = create_app(target, source, "cloudevent").test_client()
-
-    resp = client.post("/", json="{not_event}")
-    assert resp.status_code == 400
-    assert resp.data != b"OK"

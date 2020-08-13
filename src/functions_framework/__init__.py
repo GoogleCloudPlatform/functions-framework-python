@@ -12,10 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import enum
+import functools
 import importlib.util
-import io
-import json
 import os.path
 import pathlib
 import sys
@@ -25,7 +23,7 @@ import flask
 import werkzeug
 
 from cloudevents.http import from_http
-from cloudevents.sdk.converters import is_binary
+from cloudevents.sdk.converters import is_binary, is_structured
 
 from functions_framework.exceptions import (
     FunctionsFrameworkException,
@@ -39,12 +37,6 @@ from google.cloud.functions.context import Context
 DEFAULT_SOURCE = os.path.realpath("./main.py")
 DEFAULT_SIGNATURE_TYPE = "http"
 MAX_CONTENT_LENGTH = 10 * 1024 * 1024
-
-
-class _EventType(enum.Enum):
-    LEGACY = 1
-    CLOUDEVENT_BINARY = 2
-    CLOUDEVENT_STRUCTURED = 3
 
 
 class _Event(object):
@@ -79,54 +71,17 @@ def _http_view_func_wrapper(function, request):
     return view_func
 
 
-def _run_legacy_event(function, request):
-    event_data = request.get_json()
-    if not event_data:
-        flask.abort(400)
-    event_object = _Event(**event_data)
-    data = event_object.data
-    context = Context(**event_object.context)
-    function(data, context)
-
-
 def _run_cloudevent(function, request):
     data = request.get_data()
     event = from_http(data, request.headers)
     function(event)
 
 
-def _get_event_type(request):
-    if is_binary(request.headers):
-        return _EventType.CLOUDEVENT_BINARY
-    elif request.headers.get("Content-Type") == "application/cloudevents+json":
-        return _EventType.CLOUDEVENT_STRUCTURED
-    else:
-        return _EventType.LEGACY
-
-
-def _event_view_func_wrapper(function, request):
-    def view_func(path):
-        if _get_event_type(request) == _EventType.LEGACY:
-            _run_legacy_event(function, request)
-        else:
-            # here for defensive backwards compatibility in case we make a mistake in rollout.
-            flask.abort(
-                400,
-                description=(
-                    "The FUNCTION_SIGNATURE_TYPE for this function is set to event but"
-                    " no Google Cloud Functions Event was given. If you are using"
-                    " CloudEvents set FUNCTION_SIGNATURE_TYPE=cloudevent"
-                ),
-            )
-
-        return "OK"
-
-    return view_func
-
-
 def _cloudevent_view_func_wrapper(function, request):
     def view_func(path):
-        if _get_event_type(request) == _EventType.LEGACY:
+        if is_binary(request.headers) or is_structured(request.headers):
+            _run_cloudevent(function, request)
+        else:
             flask.abort(
                 400,
                 description=(
@@ -134,8 +89,35 @@ def _cloudevent_view_func_wrapper(function, request):
                     " but it did not receive a valid cloudevent as a request."
                 ),
             )
+        return "OK"
+
+    return view_func
+
+
+def _event_view_func_wrapper(function, request):
+    def view_func(path):
+        if is_binary(request.headers):
+            # Support CloudEvents in binary content mode, with data being the
+            # whole request body and context attributes retrieved from request
+            # headers.
+            data = request.get_data()
+            context = Context(
+                eventId=request.headers.get("ce-eventId"),
+                timestamp=request.headers.get("ce-timestamp"),
+                eventType=request.headers.get("ce-eventType"),
+                resource=request.headers.get("ce-resource"),
+            )
+            function(data, context)
         else:
-            _run_cloudevent(function, request)
+            # This is a regular CloudEvent
+            event_data = request.get_json()
+            if not event_data:
+                flask.abort(400)
+            event_object = _Event(**event_data)
+            data = event_object.data
+            context = Context(**event_object.context)
+            function(data, context)
+
         return "OK"
 
     return view_func
