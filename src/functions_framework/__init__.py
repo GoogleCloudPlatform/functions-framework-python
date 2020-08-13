@@ -223,7 +223,7 @@ def create_app(target=None, source=None, signature_type=None):
         app.view_functions["run"] = _http_view_func_wrapper(function, flask.request)
         app.view_functions["error"] = lambda: flask.abort(404, description="Not Found")
         app.after_request(read_request)
-    elif signature_type == "event" or signature_type == "cloudevent":
+    elif signature_type == "event":
         app.url_map.add(
             werkzeug.routing.Rule(
                 "/", defaults={"path": ""}, endpoint=signature_type, methods=["POST"]
@@ -241,6 +241,18 @@ def create_app(target=None, source=None, signature_type=None):
 
         # Add the view functions
         app.view_functions["event"] = _event_view_func_wrapper(function, flask.request)
+    elif signature_type == "cloudevent":
+        app.url_map.add(
+            werkzeug.routing.Rule(
+                "/", defaults={"path": ""}, endpoint=signature_type, methods=["POST"]
+            )
+        )
+        app.url_map.add(
+            werkzeug.routing.Rule(
+                "/<path:path>", endpoint=signature_type, methods=["POST"]
+            )
+        )
+
         app.view_functions["cloudevent"] = _cloudevent_view_func_wrapper(
             function, flask.request
         )
