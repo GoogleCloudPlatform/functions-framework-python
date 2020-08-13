@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from cloudevents.http import from_http
+
+import json
 
 import pretend
 
@@ -22,7 +25,8 @@ def test_http_view_func_wrapper():
     request_object = pretend.stub()
     local_proxy = pretend.stub(_get_current_object=lambda: request_object)
 
-    view_func = functions_framework._http_view_func_wrapper(function, local_proxy)
+    view_func = functions_framework._http_view_func_wrapper(
+        function, local_proxy)
     view_func("/some/path")
 
     assert function.calls == [pretend.call(request_object)]
@@ -58,6 +62,64 @@ def test_event_view_func_wrapper(monkeypatch):
             resource="some-resource",
         )
     ]
+
+
+def test_cloudevent_view_func_wrapper(monkeypatch):
+    headers = {'Content-Type': 'application/cloudevents+json'}
+    data = json.dumps({
+        "source": "from-galaxy-far-far-away",
+        "type": "cloudevent.greet.you",
+        "specversion": "1.0",
+        "id": "f6a65fcd-eed2-429d-9f71-ec0663d83025",
+        "time": "2020-08-13T02:12:14.946587+00:00",
+        "data": {"name": "john"}
+    })
+
+    request = pretend.stub(headers=headers, get_data=lambda: data)
+    # event = from_http(request.get_data(), request.headers)
+
+    function = pretend.call_recorder(lambda cloudevent: cloudevent)
+
+    view_func = functions_framework._cloudevent_view_func_wrapper(
+        function,
+        request
+    )
+    view_func("/some/path")
+
+    # cloudevents v1.0.0 does not support __eq__ overload yet
+    # therefore we cannot do:
+    # assert functions.calls == [pretend.calls(event)]
+    assert function.calls[0].__dict__['args'][0].data == {"name": "john"}
+    assert function.calls[0].__dict__['args'][0]['id'] == \
+        "f6a65fcd-eed2-429d-9f71-ec0663d83025"
+
+
+def test_binary_cloudevent_view_func_wrapper(monkeypatch):
+    headers = {
+        "ce-specversion": "1.0",
+        "ce-source": "from-galaxy-far-far-away",
+        "ce-type": "cloudevent.greet.you",
+        "ce-id": "f6a65fcd-eed2-429d-9f71-ec0663d83025",
+        "ce-time": "2020-08-13T02:12:14.946587+00:00"
+    }
+    data = json.dumps({"name": "john"})
+
+    request = pretend.stub(headers=headers, get_data=lambda: data)
+    # event = from_http(request.get_data(), request.headers)
+
+    function = pretend.call_recorder(lambda cloudevent: cloudevent)
+
+    view_func = functions_framework._cloudevent_view_func_wrapper(
+        function,
+        request
+    )
+    view_func("/some/path")
+
+    # cloudevents v1.0.0 does not support __eq__ overload yet
+    # therefore we cannot do:
+    # assert functions.calls == [pretend.calls(event)]
+    assert function.calls[0].__dict__['args'][0].data == {"name": "john"}
+    assert function.calls[0].__dict__['args'][0]['id'] == headers['ce-id']
 
 
 def test_binary_event_view_func_wrapper(monkeypatch):

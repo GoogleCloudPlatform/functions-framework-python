@@ -37,5 +37,5 @@ print(event)
 # Send event
 headers, data = to_structured_http(event)
 response = requests.post("http://localhost:8080/", headers=headers, data=data)
-response.raise_for_status()
+response.content
 ```
