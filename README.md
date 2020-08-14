@@ -162,7 +162,7 @@ def hello(cloudevent):
     print(f"Received event with ID: {cloudevent['id']}")
 ```
 
-To enable automatic unmarshalling, set the function signature type to either `event` or `cloudevent` using the `--signature-type` command-line flag or the `FUNCTION_SIGNATURE_TYPE` environment variable. By default, the HTTP signature type will be used and automatic event unmarshalling will be disabled.
+To enable automatic unmarshalling, set the function signature type to `cloudevent` using the `--signature-type` command-line flag or the `FUNCTION_SIGNATURE_TYPE` environment variable. By default, the HTTP signature type will be used and automatic event unmarshalling will be disabled.
 
 For more details on this signature type, check out the Google Cloud Functions documentation on [background functions](https://cloud.google.com/functions/docs/writing/background#cloud_pubsub_example).
 
