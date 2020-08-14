@@ -1,6 +1,6 @@
-# Deploying a CloudEvent function to Cloud Run with the Functions Framework
+# Deploying a CloudEvent Function to Cloud Run with the Functions Framework
 
-This sample uses the [Cloud Events SDK](https://github.com/cloudevents/sdk-python) to send and receive a CloudEvent on Cloud Run.
+This sample uses the [CloudEvents SDK](https://github.com/cloudevents/sdk-python) to send and receive a CloudEvent on Cloud Run.
 
 ## How to run this locally
 

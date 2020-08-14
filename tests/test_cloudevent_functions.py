@@ -32,9 +32,9 @@ except:
 @pytest.fixture
 def cloudevent_1_0():
     attributes = {
+        "specversion": "1.0",
         "id": "my-id",
         "source": "from-galaxy-far-far-away",
-        "time": "tomorrow",
         "type": "cloudevent.greet.you",
     }
     data = {"name": "john"}
@@ -46,7 +46,6 @@ def cloudevent_0_3():
     attributes = {
         "id": "my-id",
         "source": "from-galaxy-far-far-away",
-        "time": "tomorrow",
         "type": "cloudevent.greet.you",
         "specversion": "0.3",
     }

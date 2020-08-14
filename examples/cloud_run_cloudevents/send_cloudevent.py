@@ -16,7 +16,7 @@ import requests
 import json
 
 
-# Create event
+# CloudEvent constructor minimally requires a source and type field
 attributes = {
     "Content-Type": "application/json",
     "source": "from-galaxy-far-far-away",

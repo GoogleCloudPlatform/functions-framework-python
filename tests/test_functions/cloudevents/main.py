@@ -33,7 +33,6 @@ def function(cloudevent):
         cloudevent["id"] == "my-id"
         and cloudevent.data == {"name": "john"}
         and cloudevent["source"] == "from-galaxy-far-far-away"
-        and cloudevent["time"] == "tomorrow"
         and cloudevent["type"] == "cloudevent.greet.you"
     )
 

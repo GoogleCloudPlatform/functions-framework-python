@@ -239,21 +239,16 @@ def create_app(target=None, source=None, signature_type=None):
     elif signature_type == "event":
         app.url_map.add(
             werkzeug.routing.Rule(
-                "/", defaults={"path": ""}, endpoint=signature_type, methods=["POST"]
+                "/", defaults={"path": ""}, endpoint="run", methods=["POST"]
             )
         )
         app.url_map.add(
-            werkzeug.routing.Rule(
-                "/<path:path>", endpoint=signature_type, methods=["POST"]
-            )
+            werkzeug.routing.Rule("/<path:path>", endpoint="run", methods=["POST"])
         )
-
+        app.view_functions["run"] = _event_view_func_wrapper(function, flask.request)
         # Add a dummy endpoint for GET /
         app.url_map.add(werkzeug.routing.Rule("/", endpoint="get", methods=["GET"]))
         app.view_functions["get"] = lambda: ""
-
-        # Add the view functions
-        app.view_functions["event"] = _event_view_func_wrapper(function, flask.request)
     elif signature_type == "cloudevent":
         app.url_map.add(
             werkzeug.routing.Rule(
