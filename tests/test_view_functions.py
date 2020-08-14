@@ -97,19 +97,14 @@ def test_cloudevent_view_func_wrapper():
     )
 
     request = pretend.stub(headers=headers, get_data=lambda: data)
-    # event = from_http(request.get_data(), request.headers)
+    event = from_http(request.get_data(), request.headers)
 
     function = pretend.call_recorder(lambda cloudevent: cloudevent)
 
     view_func = functions_framework._cloudevent_view_func_wrapper(function, request)
     view_func("/some/path")
 
-    # cloudevents v1.0.0 does not support __eq__ overload yet
-    # therefore we cannot do:
-    # assert functions.calls == [pretend.calls(event)]
-    event = function.calls[0].__dict__["args"][0]
-    assert event.data == {"name": "john"}
-    assert event["id"] == "f6a65fcd-eed2-429d-9f71-ec0663d83025"
+    assert function.calls == [pretend.call(event)]
 
 
 def test_binary_cloudevent_view_func_wrapper():
@@ -123,19 +118,14 @@ def test_binary_cloudevent_view_func_wrapper():
     data = json.dumps({"name": "john"})
 
     request = pretend.stub(headers=headers, get_data=lambda: data)
-    # event = from_http(request.get_data(), request.headers)
+    event = from_http(request.get_data(), request.headers)
 
     function = pretend.call_recorder(lambda cloudevent: cloudevent)
 
     view_func = functions_framework._cloudevent_view_func_wrapper(function, request)
     view_func("/some/path")
 
-    # cloudevents v1.0.0 does not support __eq__ overload yet
-    # therefore we cannot do:
-    # assert functions.calls == [pretend.calls(event)]
-    event = function.calls[0].__dict__["args"][0]
-    assert event.data == {"name": "john"}
-    assert event["id"] == "f6a65fcd-eed2-429d-9f71-ec0663d83025"
+    assert function.calls == [pretend.call(event)]
 
 
 def test_binary_event_view_func_wrapper(monkeypatch):

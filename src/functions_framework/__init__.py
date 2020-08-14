@@ -17,13 +17,14 @@ import importlib.util
 import os.path
 import pathlib
 import sys
+import json
 import types
 
 import flask
 import werkzeug
 
-from cloudevents.http import from_http
-from cloudevents.sdk.converters import is_binary, is_structured
+from cloudevents.http import from_http, is_binary
+import cloudevents.exceptions as cloud_exceptions
 
 from functions_framework.exceptions import (
     FunctionsFrameworkException,
@@ -51,7 +52,7 @@ class _Event(object):
         timestamp="",
         eventType="",
         resource="",
-        **kwargs
+        **kwargs,
     ):
         self.context = context
         if not self.context:
@@ -81,12 +82,24 @@ def _cloudevent_view_func_wrapper(function, request):
     def view_func(path):
         try:
             _run_cloudevent(function, request)
-        except ValueError:
+        except (
+            cloud_exceptions.CloudEventMissingRequiredFields,
+            cloud_exceptions.CloudEventTypeErrorRequiredFields,
+        ):
             flask.abort(
                 400,
                 description=(
                     "Function was defined with FUNCTION_SIGNATURE_TYPE=cloudevent "
-                    " but it did not receive a valid cloudevent as a request."
+                    "but it did not receive a valid cloudevent as a request."
+                ),
+            )
+        except json.decoder.JSONDecodeError:
+            flask.abort(
+                400,
+                description=(
+                    "Function was defined with FUNCTION_SIGNATURE_TYPE=cloudevent but"
+                    " was unable to read cloudevent with http headers:"
+                    f" {request.headers} and json: {request.get_data()}"
                 ),
             )
         return "OK"

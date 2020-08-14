@@ -32,7 +32,6 @@ except:
 @pytest.fixture
 def cloudevent_1_0():
     attributes = {
-        "Content-Type": "application/json",
         "id": "my-id",
         "source": "from-galaxy-far-far-away",
         "time": "tomorrow",
@@ -45,7 +44,6 @@ def cloudevent_1_0():
 @pytest.fixture
 def cloudevent_0_3():
     attributes = {
-        "Content-Type": "application/json",
         "id": "my-id",
         "source": "from-galaxy-far-far-away",
         "time": "tomorrow",
@@ -95,11 +93,63 @@ def test_event_0_3(cloudevent_0_3):
     assert resp.data == b"OK"
 
 
-def test_invalid_cloudevent():
+def test_unparsable_cloudevent():
     source = TEST_FUNCTIONS_DIR / "cloudevents" / "main.py"
     target = "function"
 
     client = create_app(target, source, "cloudevent").test_client()
 
-    resp = client.post("/", headers={}, data="data")
+    resp = client.post("/", headers={}, data="")
+    assert resp.status_code == 400
+
+
+def test_cloudevent_missing_required_binary_fields():
+    source = TEST_FUNCTIONS_DIR / "cloudevents" / "main.py"
+    target = "function"
+
+    client = create_app(target, source, "cloudevent").test_client()
+    headers = {
+        "ce-id": "my-id",
+        "ce-source": "from-galaxy-far-far-away",
+        "ce-type": "cloudevent.greet.you",
+        "ce-specversion": "1.0",
+    }
+    data = {"name": "john"}
+    for remove_key in headers:
+        invalid_headers = {key: headers[key] for key in headers if key != remove_key}
+        resp = client.post("/", headers=invalid_headers, data=data)
+        assert resp.status_code == 400
+
+
+def test_cloudevent_missing_required_structured_fields():
+    source = TEST_FUNCTIONS_DIR / "cloudevents" / "main.py"
+    target = "function"
+
+    client = create_app(target, source, "cloudevent").test_client()
+    headers = {"Content-Type": "application/cloudevents+json"}
+    data = {
+        "id": "my-id",
+        "source": "from-galaxy-far-far-away",
+        "type": "cloudevent.greet.you",
+        "specversion": "1.0",
+    }
+    for remove_key in data:
+        invalid_data = {key: data[key] for key in data if key != remove_key}
+        resp = client.post("/", headers=headers, data=invalid_data)
+        assert resp.status_code == 400
+
+
+def test_invalid_fields_binary():
+    source = TEST_FUNCTIONS_DIR / "cloudevents" / "main.py"
+    target = "function"
+
+    client = create_app(target, source, "cloudevent").test_client()
+    headers = {
+        "ce-id": "my-id",
+        "ce-source": "from-galaxy-far-far-away",
+        "ce-type": "cloudevent.greet.you",
+        "ce-specversion": None,
+    }
+    data = {"name": "john"}
+    resp = client.post("/", headers=headers, data=data)
     assert resp.status_code == 400
