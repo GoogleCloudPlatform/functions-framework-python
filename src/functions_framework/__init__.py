@@ -14,17 +14,17 @@
 
 import functools
 import importlib.util
+import json
 import os.path
 import pathlib
 import sys
-import json
 import types
 
+import cloudevents.exceptions as cloud_exceptions
 import flask
 import werkzeug
 
 from cloudevents.http import from_http, is_binary
-import cloudevents.exceptions as cloud_exceptions
 
 from functions_framework.exceptions import (
     FunctionsFrameworkException,
