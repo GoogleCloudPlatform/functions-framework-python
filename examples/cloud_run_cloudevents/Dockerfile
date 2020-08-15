@@ -14,4 +14,4 @@ RUN pip install gunicorn cloudevents functions-framework
 RUN pip install -r requirements.txt
 
 # Run the web service on container startup.
-CMD exec functions-framework --target=hello --signature-type=cloudevent
+CMD ["functions-framework", "--target=hello", "--signature-type=cloudevent"]
