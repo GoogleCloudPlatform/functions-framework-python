@@ -85,21 +85,23 @@ def _cloudevent_view_func_wrapper(function, request):
         except (
             cloud_exceptions.CloudEventMissingRequiredFields,
             cloud_exceptions.CloudEventTypeErrorRequiredFields,
-        ):
-            flask.abort(
-                400,
-                description=(
-                    "Function was defined with FUNCTION_SIGNATURE_TYPE=cloudevent "
-                    "but it did not receive a valid cloudevent as a request."
-                ),
-            )
-        except json.decoder.JSONDecodeError:
+        ) as e:
             flask.abort(
                 400,
                 description=(
                     "Function was defined with FUNCTION_SIGNATURE_TYPE=cloudevent but"
-                    " was unable to read cloudevent with http headers:"
-                    f" {request.headers} and json: {request.get_data()}"
+                    " failed to find all required cloudevent fields. Found http"
+                    f" headers: {request.headers} and data: {request.get_data()}"
+                ),
+            )
+        except json.decoder.JSONDecodeError as e:
+            # TODO: more detailed error messages or error handling in sdk-python
+            flask.abort(
+                400,
+                description=(
+                    "Function was defined with FUNCTION_SIGNATURE_TYPE=cloudevent but"
+                    " could not json decode data payload. Found http headers:"
+                    f" {request.headers} and data: {request.get_data()}"
                 ),
             )
         return "OK"
