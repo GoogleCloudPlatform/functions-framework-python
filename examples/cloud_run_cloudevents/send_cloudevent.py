@@ -16,7 +16,10 @@ import requests
 import json
 
 
-# CloudEvent constructor minimally requires a source and type field
+# Create a cloudevent using https://github.com/cloudevents/sdk-python
+# Note we only need source and type because the cloudevents constructor by 
+# default will set "specversion" to the most recent cloudevent version (e.g. 1.0) 
+# and "id" to a generated uuid.uuid4 string. 
 attributes = {
     "Content-Type": "application/json",
     "source": "from-galaxy-far-far-away",
@@ -26,6 +29,6 @@ data = {"name":"john"}
 
 event = CloudEvent(attributes, data)
 
-# Send event
+# Send the event to our local docker container listening on port 8080
 headers, data = to_structured_http(event)
 response = requests.post("http://localhost:8080/", headers=headers, data=data)
