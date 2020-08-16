@@ -51,6 +51,8 @@ def cloudevent_1_0():
         "id": "my-id",
         "source": "from-galaxy-far-far-away",
         "type": "cloudevent.greet.you",
+        "time": "2020-08-16T13:58:54.471765"
+
     }
     data = {"name": "john"}
     return CloudEvent(attributes, data)
@@ -63,6 +65,7 @@ def cloudevent_0_3():
         "source": "from-galaxy-far-far-away",
         "type": "cloudevent.greet.you",
         "specversion": "0.3",
+        "time": "2020-08-16T13:58:54.471765"
     }
     data = {"name": "john"}
     return CloudEvent(attributes, data)
@@ -75,6 +78,7 @@ def create_headers_binary():
         "ce-source": "from-galaxy-far-far-away",
         "ce-type": "cloudevent.greet.you",
         "ce-specversion": specversion,
+        "time": "2020-08-16T13:58:54.471765"
     }
 
 
@@ -85,6 +89,7 @@ def create_structured_data():
         "source": "from-galaxy-far-far-away",
         "type": "cloudevent.greet.you",
         "specversion": specversion,
+        "time": "2020-08-16T13:58:54.471765"
     }
 
 
@@ -141,6 +146,9 @@ def test_cloudevent_missing_required_binary_fields(
     headers = create_headers_binary(specversion)
 
     for remove_key in headers:
+        if remove_key == "time":
+            continue
+
         invalid_headers = {key: headers[key] for key in headers if key != remove_key}
         resp = client.post("/", headers=invalid_headers, json=data_payload)
 
@@ -156,6 +164,9 @@ def test_cloudevent_missing_required_structured_fields(
     data = create_structured_data(specversion)
 
     for remove_key in data:
+        if remove_key == "time":
+            continue
+        
         invalid_data = {key: data[key] for key in data if key != remove_key}
         resp = client.post("/", headers=headers, json=invalid_data)
 

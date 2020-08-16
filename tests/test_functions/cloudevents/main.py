@@ -34,6 +34,7 @@ def function(cloudevent):
         and cloudevent.data == {"name": "john"}
         and cloudevent["source"] == "from-galaxy-far-far-away"
         and cloudevent["type"] == "cloudevent.greet.you"
+        and cloudevent["time"] == "2020-08-16T13:58:54.471765"
     )
 
     if not valid_event:
