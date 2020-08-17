@@ -233,6 +233,19 @@ def create_app(target=None, source=None, signature_type=None):
     with app.app_context():
         spec.loader.exec_module(source_module)
 
+    # Handle legacy GCF Python 3.7 behavior
+    if os.environ.get("ENTRY_POINT"):
+        os.environ["FUNCTION_TRIGGER_TYPE"] = signature_type
+        os.environ["FUNCTION_NAME"] = os.environ.get("K_SERVICE", target)
+        app.make_response_original = app.make_response
+
+        def handle_none(rv):
+            if rv is None:
+                rv = "OK"
+            return app.make_response_original(rv)
+
+        app.make_response = handle_none
+
     # Extract the target function from the source file
     try:
         function = getattr(source_module, target)
