@@ -308,3 +308,13 @@ def test_class_in_main_is_in_right_module():
     resp = client.get("/")
 
     assert resp.status_code == 200
+
+
+def test_flask_current_app_is_available():
+    source = TEST_FUNCTIONS_DIR / "flask_current_app" / "main.py"
+    target = "function"
+
+    client = create_app(target, source).test_client()
+    resp = client.get("/")
+
+    assert resp.status_code == 200
