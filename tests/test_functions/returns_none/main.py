@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Function used in Worker tests of handling HTTP functions."""
-
 
 def function(request):
     """Test HTTP function when using legacy GCF behavior.
