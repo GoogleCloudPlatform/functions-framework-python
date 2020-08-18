@@ -13,11 +13,11 @@ docker build -t cloudevent_example .
 Run the image and bind the correct ports:
 
 ```commandline
-docker run --rm -p 8080:8080 -e PORT=8080 ff_example
+docker run --rm -p 8080:8080 -e PORT=8080 cloudevent_example
 ```
 
 Send an event to the container:
 
 ```python
-python send_cloudevent.py
+docker run -t cloudevent_example send_cloudevent.py
 ```
