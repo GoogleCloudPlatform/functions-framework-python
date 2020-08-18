@@ -89,7 +89,7 @@ def _cloudevent_view_func_wrapper(function, request):
                     "Function was defined with FUNCTION_SIGNATURE_TYPE=cloudevent but"
                     " failed to find all required cloudevent fields. Found HTTP"
                     f" headers: {request.headers} and data: {request.get_data()}. "
-                    f"cloudevents.exceptions.{type(e).__name__}: {e}"
+                    f"cloudevents.exceptions.MissingRequiredFields: {e}"
                 ),
             )
         except cloud_exceptions.InvalidRequiredFields as e:
@@ -99,7 +99,7 @@ def _cloudevent_view_func_wrapper(function, request):
                     "Function was defined with FUNCTION_SIGNATURE_TYPE=cloudevent but"
                     " found one or more invalid required cloudevent fields. Found HTTP"
                     f" headers: {request.headers} and data: {request.get_data()}. "
-                    f"cloudevents.exceptions.{type(e).__name__}: {e}"
+                    f"cloudevents.exceptions.InvalidRequiredFields: {e}"
                 ),
             )
         except cloud_exceptions.InvalidStructuredJSON as e:
@@ -109,7 +109,7 @@ def _cloudevent_view_func_wrapper(function, request):
                     "Function was defined with FUNCTION_SIGNATURE_TYPE=cloudevent but"
                     " could not deserialize the payload as JSON. Found HTTP headers:"
                     f" {request.headers} and payload: {request.get_data()}. "
-                    f"cloudevents.exceptions.{type(e).__name__}: {e}"
+                    f"cloudevents.exceptions.InvalidStructuredJSON: {e}"
                 ),
             )
         return "OK"
