@@ -31,4 +31,4 @@ event = CloudEvent(attributes, data)
 
 # Send the event to our local docker container listening on port 8080
 headers, data = to_structured_http(event)
-response = requests.post("http://localhost:8080/", headers=headers, data=data)
+requests.post("http://localhost:8080/", headers=headers, data=data)
