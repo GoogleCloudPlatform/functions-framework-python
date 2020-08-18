@@ -7,7 +7,7 @@ This sample uses the [CloudEvents SDK](https://github.com/cloudevents/sdk-python
 Build the Docker image:
 
 ```commandline
-docker build -t ff_example .
+docker build -t cloudevent_example .
 ```
 
 Run the image and bind the correct ports:
