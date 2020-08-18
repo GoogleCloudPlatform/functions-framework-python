@@ -149,7 +149,7 @@ To enable automatic unmarshalling, set the function signature type to `event`
 using a command-line flag or an environment variable. By default, the HTTP
 signature will be used and automatic event unmarshalling will be disabled.
 
-For more details on this signature type, check out the Google Cloud Functions
+For more details on this signature type, see the Google Cloud Functions
 documentation on
 [background functions](https://cloud.google.com/functions/docs/writing/background#cloud_pubsub_example).
 
