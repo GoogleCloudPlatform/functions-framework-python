@@ -102,8 +102,8 @@ def _cloudevent_view_func_wrapper(function, request):
                 description=(
                     f"{e} "
                     "Function was defined with FUNCTION_SIGNATURE_TYPE=cloudevent but"
-                    " could not json decode data payload. Found http headers:"
-                    f" {request.headers} and data: {request.get_data()}. "
+                    " could not deserialize the payload as JSON. Found HTTP headers:"
+                    f" {request.headers} and payload: {request.get_data()}. "
                     f"json.decoder.JSONDecodeError: {e}"
                 ),
             )
