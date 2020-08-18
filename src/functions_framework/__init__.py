@@ -271,7 +271,7 @@ def create_app(target=None, source=None, signature_type=None):
             )
         )
 
-        app.view_functions["cloudevent"] = _cloudevent_view_func_wrapper(
+        app.view_functions[signature_type] = _cloudevent_view_func_wrapper(
             function, flask.request
         )
     else:
