@@ -100,7 +100,6 @@ def _cloudevent_view_func_wrapper(function, request):
             flask.abort(
                 400,
                 description=(
-                    f"{e} "
                     "Function was defined with FUNCTION_SIGNATURE_TYPE=cloudevent but"
                     " could not deserialize the payload as JSON. Found HTTP headers:"
                     f" {request.headers} and payload: {request.get_data()}. "
