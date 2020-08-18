@@ -76,11 +76,12 @@ def test_run_cloudevent():
         }
     )
     request = pretend.stub(headers=headers, get_data=lambda: data)
+
     function = pretend.call_recorder(lambda cloudevent: "hello")
     functions_framework._run_cloudevent(function, request)
-    event = function.calls[0].__dict__["args"][0]
-    assert event.data == {"name": "john"}
-    assert event["id"] == "f6a65fcd-eed2-429d-9f71-ec0663d83025"
+    expected_cloudevent = from_http(request.headers, request.get_data())
+
+    assert function.calls == [pretend.call(expected_cloudevent)]
 
 
 def test_cloudevent_view_func_wrapper():
