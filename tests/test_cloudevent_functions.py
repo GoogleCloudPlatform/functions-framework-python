@@ -16,7 +16,7 @@ import pathlib
 
 import pytest
 
-from cloudevents.http import CloudEvent, from_http, to_binary_http, to_structured_http
+from cloudevents.http import CloudEvent, from_http, to_binary, to_structured
 
 from functions_framework import LazyWSGIApp, create_app, exceptions
 
@@ -35,24 +35,13 @@ def data_payload():
 
 
 @pytest.fixture
-def json_decode_errmsg():
-    return "could not json decode data payload"
-
-
-@pytest.fixture
-def missing_fields_errmsg():
-    return "failed to find all required cloudevent fields"
-
-
-@pytest.fixture
 def cloudevent_1_0():
     attributes = {
         "specversion": "1.0",
         "id": "my-id",
         "source": "from-galaxy-far-far-away",
         "type": "cloudevent.greet.you",
-        "time": "2020-08-16T13:58:54.471765"
-
+        "time": "2020-08-16T13:58:54.471765",
     }
     data = {"name": "john"}
     return CloudEvent(attributes, data)
@@ -65,7 +54,7 @@ def cloudevent_0_3():
         "source": "from-galaxy-far-far-away",
         "type": "cloudevent.greet.you",
         "specversion": "0.3",
-        "time": "2020-08-16T13:58:54.471765"
+        "time": "2020-08-16T13:58:54.471765",
     }
     data = {"name": "john"}
     return CloudEvent(attributes, data)
@@ -78,7 +67,7 @@ def create_headers_binary():
         "ce-source": "from-galaxy-far-far-away",
         "ce-type": "cloudevent.greet.you",
         "ce-specversion": specversion,
-        "time": "2020-08-16T13:58:54.471765"
+        "time": "2020-08-16T13:58:54.471765",
     }
 
 
@@ -89,7 +78,7 @@ def create_structured_data():
         "source": "from-galaxy-far-far-away",
         "type": "cloudevent.greet.you",
         "specversion": specversion,
-        "time": "2020-08-16T13:58:54.471765"
+        "time": "2020-08-16T13:58:54.471765",
     }
 
 
@@ -108,7 +97,7 @@ def empty_client():
 
 
 def test_event(client, cloudevent_1_0):
-    headers, data = to_structured_http(cloudevent_1_0)
+    headers, data = to_structured(cloudevent_1_0)
     resp = client.post("/", headers=headers, data=data)
 
     assert resp.status_code == 200
@@ -116,7 +105,7 @@ def test_event(client, cloudevent_1_0):
 
 
 def test_binary_event(client, cloudevent_1_0):
-    headers, data = to_binary_http(cloudevent_1_0)
+    headers, data = to_binary(cloudevent_1_0)
     resp = client.post("/", headers=headers, data=data)
 
     assert resp.status_code == 200
@@ -124,7 +113,7 @@ def test_binary_event(client, cloudevent_1_0):
 
 
 def test_event_0_3(client, cloudevent_0_3):
-    headers, data = to_structured_http(cloudevent_0_3)
+    headers, data = to_structured(cloudevent_0_3)
     resp = client.post("/", headers=headers, data=data)
 
     assert resp.status_code == 200
@@ -132,7 +121,7 @@ def test_event_0_3(client, cloudevent_0_3):
 
 
 def test_binary_event_0_3(client, cloudevent_0_3):
-    headers, data = to_binary_http(cloudevent_0_3)
+    headers, data = to_binary(cloudevent_0_3)
     resp = client.post("/", headers=headers, data=data)
 
     assert resp.status_code == 200
@@ -141,7 +130,7 @@ def test_binary_event_0_3(client, cloudevent_0_3):
 
 @pytest.mark.parametrize("specversion", ["0.3", "1.0"])
 def test_cloudevent_missing_required_binary_fields(
-    client, specversion, missing_fields_errmsg, create_headers_binary, data_payload
+    client, specversion, create_headers_binary, data_payload
 ):
     headers = create_headers_binary(specversion)
 
@@ -153,12 +142,14 @@ def test_cloudevent_missing_required_binary_fields(
         resp = client.post("/", headers=invalid_headers, json=data_payload)
 
         assert resp.status_code == 400
-        assert missing_fields_errmsg in resp.get_data().decode()
+        assert (
+            "cloudevents.exceptions.MissingRequiredFields" in resp.get_data().decode()
+        )
 
 
 @pytest.mark.parametrize("specversion", ["0.3", "1.0"])
 def test_cloudevent_missing_required_structured_fields(
-    client, specversion, create_structured_data, missing_fields_errmsg
+    client, specversion, create_structured_data
 ):
     headers = {"Content-Type": "application/cloudevents+json"}
     data = create_structured_data(specversion)
@@ -166,30 +157,28 @@ def test_cloudevent_missing_required_structured_fields(
     for remove_key in data:
         if remove_key == "time":
             continue
-        
+
         invalid_data = {key: data[key] for key in data if key != remove_key}
         resp = client.post("/", headers=headers, json=invalid_data)
 
         assert resp.status_code == 400
-        assert missing_fields_errmsg in resp.get_data().decode()
+        assert "cloudevents.exceptions.MissingRequiredFields" in resp.data.decode()
 
 
-def test_invalid_fields_binary(
-    client, create_headers_binary, missing_fields_errmsg, data_payload
-):
+def test_invalid_fields_binary(client, create_headers_binary, data_payload):
     # Testing none specversion fails
-    headers = create_headers_binary(None)
+    headers = create_headers_binary("not a spec version")
     resp = client.post("/", headers=headers, json=data_payload)
 
     assert resp.status_code == 400
-    assert missing_fields_errmsg in resp.data.decode()
+    assert "cloudevents.exceptions.InvalidRequiredFields" in resp.data.decode()
 
 
-def test_unparsable_cloudevent(client, json_decode_errmsg):
+def test_unparsable_cloudevent(client):
     resp = client.post("/", headers={}, data="")
 
     assert resp.status_code == 400
-    assert json_decode_errmsg in resp.data.decode()
+    assert "cloudevents.exceptions.InvalidStructuredJSON" in resp.data.decode()
 
 
 @pytest.mark.parametrize("specversion", ["0.3", "1.0"])

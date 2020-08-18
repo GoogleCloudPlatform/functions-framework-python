@@ -74,7 +74,7 @@ def _http_view_func_wrapper(function, request):
 
 def _run_cloudevent(function, request):
     data = request.get_data()
-    event = from_http(data, request.headers)
+    event = from_http(request.headers, data)
     function(event)
 
 
@@ -82,28 +82,34 @@ def _cloudevent_view_func_wrapper(function, request):
     def view_func(path):
         try:
             _run_cloudevent(function, request)
-        except (
-            cloud_exceptions.CloudEventMissingRequiredFields,
-            cloud_exceptions.CloudEventTypeErrorRequiredFields,
-        ) as e:
+        except cloud_exceptions.MissingRequiredFields as e:
             flask.abort(
                 400,
                 description=(
                     "Function was defined with FUNCTION_SIGNATURE_TYPE=cloudevent but"
-                    " failed to find all required cloudevent fields. Found http"
+                    " failed to find all required cloudevent fields. Found HTTP"
                     f" headers: {request.headers} and data: {request.get_data()}. "
                     f"cloudevents.exceptions.{type(e).__name__}: {e}"
                 ),
             )
-        except json.decoder.JSONDecodeError as e:
-            # TODO: more detailed error messages or error handling in sdk-python
+        except cloud_exceptions.InvalidRequiredFields as e:
+            flask.abort(
+                400,
+                description=(
+                    "Function was defined with FUNCTION_SIGNATURE_TYPE=cloudevent but"
+                    " found one or more invalid required cloudevent fields. Found HTTP"
+                    f" headers: {request.headers} and data: {request.get_data()}. "
+                    f"cloudevents.exceptions.{type(e).__name__}: {e}"
+                ),
+            )
+        except cloud_exceptions.InvalidStructuredJSON as e:
             flask.abort(
                 400,
                 description=(
                     "Function was defined with FUNCTION_SIGNATURE_TYPE=cloudevent but"
                     " could not deserialize the payload as JSON. Found HTTP headers:"
                     f" {request.headers} and payload: {request.get_data()}. "
-                    f"json.decoder.JSONDecodeError: {e}"
+                    f"cloudevents.exceptions.{type(e).__name__}: {e}"
                 ),
             )
         return "OK"

@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from cloudevents.http import CloudEvent, to_structured_http
+from cloudevents.http import CloudEvent, to_structured
 import requests
 import json
 
@@ -30,5 +30,5 @@ data = {"name":"john"}
 event = CloudEvent(attributes, data)
 
 # Send the event to our local docker container listening on port 8080
-headers, data = to_structured_http(event)
+headers, data = to_structured(event)
 requests.post("http://localhost:8080/", headers=headers, data=data)

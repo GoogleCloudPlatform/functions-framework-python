@@ -97,7 +97,7 @@ def test_cloudevent_view_func_wrapper():
     )
 
     request = pretend.stub(headers=headers, get_data=lambda: data)
-    event = from_http(request.get_data(), request.headers)
+    event = from_http(request.headers, request.get_data())
 
     function = pretend.call_recorder(lambda cloudevent: cloudevent)
 
@@ -118,7 +118,7 @@ def test_binary_cloudevent_view_func_wrapper():
     data = json.dumps({"name": "john"})
 
     request = pretend.stub(headers=headers, get_data=lambda: data)
-    event = from_http(request.get_data(), request.headers)
+    event = from_http(request.headers, request.get_data())
 
     function = pretend.call_recorder(lambda cloudevent: cloudevent)
 
