@@ -155,7 +155,7 @@ documentation on
 
 # Enable CloudEvents
 
-The Functions framework can also unmarshall incoming [CloudEvents](http://cloudevents.io) payloads to the `cloudevent` object. This will be passed as a [cloudevent](https://github.com/cloudevents/sdk-python) to your function when it receives a request.  Note that your function must use the cloudevents-style function signature:
+The Functions framework can also unmarshall incoming [CloudEvents](http://cloudevents.io) payloads to the `cloudevent` object. This will be passed as a [cloudevent](https://github.com/cloudevents/sdk-python) to your function when it receives a request.  Note that your function must use the `cloudevents`-style function signature:
 
 ```python
 def hello(cloudevent):
