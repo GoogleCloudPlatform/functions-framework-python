@@ -146,7 +146,7 @@ def hello(data, context):
 ```
 
 To enable automatic unmarshalling, set the function signature type to `event`
-using a command-line flag or an environment variable. By default, the HTTP
+ using the `--signature-type` command-line flag or the `FUNCTION_SIGNATURE_TYPE` environment variable. By default, the HTTP
 signature will be used and automatic event unmarshalling will be disabled.
 
 For more details on this signature type, see the Google Cloud Functions
