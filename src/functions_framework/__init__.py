@@ -208,11 +208,13 @@ def create_app(target=None, source=None, signature_type=None):
     # 4. Add the module to sys.modules
     sys.modules[name] = source_module
 
-    # 5. Execute the module
-    spec.loader.exec_module(source_module)
-
+    # 5. Create the application
     app = flask.Flask(target, template_folder=template_folder)
     app.config["MAX_CONTENT_LENGTH"] = MAX_CONTENT_LENGTH
+
+    # 6. Execute the module, within the application context
+    with app.app_context():
+        spec.loader.exec_module(source_module)
 
     # Extract the target function from the source file
     try:
