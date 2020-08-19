@@ -178,7 +178,7 @@ def test_unparsable_cloudevent(client):
     resp = client.post("/", headers={}, data="")
 
     assert resp.status_code == 400
-    assert "cloudevents.exceptions.InvalidStructuredJSON" in resp.data.decode()
+    assert "cloudevents.exceptions.MissingRequiredFields" in resp.data.decode()
 
 
 @pytest.mark.parametrize("specversion", ["0.3", "1.0"])
