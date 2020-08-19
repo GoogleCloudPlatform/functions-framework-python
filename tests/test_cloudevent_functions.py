@@ -172,6 +172,7 @@ def test_invalid_fields_binary(client, create_headers_binary, data_payload):
 
     assert resp.status_code == 400
     assert "cloudevents.exceptions.InvalidRequiredFields" in resp.data.decode()
+    assert "found one or more invalid required cloudevent field" in resp.data.decode()
 
 
 def test_unparsable_cloudevent(client):

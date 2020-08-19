@@ -102,16 +102,6 @@ def _cloudevent_view_func_wrapper(function, request):
                     f"cloudevents.exceptions.InvalidRequiredFields: {e}"
                 ),
             )
-        except cloud_exceptions.InvalidStructuredJSON as e:
-            flask.abort(
-                400,
-                description=(
-                    "Function was defined with FUNCTION_SIGNATURE_TYPE=cloudevent but"
-                    " could not deserialize the payload as JSON. Found HTTP headers:"
-                    f" {request.headers} and payload: {request.get_data()}. "
-                    f"cloudevents.exceptions.InvalidStructuredJSON: {e}"
-                ),
-            )
         return "OK"
 
     return view_func
