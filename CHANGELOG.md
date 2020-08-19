@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.0] - 2020-08-19
+### Changed
+- Add legacy GCF Python 3.7 behavior ([#77])
+
+### Added
+- Improve documentation around Dockerfiles ([#70])
+
 ## [1.5.0] - 2020-07-06
 ### Changed
 - Framework will consume entire request before responding ([#66])
@@ -67,7 +74,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Initial release
 
-[Unreleased]: https://github.com/GoogleCloudPlatform/functions-framework-python/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/GoogleCloudPlatform/functions-framework-python/compare/v1.6.0...HEAD
+[1.6.0]: https://github.com/GoogleCloudPlatform/functions-framework-python/releases/tag/v1.6.0
 [1.5.0]: https://github.com/GoogleCloudPlatform/functions-framework-python/releases/tag/v1.5.0
 [1.4.4]: https://github.com/GoogleCloudPlatform/functions-framework-python/releases/tag/v1.4.4
 [1.4.3]: https://github.com/GoogleCloudPlatform/functions-framework-python/releases/tag/v1.4.3
@@ -81,6 +89,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [1.0.1]: https://github.com/GoogleCloudPlatform/functions-framework-python/releases/tag/v1.0.1
 [1.0.0]: https://github.com/GoogleCloudPlatform/functions-framework-python/releases/tag/v1.0.0
 
+[#77]: https://github.com/GoogleCloudPlatform/functions-framework-python/pull/77
+[#70]: https://github.com/GoogleCloudPlatform/functions-framework-python/pull/70
 [#66]: https://github.com/GoogleCloudPlatform/functions-framework-python/pull/66
 [#61]: https://github.com/GoogleCloudPlatform/functions-framework-python/pull/61
 [#49]: https://github.com/GoogleCloudPlatform/functions-framework-python/pull/49
