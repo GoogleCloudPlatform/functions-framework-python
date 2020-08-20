@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
+import os
 import pathlib
 import re
 import time
@@ -465,3 +467,42 @@ def test_flask_current_app_is_available():
     resp = client.get("/")
 
     assert resp.status_code == 200
+
+
+def test_function_returns_none():
+    source = TEST_FUNCTIONS_DIR / "returns_none" / "main.py"
+    target = "function"
+
+    client = create_app(target, source).test_client()
+    resp = client.get("/")
+
+    assert resp.status_code == 500
+
+
+def test_legacy_function_check_env(monkeypatch):
+    source = TEST_FUNCTIONS_DIR / "http_check_env" / "main.py"
+    target = "function"
+
+    monkeypatch.setenv("ENTRY_POINT", target)
+
+    client = create_app(target, source).test_client()
+    resp = client.post("/", json={"mode": "FUNCTION_TRIGGER_TYPE"})
+    assert resp.status_code == 200
+    assert resp.data == b"http"
+
+    resp = client.post("/", json={"mode": "FUNCTION_NAME"})
+    assert resp.status_code == 200
+    assert resp.data.decode("utf-8") == target
+
+
+def test_legacy_function_returns_none(monkeypatch):
+    source = TEST_FUNCTIONS_DIR / "returns_none" / "main.py"
+    target = "function"
+
+    monkeypatch.setenv("ENTRY_POINT", target)
+
+    client = create_app(target, source).test_client()
+    resp = client.get("/")
+
+    assert resp.status_code == 200
+    assert resp.data == b"OK"
