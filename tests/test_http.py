@@ -53,7 +53,9 @@ def test_httpserver(monkeypatch, debug, gunicorn_missing, expected):
     options = {"a": pretend.stub(), "b": pretend.stub()}
 
     monkeypatch.setattr(
-        functions_framework._http, "FlaskApplication", server_classes["flask"],
+        functions_framework._http,
+        "FlaskApplication",
+        server_classes["flask"],
     )
     if gunicorn_missing or platform.system() == "Windows":
         monkeypatch.setitem(sys.modules, "functions_framework._http.gunicorn", None)
@@ -61,7 +63,9 @@ def test_httpserver(monkeypatch, debug, gunicorn_missing, expected):
         from functions_framework._http import gunicorn
 
         monkeypatch.setattr(
-            gunicorn, "GunicornApplication", server_classes["gunicorn"],
+            gunicorn,
+            "GunicornApplication",
+            server_classes["gunicorn"],
         )
 
     wrapper = functions_framework._http.HTTPServer(app, debug, **options)

@@ -19,14 +19,14 @@ import nonexistentpackage
 def function(event, context):
     """Test function which uses a package which has not been provided.
 
-  The packaged imported above does not exist. Therefore, this import should
-  fail, the Worker should detect this error, and return appropriate load
-  response.
+    The packaged imported above does not exist. Therefore, this import should
+    fail, the Worker should detect this error, and return appropriate load
+    response.
 
-  Args:
-    event: The event data which triggered this background function.
-    context (google.cloud.functions.Context): The Cloud Functions event context.
-  """
+    Args:
+      event: The event data which triggered this background function.
+      context (google.cloud.functions.Context): The Cloud Functions event context.
+    """
     del event
     del context
     nonexistentpackage.wontwork("This function isn't expected to work.")
