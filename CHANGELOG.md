@@ -101,6 +101,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#70]: https://github.com/GoogleCloudPlatform/functions-framework-python/pull/70
 [#66]: https://github.com/GoogleCloudPlatform/functions-framework-python/pull/66
 [#61]: https://github.com/GoogleCloudPlatform/functions-framework-python/pull/61
+[#56]: https://github.com/GoogleCloudPlatform/functions-framework-python/pull/56
+[#55]: https://github.com/GoogleCloudPlatform/functions-framework-python/pull/55
 [#49]: https://github.com/GoogleCloudPlatform/functions-framework-python/pull/49
 [#44]: https://github.com/GoogleCloudPlatform/functions-framework-python/pull/44
 [#38]: https://github.com/GoogleCloudPlatform/functions-framework-python/pull/38
