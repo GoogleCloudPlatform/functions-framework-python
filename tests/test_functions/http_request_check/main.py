@@ -18,18 +18,18 @@
 def function(request):
     """Test function which returns the requested element of the HTTP request.
 
-  Name of the requested HTTP request element is provided in the 'mode' field in
-  the incoming JSON document.
+    Name of the requested HTTP request element is provided in the 'mode' field in
+    the incoming JSON document.
 
-  Args:
-    request: The HTTP request which triggered this function. Must contain name
-      of the requested HTTP request element in the 'mode' field in JSON document
-      in request body.
+    Args:
+      request: The HTTP request which triggered this function. Must contain name
+        of the requested HTTP request element in the 'mode' field in JSON document
+        in request body.
 
-  Returns:
-    Value of the requested HTTP request element, or 'Bad Request' status in case
-    of unrecognized incoming request.
-  """
+    Returns:
+      Value of the requested HTTP request element, or 'Bad Request' status in case
+      of unrecognized incoming request.
+    """
     mode = request.get_json().get("mode")
     if mode == "path":
         return request.path
