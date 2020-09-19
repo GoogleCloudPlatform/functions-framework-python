@@ -20,15 +20,15 @@ def function(
 ):  # Required by function definition pylint: disable=unused-argument
     """Test background function.
 
-  It writes the expected output (entry point name and the given value) to the
-  given file, as a response from the background function, verified by the test.
+    It writes the expected output (entry point name and the given value) to the
+    given file, as a response from the background function, verified by the test.
 
-  Args:
-    event: The event data (as dictionary) which triggered this background
-      function. Must contain entries for 'value' and 'filename' keys in the
-      data dictionary.
-    context (google.cloud.functions.Context): The Cloud Functions event context.
-  """
+    Args:
+      event: The event data (as dictionary) which triggered this background
+        function. Must contain entries for 'value' and 'filename' keys in the
+        data dictionary.
+      context (google.cloud.functions.Context): The Cloud Functions event context.
+    """
     filename = event["filename"]
     value = event["value"]
     f = open(filename, "w")

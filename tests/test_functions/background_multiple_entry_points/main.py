@@ -18,14 +18,14 @@
 def fun(name, event):
     """Test function implementation.
 
-  It writes the expected output (entry point name and the given value) to the
-  given file, as a response from the background function, verified by the test.
+    It writes the expected output (entry point name and the given value) to the
+    given file, as a response from the background function, verified by the test.
 
-  Args:
-    name: Entry point function which called this helper function.
-    event: The event which triggered this background function. Must contain
-      entries for 'value' and 'filename' keys in the data dictionary.
-  """
+    Args:
+      name: Entry point function which called this helper function.
+      event: The event which triggered this background function. Must contain
+        entries for 'value' and 'filename' keys in the data dictionary.
+    """
     filename = event["filename"]
     value = event["value"]
     f = open(filename, "w")
@@ -38,15 +38,15 @@ def myFunctionFoo(
 ):  # Used in test, pylint: disable=invalid-name,unused-argument
     """Test function at entry point myFunctionFoo.
 
-  Loaded in a test which verifies entry point handling in a file with multiple
-  entry points.
+    Loaded in a test which verifies entry point handling in a file with multiple
+    entry points.
 
-  Args:
-    event: The event data (as dictionary) which triggered this background
-      function. Must contain entries for 'value' and 'filename' keys in the data
-      dictionary.
-    context (google.cloud.functions.Context): The Cloud Functions event context.
-  """
+    Args:
+      event: The event data (as dictionary) which triggered this background
+        function. Must contain entries for 'value' and 'filename' keys in the data
+        dictionary.
+      context (google.cloud.functions.Context): The Cloud Functions event context.
+    """
     fun("myFunctionFoo", event)
 
 
@@ -55,15 +55,15 @@ def myFunctionBar(
 ):  # Used in test, pylint: disable=invalid-name,unused-argument
     """Test function at entry point myFunctionBar.
 
-  Loaded in a test which verifies entry point handling in a file with multiple
-  entry points.
+    Loaded in a test which verifies entry point handling in a file with multiple
+    entry points.
 
-  Args:
-    event: The event data (as dictionary) which triggered this background
-      function. Must contain entries for 'value' and 'filename' keys in the data
-      dictionary.
-    context (google.cloud.functions.Context): The Cloud Functions event context.
-  """
+    Args:
+      event: The event data (as dictionary) which triggered this background
+        function. Must contain entries for 'value' and 'filename' keys in the data
+        dictionary.
+      context (google.cloud.functions.Context): The Cloud Functions event context.
+    """
     fun("myFunctionBar", event)
 
 

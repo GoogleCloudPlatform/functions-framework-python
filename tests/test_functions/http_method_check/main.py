@@ -18,10 +18,10 @@
 def function(request):
     """Test HTTP function which returns the method it was called with
 
-  Args:
-    request: The HTTP request which triggered this function.
+    Args:
+      request: The HTTP request which triggered this function.
 
-  Returns:
-    The HTTP method which was used to call this function
-  """
+    Returns:
+      The HTTP method which was used to call this function
+    """
     return request.method

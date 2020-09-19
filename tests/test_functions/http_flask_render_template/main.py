@@ -20,20 +20,20 @@ from flask import render_template
 def function(request):
     """Test HTTP function whose behavior depends on the given mode.
 
-  The function returns a success, a failure, or throws an exception, depending
-  on the given mode.
+    The function returns a success, a failure, or throws an exception, depending
+    on the given mode.
 
-  Args:
-    request: The HTTP request which triggered this function. Must contain name
-      of the requested mode in the 'mode' field in JSON document in request
-      body.
+    Args:
+      request: The HTTP request which triggered this function. Must contain name
+        of the requested mode in the 'mode' field in JSON document in request
+        body.
 
-  Returns:
-    Value and status code defined for the given mode.
+    Returns:
+      Value and status code defined for the given mode.
 
-  Raises:
-    Exception: Thrown when requested in the incoming mode specification.
-  """
+    Raises:
+      Exception: Thrown when requested in the incoming mode specification.
+    """
     if request.args and "message" in request.args:
         message = request.args.get("message")
     elif request.get_json() and "message" in request.get_json():

@@ -23,13 +23,13 @@ HOME = "/tmp"
 def function(request):
     """Test function which returns the requested environment variable value.
 
-  Args:
-    request: The HTTP request which triggered this function. Must contain name
-      of the requested environment variable in the 'mode' field in JSON document
-      in request body.
+    Args:
+      request: The HTTP request which triggered this function. Must contain name
+        of the requested environment variable in the 'mode' field in JSON document
+        in request body.
 
-  Returns:
-    Value of the requested environment variable.
-  """
+    Returns:
+      Value of the requested environment variable.
+    """
     name = request.get_json().get("mode")
     return os.environ[name]
