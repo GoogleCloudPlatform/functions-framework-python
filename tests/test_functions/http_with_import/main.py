@@ -20,10 +20,10 @@ from foo import bar
 def function(request):
     """Test HTTP function which imports from another file
 
-  Args:
-    request: The HTTP request which triggered this function.
+    Args:
+      request: The HTTP request which triggered this function.
 
-  Returns:
-    The imported return value and status code defined for the given mode.
-  """
+    Returns:
+      The imported return value and status code defined for the given mode.
+    """
     return bar

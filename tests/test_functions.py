@@ -269,7 +269,7 @@ def test_error_paths(path):
 
 @pytest.mark.parametrize(
     "target, source, signature_type",
-    [(None, None, None), (pretend.stub(), pretend.stub(), pretend.stub()),],
+    [(None, None, None), (pretend.stub(), pretend.stub(), pretend.stub())],
 )
 def test_lazy_wsgi_app(monkeypatch, target, source, signature_type):
     actual_app_stub = pretend.stub()

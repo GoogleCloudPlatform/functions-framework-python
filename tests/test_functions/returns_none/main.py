@@ -16,12 +16,12 @@
 def function(request):
     """Test HTTP function when using legacy GCF behavior.
 
-  The function returns None, which should be a 200 response.
+    The function returns None, which should be a 200 response.
 
-  Args:
-    request: The HTTP request which triggered this function.
+    Args:
+      request: The HTTP request which triggered this function.
 
-  Returns:
-    None.
-  """
+    Returns:
+      None.
+    """
     return None

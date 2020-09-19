@@ -19,14 +19,14 @@ import time
 def function(request):
     """Test function which sleeps for the given number of seconds.
 
-  The test verifies that it gets the response from the function only after the
-  given number of seconds.
+    The test verifies that it gets the response from the function only after the
+    given number of seconds.
 
-  Args:
-    request: The HTTP request which triggered this function. Must contain the
-      requested number of seconds in the 'mode' field in JSON document in
-      request body.
-  """
+    Args:
+      request: The HTTP request which triggered this function. Must contain the
+        requested number of seconds in the 'mode' field in JSON document in
+        request body.
+    """
     sleep_sec = int(request.get_json().get("mode")) / 1000.0
     time.sleep(sleep_sec)
     return "OK"
