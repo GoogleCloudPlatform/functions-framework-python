@@ -28,7 +28,6 @@ def function(cloudevent):
         HTTP status code indicating whether valid event was sent or not.
 
     """
-
     valid_event = (
         cloudevent["id"] == "my-id"
         and cloudevent.data == {"name": "john"}
