@@ -247,14 +247,13 @@ def create_app(target=None, source=None, signature_type=None):
         app.make_response = handle_none
 
     # Extract the target function from the source file
-    try:
-        function = getattr(source_module, target)
-    except AttributeError:
+    if not hasattr(source_module, target):
         raise MissingTargetException(
             "File {source} is expected to contain a function named {target}".format(
                 source=source, target=target
             )
         )
+    function = getattr(source_module, target)
 
     # Check that it is a function
     if not isinstance(function, types.FunctionType):
