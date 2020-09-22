@@ -359,3 +359,16 @@ def test_legacy_function_returns_none(monkeypatch):
 
     assert resp.status_code == 200
     assert resp.data == b"OK"
+
+
+def test_errorhandler(monkeypatch):
+    source = TEST_FUNCTIONS_DIR / "errorhandler" / "main.py"
+    target = "function"
+
+    monkeypatch.setenv("ENTRY_POINT", target)
+
+    client = create_app(target, source).test_client()
+    resp = client.get("/")
+
+    assert resp.status_code == 418
+    assert resp.data == b"I'm a teapot"
