@@ -1,5 +1,9 @@
 name: Python Unit CI
-on: [push, pull_request]
+on:
+  push:
+    branches:
+    - master
+  pull_request:
 jobs:
   test:
     strategy:
