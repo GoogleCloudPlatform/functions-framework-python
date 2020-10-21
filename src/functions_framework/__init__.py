@@ -228,6 +228,8 @@ def create_app(target=None, source=None, signature_type=None):
     # 5. Create the application
     app = flask.Flask(target, template_folder=template_folder)
     app.config["MAX_CONTENT_LENGTH"] = MAX_CONTENT_LENGTH
+    global errorhandler
+    errorhandler = app.errorhandler
 
     # 6. Execute the module, within the application context
     with app.app_context():

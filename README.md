@@ -102,6 +102,29 @@ curl localhost:8080
 # Output: Hello world!
 ```
 
+### Quickstart: Error handling
+
+The framework includes an error handler that is similar to the
+[`flask.Flask.errorhandler`](https://flask.palletsprojects.com/en/1.1.x/api/#flask.Flask.errorhandler)
+function, which allows you to handle specific error types with a decorator:
+
+```python
+import functions_framework
+
+
+@functions_framework.errorhandler(ZeroDivisionError)
+def handle_zero_division(e):
+    return "I'm a teapot", 418
+
+
+def function(request):
+    1 / 0
+    return "Success", 200
+```
+
+This function will catch the `ZeroDivisionError` and return a different
+response instead.
+
 ### Quickstart: Build a Deployable Container
 
 1. Install [Docker](https://store.docker.com/search?type=edition&offering=community) and the [`pack` tool](https://buildpacks.io/docs/install-pack/).
