@@ -95,6 +95,9 @@ functions-framework --target hello --debug
  * Running on http://0.0.0.0:8080/ (Press CTRL+C to quit)
 ```
 
+(You can also use `functions-framework-python` if you potentially have multiple
+language frameworks installed).
+
 Send requests to this function using `curl` from another terminal window:
 
 ```sh
