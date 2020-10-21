@@ -133,25 +133,22 @@ response instead.
 1. Install [Docker](https://store.docker.com/search?type=edition&offering=community) and the [`pack` tool](https://buildpacks.io/docs/install-pack/).
 
 1. Build a container from your function using the Functions [buildpacks](https://github.com/GoogleCloudPlatform/buildpacks):
-	```sh
-	pack build \
-		--builder gcr.io/buildpacks/builder:v1 \
-		--env GOOGLE_FUNCTION_SIGNATURE_TYPE=http \
-		--env GOOGLE_FUNCTION_TARGET=hello \
-		my-first-function
-	```
+
+        pack build \
+            --builder gcr.io/buildpacks/builder:v1 \
+            --env GOOGLE_FUNCTION_SIGNATURE_TYPE=http \
+            --env GOOGLE_FUNCTION_TARGET=hello \
+            my-first-function
 
 1. Start the built container:
-	```sh
-	docker run --rm -p 8080:8080 my-first-function
-	# Output: Serving function...
-	```
+
+        docker run --rm -p 8080:8080 my-first-function
+        # Output: Serving function...
 
 1. Send requests to this function using `curl` from another terminal window:
-	```sh
-	curl localhost:8080
-	# Output: Hello World!
-	```
+
+        curl localhost:8080
+        # Output: Hello World!
 
 ## Run your function on serverless platforms
 
