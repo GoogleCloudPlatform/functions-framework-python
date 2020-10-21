@@ -18,9 +18,9 @@ def write_legacy_event(data, context):
         {
             "data": data,
             "context": {
-                "eventId": context.eventId,
+                "eventId": context.event_id,
                 "timestamp": context.timestamp,
-                "eventType": context.eventType,
+                "eventType": context.event_type,
                 "resource": context.resource,
             },
         }
