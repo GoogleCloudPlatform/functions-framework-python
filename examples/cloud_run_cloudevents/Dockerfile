@@ -4,12 +4,15 @@ FROM python:3.7-slim
 
 # Copy local code to the container image.
 ENV APP_HOME /app
+ENV PYTHONUNBUFFERED TRUE
+
 WORKDIR $APP_HOME
 COPY . .
 
 # Install production dependencies.
 RUN pip install gunicorn cloudevents functions-framework
 RUN pip install -r requirements.txt
+RUN chmod +x send_cloudevent.py
 
 # Run the web service on container startup.
-CMD exec functions-framework --target=hello --signature-type=cloudevent
+CMD ["functions-framework", "--target=hello", "--signature-type=cloudevent"]

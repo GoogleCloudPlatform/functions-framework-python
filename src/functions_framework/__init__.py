@@ -12,21 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import enum
+import functools
 import importlib.util
-import io
 import json
 import os.path
 import pathlib
 import sys
 import types
 
-import cloudevents.sdk
-import cloudevents.sdk.event
-import cloudevents.sdk.event.v1
-import cloudevents.sdk.marshaller
+import cloudevents.exceptions as cloud_exceptions
 import flask
 import werkzeug
+
+from cloudevents.http import from_http, is_binary
 
 from functions_framework.exceptions import (
     FunctionsFrameworkException,
@@ -42,12 +40,6 @@ DEFAULT_SIGNATURE_TYPE = "http"
 MAX_CONTENT_LENGTH = 10 * 1024 * 1024
 
 
-class _EventType(enum.Enum):
-    LEGACY = 1
-    CLOUDEVENT_BINARY = 2
-    CLOUDEVENT_STRUCTURED = 3
-
-
 class _Event(object):
     """Event passed to background functions."""
 
@@ -60,7 +52,7 @@ class _Event(object):
         timestamp="",
         eventType="",
         resource="",
-        **kwargs
+        **kwargs,
     ):
         self.context = context
         if not self.context:
@@ -80,83 +72,64 @@ def _http_view_func_wrapper(function, request):
     return view_func
 
 
-def _get_cloudevent_version():
-    return cloudevents.sdk.event.v1.Event()
-
-
-def _run_legacy_event(function, request):
-    event_data = request.get_json()
-    if not event_data:
-        flask.abort(400)
-    event_object = _Event(**event_data)
-    data = event_object.data
-    context = Context(**event_object.context)
-    function(data, context)
-
-
-def _run_binary_cloudevent(function, request, cloudevent_def):
-    data = io.BytesIO(request.get_data())
-    http_marshaller = cloudevents.sdk.marshaller.NewDefaultHTTPMarshaller()
-    event = http_marshaller.FromRequest(
-        cloudevent_def, request.headers, data, json.load
-    )
-
+def _run_cloudevent(function, request):
+    data = request.get_data()
+    event = from_http(request.headers, data)
     function(event)
 
 
-def _run_structured_cloudevent(function, request, cloudevent_def):
-    data = io.StringIO(request.get_data(as_text=True))
-    m = cloudevents.sdk.marshaller.NewDefaultHTTPMarshaller()
-    event = m.FromRequest(cloudevent_def, request.headers, data, json.loads)
-    function(event)
-
-
-def _get_event_type(request):
-    if (
-        request.headers.get("ce-type")
-        and request.headers.get("ce-specversion")
-        and request.headers.get("ce-source")
-        and request.headers.get("ce-id")
-    ):
-        return _EventType.CLOUDEVENT_BINARY
-    elif request.headers.get("Content-Type") == "application/cloudevents+json":
-        return _EventType.CLOUDEVENT_STRUCTURED
-    else:
-        return _EventType.LEGACY
-
-
-def _event_view_func_wrapper(function, request):
+def _cloudevent_view_func_wrapper(function, request):
     def view_func(path):
-        if _get_event_type(request) == _EventType.LEGACY:
-            _run_legacy_event(function, request)
-        else:
-            # here for defensive backwards compatibility in case we make a mistake in rollout.
+        try:
+            _run_cloudevent(function, request)
+        except cloud_exceptions.MissingRequiredFields as e:
             flask.abort(
                 400,
-                description="The FUNCTION_SIGNATURE_TYPE for this function is set to event "
-                "but no Google Cloud Functions Event was given. If you are using CloudEvents set "
-                "FUNCTION_SIGNATURE_TYPE=cloudevent",
+                description=(
+                    "Function was defined with FUNCTION_SIGNATURE_TYPE=cloudevent but"
+                    " failed to find all required cloudevent fields. Found HTTP"
+                    f" headers: {request.headers} and data: {request.get_data()}. "
+                    f"cloudevents.exceptions.MissingRequiredFields: {e}"
+                ),
             )
-
+        except cloud_exceptions.InvalidRequiredFields as e:
+            flask.abort(
+                400,
+                description=(
+                    "Function was defined with FUNCTION_SIGNATURE_TYPE=cloudevent but"
+                    " found one or more invalid required cloudevent fields. Found HTTP"
+                    f" headers: {request.headers} and data: {request.get_data()}. "
+                    f"cloudevents.exceptions.InvalidRequiredFields: {e}"
+                ),
+            )
         return "OK"
 
     return view_func
 
 
-def _cloudevent_view_func_wrapper(function, request):
+def _event_view_func_wrapper(function, request):
     def view_func(path):
-        cloudevent_def = _get_cloudevent_version()
-        event_type = _get_event_type(request)
-        if event_type == _EventType.CLOUDEVENT_STRUCTURED:
-            _run_structured_cloudevent(function, request, cloudevent_def)
-        elif event_type == _EventType.CLOUDEVENT_BINARY:
-            _run_binary_cloudevent(function, request, cloudevent_def)
-        else:
-            flask.abort(
-                400,
-                description="Function was defined with FUNCTION_SIGNATURE_TYPE=cloudevent "
-                " but it did not receive a cloudevent as a request.",
+        if is_binary(request.headers):
+            # Support CloudEvents in binary content mode, with data being the
+            # whole request body and context attributes retrieved from request
+            # headers.
+            data = request.get_data()
+            context = Context(
+                eventId=request.headers.get("ce-eventId"),
+                timestamp=request.headers.get("ce-timestamp"),
+                eventType=request.headers.get("ce-eventType"),
+                resource=request.headers.get("ce-resource"),
             )
+            function(data, context)
+        else:
+            # This is a regular CloudEvent
+            event_data = request.get_json()
+            if not event_data:
+                flask.abort(400)
+            event_object = _Event(**event_data)
+            data = event_object.data
+            context = Context(**event_object.context)
+            function(data, context)
 
         return "OK"
 
@@ -279,7 +252,20 @@ def create_app(target=None, source=None, signature_type=None):
         app.view_functions["run"] = _http_view_func_wrapper(function, flask.request)
         app.view_functions["error"] = lambda: flask.abort(404, description="Not Found")
         app.after_request(read_request)
-    elif signature_type == "event" or signature_type == "cloudevent":
+    elif signature_type == "event":
+        app.url_map.add(
+            werkzeug.routing.Rule(
+                "/", defaults={"path": ""}, endpoint="run", methods=["POST"]
+            )
+        )
+        app.url_map.add(
+            werkzeug.routing.Rule("/<path:path>", endpoint="run", methods=["POST"])
+        )
+        app.view_functions["run"] = _event_view_func_wrapper(function, flask.request)
+        # Add a dummy endpoint for GET /
+        app.url_map.add(werkzeug.routing.Rule("/", endpoint="get", methods=["GET"]))
+        app.view_functions["get"] = lambda: ""
+    elif signature_type == "cloudevent":
         app.url_map.add(
             werkzeug.routing.Rule(
                 "/", defaults={"path": ""}, endpoint=signature_type, methods=["POST"]
@@ -291,13 +277,7 @@ def create_app(target=None, source=None, signature_type=None):
             )
         )
 
-        # Add a dummy endpoint for GET /
-        app.url_map.add(werkzeug.routing.Rule("/", endpoint="get", methods=["GET"]))
-        app.view_functions["get"] = lambda: ""
-
-        # Add the view functions
-        app.view_functions["event"] = _event_view_func_wrapper(function, flask.request)
-        app.view_functions["cloudevent"] = _cloudevent_view_func_wrapper(
+        app.view_functions[signature_type] = _cloudevent_view_func_wrapper(
             function, flask.request
         )
     else:

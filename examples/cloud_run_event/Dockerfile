@@ -4,6 +4,8 @@ FROM python:3.7-slim
 
 # Copy local code to the container image.
 ENV APP_HOME /app
+ENV PYTHONUNBUFFERED TRUE
+
 WORKDIR $APP_HOME
 COPY . .
 
@@ -12,4 +14,4 @@ RUN pip install gunicorn functions-framework
 RUN pip install -r requirements.txt
 
 # Run the web service on container startup.
-CMD exec functions-framework --target=hello --signature_type=event
+CMD exec functions-framework --target=hello --signature-type=event

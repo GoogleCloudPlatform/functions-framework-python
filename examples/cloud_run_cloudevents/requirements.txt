@@ -1,1 +1,3 @@
 # Optionally include additional dependencies here
+cloudevents>=1.2.0
+requests

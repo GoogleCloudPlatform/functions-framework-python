@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# This sample creates a function that accepts a Cloud Event per
-# https://github.com/cloudevents/sdk-python
+# This sample creates a function using the CloudEvents SDK
+# (https://github.com/cloudevents/sdk-python)
 import sys
 
 
 def hello(cloudevent):
-    print("Received event with ID: %s" % cloudevent.EventID(), file=sys.stdout, flush=True)
+    print(f"Received event with ID: {cloudevent['id']} and data {cloudevent.data}")

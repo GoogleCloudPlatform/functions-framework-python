@@ -14,11 +14,9 @@
 import json
 import pathlib
 
-import cloudevents.sdk
-import cloudevents.sdk.event.v1
-import cloudevents.sdk.event.v03
-import cloudevents.sdk.marshaller
 import pytest
+
+from cloudevents.http import CloudEvent, from_http, to_binary, to_structured
 
 from functions_framework import LazyWSGIApp, create_app, exceptions
 
@@ -32,89 +30,182 @@ except:
 
 
 @pytest.fixture
+def data_payload():
+    return {"name": "john"}
+
+
+@pytest.fixture
 def cloudevent_1_0():
-    event = (
-        cloudevents.sdk.event.v1.Event()
-        .SetContentType("application/json")
-        .SetData('{"name":"john"}')
-        .SetEventID("my-id")
-        .SetSource("from-galaxy-far-far-away")
-        .SetEventTime("tomorrow")
-        .SetEventType("cloudevent.greet.you")
-    )
-    return event
+    attributes = {
+        "specversion": "1.0",
+        "id": "my-id",
+        "source": "from-galaxy-far-far-away",
+        "type": "cloudevent.greet.you",
+        "time": "2020-08-16T13:58:54.471765",
+    }
+    data = {"name": "john"}
+    return CloudEvent(attributes, data)
 
 
 @pytest.fixture
 def cloudevent_0_3():
-    event = (
-        cloudevents.sdk.event.v03.Event()
-        .SetContentType("application/json")
-        .SetData('{"name":"john"}')
-        .SetEventID("my-id")
-        .SetSource("from-galaxy-far-far-away")
-        .SetEventTime("tomorrow")
-        .SetEventType("cloudevent.greet.you")
-    )
-    return event
+    attributes = {
+        "id": "my-id",
+        "source": "from-galaxy-far-far-away",
+        "type": "cloudevent.greet.you",
+        "specversion": "0.3",
+        "time": "2020-08-16T13:58:54.471765",
+    }
+    data = {"name": "john"}
+    return CloudEvent(attributes, data)
 
 
-def test_event_1_0(cloudevent_1_0):
+@pytest.fixture
+def create_headers_binary():
+    return lambda specversion: {
+        "ce-id": "my-id",
+        "ce-source": "from-galaxy-far-far-away",
+        "ce-type": "cloudevent.greet.you",
+        "ce-specversion": specversion,
+        "time": "2020-08-16T13:58:54.471765",
+    }
+
+
+@pytest.fixture
+def create_structured_data():
+    return lambda specversion: {
+        "id": "my-id",
+        "source": "from-galaxy-far-far-away",
+        "type": "cloudevent.greet.you",
+        "specversion": specversion,
+        "time": "2020-08-16T13:58:54.471765",
+    }
+
+
+@pytest.fixture
+def client():
     source = TEST_FUNCTIONS_DIR / "cloudevents" / "main.py"
     target = "function"
+    return create_app(target, source, "cloudevent").test_client()
 
-    client = create_app(target, source, "cloudevent").test_client()
 
-    m = cloudevents.sdk.marshaller.NewDefaultHTTPMarshaller()
-    structured_headers, structured_data = m.ToRequest(
-        cloudevent_1_0, cloudevents.sdk.converters.TypeStructured, json.dumps
-    )
+@pytest.fixture
+def empty_client():
+    source = TEST_FUNCTIONS_DIR / "cloudevents" / "empty_data.py"
+    target = "function"
+    return create_app(target, source, "cloudevent").test_client()
 
-    resp = client.post("/", headers=structured_headers, data=structured_data.getvalue())
+
+def test_event(client, cloudevent_1_0):
+    headers, data = to_structured(cloudevent_1_0)
+    resp = client.post("/", headers=headers, data=data)
+
     assert resp.status_code == 200
     assert resp.data == b"OK"
 
 
-def test_binary_event_1_0(cloudevent_1_0):
-    source = TEST_FUNCTIONS_DIR / "cloudevents" / "main.py"
-    target = "function"
-
-    client = create_app(target, source, "cloudevent").test_client()
-
-    m = cloudevents.sdk.marshaller.NewDefaultHTTPMarshaller()
-
-    binary_headers, binary_data = m.ToRequest(
-        cloudevent_1_0, cloudevents.sdk.converters.TypeBinary, json.dumps
-    )
-
-    resp = client.post("/", headers=binary_headers, data=binary_data)
+def test_binary_event(client, cloudevent_1_0):
+    headers, data = to_binary(cloudevent_1_0)
+    resp = client.post("/", headers=headers, data=data)
 
     assert resp.status_code == 200
     assert resp.data == b"OK"
 
 
-def test_event_0_3(cloudevent_0_3):
-    source = TEST_FUNCTIONS_DIR / "cloudevents" / "main.py"
-    target = "function"
+def test_event_0_3(client, cloudevent_0_3):
+    headers, data = to_structured(cloudevent_0_3)
+    resp = client.post("/", headers=headers, data=data)
 
-    client = create_app(target, source, "cloudevent").test_client()
-
-    m = cloudevents.sdk.marshaller.NewDefaultHTTPMarshaller()
-    structured_headers, structured_data = m.ToRequest(
-        cloudevent_0_3, cloudevents.sdk.converters.TypeStructured, json.dumps
-    )
-
-    resp = client.post("/", headers=structured_headers, data=structured_data.getvalue())
     assert resp.status_code == 200
     assert resp.data == b"OK"
 
 
-def test_non_cloudevent_():
-    source = TEST_FUNCTIONS_DIR / "cloudevents" / "main.py"
-    target = "function"
+def test_binary_event_0_3(client, cloudevent_0_3):
+    headers, data = to_binary(cloudevent_0_3)
+    resp = client.post("/", headers=headers, data=data)
 
-    client = create_app(target, source, "cloudevent").test_client()
+    assert resp.status_code == 200
+    assert resp.data == b"OK"
 
-    resp = client.post("/", json="{not_event}")
+
+@pytest.mark.parametrize("specversion", ["0.3", "1.0"])
+def test_cloudevent_missing_required_binary_fields(
+    client, specversion, create_headers_binary, data_payload
+):
+    headers = create_headers_binary(specversion)
+
+    for remove_key in headers:
+        if remove_key == "time":
+            continue
+
+        invalid_headers = {key: headers[key] for key in headers if key != remove_key}
+        resp = client.post("/", headers=invalid_headers, json=data_payload)
+
+        assert resp.status_code == 400
+        assert (
+            "cloudevents.exceptions.MissingRequiredFields" in resp.get_data().decode()
+        )
+
+
+@pytest.mark.parametrize("specversion", ["0.3", "1.0"])
+def test_cloudevent_missing_required_structured_fields(
+    client, specversion, create_structured_data
+):
+    headers = {"Content-Type": "application/cloudevents+json"}
+    data = create_structured_data(specversion)
+
+    for remove_key in data:
+        if remove_key == "time":
+            continue
+
+        invalid_data = {key: data[key] for key in data if key != remove_key}
+        resp = client.post("/", headers=headers, json=invalid_data)
+
+        assert resp.status_code == 400
+        assert "cloudevents.exceptions.MissingRequiredFields" in resp.data.decode()
+
+
+def test_invalid_fields_binary(client, create_headers_binary, data_payload):
+    # Testing none specversion fails
+    headers = create_headers_binary("not a spec version")
+    resp = client.post("/", headers=headers, json=data_payload)
+
     assert resp.status_code == 400
-    assert resp.data != b"OK"
+    assert "cloudevents.exceptions.InvalidRequiredFields" in resp.data.decode()
+    assert "found one or more invalid required cloudevent field" in resp.data.decode()
+
+
+def test_unparsable_cloudevent(client):
+    resp = client.post("/", headers={}, data="")
+
+    assert resp.status_code == 400
+    assert "cloudevents.exceptions.MissingRequiredFields" in resp.data.decode()
+
+
+@pytest.mark.parametrize("specversion", ["0.3", "1.0"])
+def test_empty_data_binary(empty_client, create_headers_binary, specversion):
+    headers = create_headers_binary(specversion)
+    resp = empty_client.post("/", headers=headers, json="")
+
+    assert resp.status_code == 200
+    assert resp.get_data() == b"OK"
+
+
+@pytest.mark.parametrize("specversion", ["0.3", "1.0"])
+def test_empty_data_structured(empty_client, specversion, create_structured_data):
+    headers = {"Content-Type": "application/cloudevents+json"}
+
+    data = create_structured_data(specversion)
+    resp = empty_client.post("/", headers=headers, json=data)
+
+    assert resp.status_code == 200
+    assert resp.get_data() == b"OK"
+
+
+@pytest.mark.parametrize("specversion", ["0.3", "1.0"])
+def test_no_mime_type_structured(empty_client, specversion, create_structured_data):
+    data = create_structured_data(specversion)
+    resp = empty_client.post("/", headers={}, json=data)
+
+    assert resp.status_code == 200
+    assert resp.get_data() == b"OK"
