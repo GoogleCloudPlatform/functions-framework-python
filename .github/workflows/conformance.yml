@@ -29,7 +29,7 @@ jobs:
         functionType: 'http'
         useBuildpacks: false
         validateMapping: false
-        cmd: "functions-framework --source tests/conformance/main.py --target write_http --signature-type http"
+        cmd: "'functions-framework --source tests/conformance/main.py --target write_http --signature-type http'"
 
     - name: Run event conformance tests
       uses: GoogleCloudPlatform/functions-framework-conformance/action@v0.3.2
@@ -37,7 +37,7 @@ jobs:
         functionType: 'legacyevent'
         useBuildpacks: false
         validateMapping: false
-        cmd: "functions-framework --source tests/conformance/main.py --target write_legacy_event --signature-type event"
+        cmd: "'functions-framework --source tests/conformance/main.py --target write_legacy_event --signature-type event'"
 
     - name: Run cloudevent conformance tests
       uses: GoogleCloudPlatform/functions-framework-conformance/action@v0.3.2
@@ -45,4 +45,4 @@ jobs:
         functionType: 'cloudevent'
         useBuildpacks: false
         validateMapping: false
-        cmd: "functions-framework --source tests/conformance/main.py --target write_cloud_event --signature-type cloudevent"
+        cmd: "'functions-framework --source tests/conformance/main.py --target write_cloud_event --signature-type cloudevent'"
