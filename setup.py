@@ -51,7 +51,7 @@ setup(
     install_requires=[
         "flask>=1.0,<2.0",
         "click>=7.0,<8.0",
-        "watchdog>=0.10.0",
+        "watchdog>=1.0.0,<2.0.0",
         "gunicorn>=19.2.0,<21.0; platform_system!='Windows'",
         "cloudevents>=1.2.0,<2.0.0",
     ],
