@@ -65,6 +65,17 @@ class _Event(object):
         self.data = data
 
 
+class _LoggingHandler(object):
+    """Logging replacement for stdout and stderr in GCF Python 3.7."""
+
+    def __init__(self, level):
+        self.level = level
+
+    def write(self, out):
+        if out.rstrip() != "":
+            self.level(out.rstrip())
+
+
 def _http_view_func_wrapper(function, request):
     def view_func(path):
         return function(request._get_current_object())
@@ -220,6 +231,19 @@ def create_app(target=None, source=None, signature_type=None):
             return app.make_response_original(rv)
 
         app.make_response = handle_none
+
+        # Handle log severity backwards compatibility
+        import logging # isort:skip
+        from google.cloud.logging_v2.handlers.container_engine import ( # isort:skip
+            ContainerEngineHandler,
+        )
+
+        handler = ContainerEngineHandler()
+        cloud_logger = logging.getLogger()
+        cloud_logger.setLevel(logging.DEBUG)
+        cloud_logger.addHandler(handler)
+        sys.stdout = _LoggingHandler(logging.info)
+        sys.stderr = _LoggingHandler(logging.warning)
 
     # Extract the target function from the source file
     if not hasattr(source_module, target):
