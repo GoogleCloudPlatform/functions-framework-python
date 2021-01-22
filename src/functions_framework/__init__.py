@@ -72,7 +72,7 @@ class _LoggingHandler(object):
         self.level = level
 
     def write(self, out):
-        if out.rstrip() != "":
+        if out.rstrip():
             self.level(out.rstrip())
 
 
