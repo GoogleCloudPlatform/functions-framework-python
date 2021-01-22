@@ -68,12 +68,16 @@ class _Event(object):
 class _LoggingHandler(object):
     """Logging replacement for stdout and stderr in GCF Python 3.7."""
 
-    def __init__(self, level):
+    def __init__(self, level, stderr):
         self.level = level
+        self.stderr = stderr
 
     def write(self, out):
-        if out.rstrip():
-            self.level(out.rstrip())
+        self._log_with_severity(out.rstrip("\n"))
+
+    def _log_with_severity(self, out):
+        payload = dict(severity=self.level, message=out)
+        print(json.dumps(payload), file=self.stderr)
 
 
 def _http_view_func_wrapper(function, request):
@@ -234,16 +238,14 @@ def create_app(target=None, source=None, signature_type=None):
 
         # Handle log severity backwards compatibility
         import logging  # isort:skip
-        from google.cloud.logging_v2.handlers.container_engine import (  # isort:skip
-            ContainerEngineHandler,
-        )
 
-        handler = ContainerEngineHandler()
-        cloud_logger = logging.getLogger()
-        cloud_logger.setLevel(logging.DEBUG)
-        cloud_logger.addHandler(handler)
-        sys.stdout = _LoggingHandler(logging.info)
-        sys.stderr = _LoggingHandler(logging.warning)
+        logging.info = _LoggingHandler("INFO", sys.stderr)._log_with_severity
+        logging.warn = _LoggingHandler("ERROR", sys.stderr)._log_with_severity
+        logging.warning = _LoggingHandler("ERROR", sys.stderr)._log_with_severity
+        logging.error = _LoggingHandler("ERROR", sys.stderr)._log_with_severity
+        logging.critical = _LoggingHandler("ERROR", sys.stderr)._log_with_severity
+        sys.stdout = _LoggingHandler("INFO", sys.stderr)
+        sys.stderr = _LoggingHandler("ERROR", sys.stderr)
 
     # Extract the target function from the source file
     if not hasattr(source_module, target):

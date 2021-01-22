@@ -44,4 +44,6 @@ def function(request):
         logging.warning("log")
     elif name == "logerr":
         logging.error("log")
+    elif name == "logcrit":
+        logging.critical("log")
     return name

@@ -16,6 +16,7 @@
 import os
 import pathlib
 import re
+import sys
 import time
 
 import pretend
@@ -495,37 +496,28 @@ def test_legacy_function_check_env(monkeypatch):
     assert resp.data.decode("utf-8") == target
 
 
-def test_legacy_function_log_severity(monkeypatch, capsys):
+@pytest.mark.parametrize(
+    "mode, expected",
+    [
+        ("loginfo", '"severity": "INFO"'),
+        ("logwarn", '"severity": "ERROR"'),
+        ("logerr", '"severity": "ERROR"'),
+        ("logcrit", '"severity": "ERROR"'),
+        ("stdout", '"severity": "INFO"'),
+        ("stderr", '"severity": "ERROR"'),
+    ],
+)
+def test_legacy_function_log_severity(monkeypatch, capfd, mode, expected):
     source = TEST_FUNCTIONS_DIR / "http_check_severity" / "main.py"
     target = "function"
 
     monkeypatch.setenv("ENTRY_POINT", target)
 
     client = create_app(target, source).test_client()
-    resp = client.post("/", json={"mode": "stdout"})
-    captured = capsys.readouterr().err
+    resp = client.post("/", json={"mode": mode})
+    captured = capfd.readouterr().err
     assert resp.status_code == 200
-    assert '"severity": "INFO"' in captured
-
-    resp = client.post("/", json={"mode": "stderr"})
-    captured = capsys.readouterr().err
-    assert resp.status_code == 200
-    assert '"severity": "WARNING"' in captured
-
-    resp = client.post("/", json={"mode": "loginfo"})
-    captured = capsys.readouterr().err
-    assert resp.status_code == 200
-    assert '"severity": "INFO"' in captured
-
-    resp = client.post("/", json={"mode": "logwarn"})
-    captured = capsys.readouterr().err
-    assert resp.status_code == 200
-    assert '"severity": "WARNING"' in captured
-
-    resp = client.post("/", json={"mode": "logerr"})
-    captured = capsys.readouterr().err
-    assert resp.status_code == 200
-    assert '"severity": "ERROR"' in captured
+    assert expected in captured
 
 
 def test_legacy_function_returns_none(monkeypatch):
