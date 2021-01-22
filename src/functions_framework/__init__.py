@@ -233,8 +233,8 @@ def create_app(target=None, source=None, signature_type=None):
         app.make_response = handle_none
 
         # Handle log severity backwards compatibility
-        import logging # isort:skip
-        from google.cloud.logging_v2.handlers.container_engine import ( # isort:skip
+        import logging  # isort:skip
+        from google.cloud.logging_v2.handlers.container_engine import (  # isort:skip
             ContainerEngineHandler,
         )
 
