@@ -73,11 +73,11 @@ class _LoggingHandler(object):
         self.stderr = stderr
 
     def write(self, out):
-        self._log_with_severity(out.rstrip("\n"))
+        self._log_with_severity(out)
 
     def _log_with_severity(self, out):
         payload = dict(severity=self.level, message=out)
-        print(json.dumps(payload), file=self.stderr)
+        self.stderr.write(json.dumps(payload))
 
 
 def _http_view_func_wrapper(function, request):
