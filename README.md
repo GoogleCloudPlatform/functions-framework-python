@@ -104,6 +104,33 @@ Send requests to this function using `curl` from another terminal window:
 curl localhost:8080
 # Output: Hello world!
 ```
+### Quickstart: Flask routing
+
+The framework intializes a Flask `app` behind the scenes. To add Flask routs, you can bring the `app` into scope and 
+add the desired routes:
+
+```python
+from flask import current_app as app
+
+@app.route("/hello/<name>", methods=["GET"])
+def hello(name: str):
+    return f"Hello {name}!", 200
+
+
+@app.route("/goodbye/<name>", methods=["DELETE"])
+def goodbye(name: str):
+    return f"Goodbye {name}.", 200
+
+
+def hello(_):
+    return "Hello world!"
+```
+
+You can bring the Flask `Request` object into your global scope by importing it from `flask`.
+
+```python
+from flask import request
+```
 
 ### Quickstart: Error handling
 
