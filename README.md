@@ -219,6 +219,37 @@ To enable automatic unmarshalling, set the function signature type to `cloudeven
 
 For more details on this signature type, check out the Google Cloud Functions documentation on [background functions](https://cloud.google.com/functions/docs/writing/background#cloud_pubsub_example).
 
+## Testing Functions in Google Colab
+
+Another simple way to test or demo your functions in Google Colab, is to make your Flask app (which is running on localhost) available temporarily over the Internet via the excellent [ngrok](https://ngrok.com/) tool. For this to work, you will first have to install the library:
+
+```!pip install flask-ngrok```
+
+And run ```main.py``` thereafter:
+
+```python
+from flask import Flask
+from flask import request
+from flask_ngrok import run_with_ngrok
+
+app = Flask(__name__)
+run_with_ngrok(app)
+
+@app.route("/")
+def root():
+    url = request.method
+    return "Hello world!"
+
+app.run()
+```
+
+You can access your function(s) by navigating to the following urls:
+```
+ * Running on http://127.0.0.1:5000/ (Press CTRL+C to quit)
+ * Running on http://<dynamic-value>.ngrok.io
+ * Traffic stats available on http://127.0.0.1:4040
+```
+
 ## Advanced Examples
 
 More advanced guides can be found in the [`examples/`](https://github.com/GoogleCloudPlatform/functions-framework-python/blob/master/examples/) directory.
