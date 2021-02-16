@@ -35,12 +35,10 @@ def isolate_environment():
 @pytest.fixture(scope="function", autouse=True)
 def isolate_logging():
     "Ensure any changes to logging are isolated to individual tests" ""
-    _stdout = sys.stdout
-    _stderr = sys.stderr
     try:
         yield
     finally:
-        sys.stdout = _stdout
-        sys.stderr = _stderr
+        sys.stdout = sys.__stdout__
+        sys.stderr = sys.__stderr__
         logging.shutdown()
         reload(logging)

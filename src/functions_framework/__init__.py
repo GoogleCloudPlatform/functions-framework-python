@@ -14,6 +14,7 @@
 
 import functools
 import importlib.util
+import io
 import json
 import os.path
 import pathlib
@@ -65,19 +66,22 @@ class _Event(object):
         self.data = data
 
 
-class _LoggingHandler(object):
+class _LoggingHandler(io.TextIOWrapper):
     """Logging replacement for stdout and stderr in GCF Python 3.7."""
 
-    def __init__(self, level, stderr):
+    def __init__(self, level, stderr=sys.stderr):
+        io.TextIOWrapper.__init__(self, io.StringIO(), encoding=stderr.encoding)
         self.level = level
         self.stderr = stderr
 
     def write(self, out):
-        self._log_with_severity(out)
-
-    def _log_with_severity(self, out):
-        payload = dict(severity=self.level, message=out)
+        payload = dict(severity=self.level, message=out.rstrip("\n"))
         self.stderr.write(json.dumps(payload))
+        self.stderr.write("\n")
+        return len(out.rstrip("\n"))
+
+    def flush(self):
+        pass
 
 
 def _http_view_func_wrapper(function, request):
@@ -239,11 +243,11 @@ def create_app(target=None, source=None, signature_type=None):
         # Handle log severity backwards compatibility
         import logging  # isort:skip
 
-        logging.info = _LoggingHandler("INFO", sys.stderr)._log_with_severity
-        logging.warn = _LoggingHandler("ERROR", sys.stderr)._log_with_severity
-        logging.warning = _LoggingHandler("ERROR", sys.stderr)._log_with_severity
-        logging.error = _LoggingHandler("ERROR", sys.stderr)._log_with_severity
-        logging.critical = _LoggingHandler("ERROR", sys.stderr)._log_with_severity
+        logging.info = _LoggingHandler("INFO", sys.stderr).write
+        logging.warn = _LoggingHandler("ERROR", sys.stderr).write
+        logging.warning = _LoggingHandler("ERROR", sys.stderr).write
+        logging.error = _LoggingHandler("ERROR", sys.stderr).write
+        logging.critical = _LoggingHandler("ERROR", sys.stderr).write
         sys.stdout = _LoggingHandler("INFO", sys.stderr)
         sys.stderr = _LoggingHandler("ERROR", sys.stderr)
 
