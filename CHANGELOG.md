@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Fixed
+- Add backwards-compatible logging for GCF Python 3.7 ([#107])
+- Document `--dry-run` flag ([#105])
 
 ## [2.1.0] - 2020-12-23
 ### Added
@@ -102,6 +105,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [1.0.1]: https://github.com/GoogleCloudPlatform/functions-framework-python/releases/tag/v1.0.1
 [1.0.0]: https://github.com/GoogleCloudPlatform/functions-framework-python/releases/tag/v1.0.0
 
+[#107]: https://github.com/GoogleCloudPlatform/functions-framework-python/pull/107
+[#105]: https://github.com/GoogleCloudPlatform/functions-framework-python/pull/105
 [#77]: https://github.com/GoogleCloudPlatform/functions-framework-python/pull/77
 [#76]: https://github.com/GoogleCloudPlatform/functions-framework-python/pull/76
 [#70]: https://github.com/GoogleCloudPlatform/functions-framework-python/pull/70
