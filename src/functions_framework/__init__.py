@@ -78,9 +78,6 @@ class _LoggingHandler(io.TextIOWrapper):
         payload = dict(severity=self.level, message=out.rstrip("\n"))
         return self.stderr.write(json.dumps(payload) + "\n")
 
-    def flush(self):
-        pass
-
 
 def _http_view_func_wrapper(function, request):
     def view_func(path):
