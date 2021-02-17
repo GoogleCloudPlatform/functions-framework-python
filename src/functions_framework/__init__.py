@@ -76,9 +76,7 @@ class _LoggingHandler(io.TextIOWrapper):
 
     def write(self, out):
         payload = dict(severity=self.level, message=out.rstrip("\n"))
-        self.stderr.write(json.dumps(payload))
-        self.stderr.write("\n")
-        return len(out.rstrip("\n"))
+        return self.stderr.write(json.dumps(payload) + "\n")
 
     def flush(self):
         pass
