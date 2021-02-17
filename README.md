@@ -91,7 +91,7 @@ functions-framework --target hello --debug
  * Environment: production
    WARNING: This is a development server. Do not use it in a production deployment.
    Use a production WSGI server instead.
- * Debug mode: off
+ * Debug mode: on
  * Running on http://0.0.0.0:8080/ (Press CTRL+C to quit)
 ```
 
@@ -182,6 +182,7 @@ You can configure the Functions Framework using command-line flags or environmen
 | `--signature-type` | `FUNCTION_SIGNATURE_TYPE` | The signature used when writing your function. Controls unmarshalling rules and determines which arguments are used to invoke your function. Default: `http`; accepted values: `http`, `event` or `cloudevent` |
 | `--source`         | `FUNCTION_SOURCE`         | The path to the file containing your function. Default: `main.py` (in the current working directory)                                                                                             |
 | `--debug`          | `DEBUG`                   | A flag that allows to run functions-framework to run in debug mode, including live reloading. Default: `False`                                                                                   |
+| `--dry-run`        | `DRY_RUN`                 | A flag that allows for testing the function build from the configuration without creating a server. Default: `False` |
 
 ## Enable Google Cloud Functions Events
 
