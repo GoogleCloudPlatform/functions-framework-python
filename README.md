@@ -91,7 +91,7 @@ functions-framework --target hello --debug
  * Environment: production
    WARNING: This is a development server. Do not use it in a production deployment.
    Use a production WSGI server instead.
- * Debug mode: off
+ * Debug mode: on
  * Running on http://0.0.0.0:8080/ (Press CTRL+C to quit)
 ```
 
