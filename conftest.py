@@ -12,7 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
 import os
+import sys
+
+from importlib import reload
 
 import pytest
 
@@ -26,3 +30,15 @@ def isolate_environment():
     finally:
         os.environ.clear()
         os.environ.update(_environ)
+
+
+@pytest.fixture(scope="function", autouse=True)
+def isolate_logging():
+    "Ensure any changes to logging are isolated to individual tests" ""
+    try:
+        yield
+    finally:
+        sys.stdout = sys.__stdout__
+        sys.stderr = sys.__stderr__
+        logging.shutdown()
+        reload(logging)
