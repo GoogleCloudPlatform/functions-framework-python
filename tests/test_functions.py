@@ -16,6 +16,7 @@
 import os
 import pathlib
 import re
+import sys
 import time
 
 import pretend
@@ -493,6 +494,30 @@ def test_legacy_function_check_env(monkeypatch):
     resp = client.post("/", json={"mode": "FUNCTION_NAME"})
     assert resp.status_code == 200
     assert resp.data.decode("utf-8") == target
+
+
+@pytest.mark.parametrize(
+    "mode, expected",
+    [
+        ("loginfo", '"severity": "INFO"'),
+        ("logwarn", '"severity": "ERROR"'),
+        ("logerr", '"severity": "ERROR"'),
+        ("logcrit", '"severity": "ERROR"'),
+        ("stdout", '"severity": "INFO"'),
+        ("stderr", '"severity": "ERROR"'),
+    ],
+)
+def test_legacy_function_log_severity(monkeypatch, capfd, mode, expected):
+    source = TEST_FUNCTIONS_DIR / "http_check_severity" / "main.py"
+    target = "function"
+
+    monkeypatch.setenv("ENTRY_POINT", target)
+
+    client = create_app(target, source).test_client()
+    resp = client.post("/", json={"mode": mode})
+    captured = capfd.readouterr().err
+    assert resp.status_code == 200
+    assert expected in captured
 
 
 def test_legacy_function_returns_none(monkeypatch):
