@@ -1,8 +1,9 @@
-# Multiple Cloud Functions, Same Host
+# Developing multiple functions on the same host using Minikube and Skaffold
 
 ## Introduction
 
-This example shows you how to deploy multiple Cloud Functions to a single host.
+This example shows you how to develop multiple Cloud Functions to a single host
+using Minikube and Skaffold.
 
 The example will focus on:
 * taking two separate Cloud Functions (defined in the same file)
