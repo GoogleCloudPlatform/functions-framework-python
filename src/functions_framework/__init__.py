@@ -40,6 +40,9 @@ DEFAULT_SOURCE = os.path.realpath("./main.py")
 DEFAULT_SIGNATURE_TYPE = "http"
 MAX_CONTENT_LENGTH = 10 * 1024 * 1024
 
+_FUNCTION_STATUS_HEADER_FIELD = "X-Google-Status"
+_CRASH = "crash"
+
 
 class _Event(object):
     """Event passed to background functions."""
@@ -160,6 +163,13 @@ def read_request(response):
     return response
 
 
+def crash_handler(e):
+    """
+    Return crash header to allow logging 'crash' message in logs.
+    """
+    return str(e), 500, {_FUNCTION_STATUS_HEADER_FIELD: _CRASH}
+
+
 def create_app(target=None, source=None, signature_type=None):
     # Get the configured function target
     target = target or os.environ.get("FUNCTION_TARGET", "")
@@ -215,6 +225,7 @@ def create_app(target=None, source=None, signature_type=None):
     # 5. Create the application
     app = flask.Flask(target, template_folder=template_folder)
     app.config["MAX_CONTENT_LENGTH"] = MAX_CONTENT_LENGTH
+    app.register_error_handler(500, crash_handler)
     global errorhandler
     errorhandler = app.errorhandler
 
