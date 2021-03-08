@@ -31,3 +31,7 @@ class MissingSourceException(FunctionsFrameworkException):
 
 class MissingTargetException(FunctionsFrameworkException):
     pass
+
+
+class EventConversionException(FunctionsFrameworkException):
+    pass
