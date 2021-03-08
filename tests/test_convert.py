@@ -102,6 +102,46 @@ def test_firebase_auth_event_to_cloudevent(
     assert cloudevent == firebase_auth_cloudevent_output
 
 
+def test_firebase_auth_event_to_cloudevent_no_metadata(
+    firebase_auth_background_input, firebase_auth_cloudevent_output
+):
+    # Remove metadata from the events to verify conversion still works.
+    del firebase_auth_background_input["data"]["metadata"]
+    del firebase_auth_cloudevent_output.data["metadata"]
+
+    req = flask.Request.from_values(json=firebase_auth_background_input)
+    cloudevent = convert.background_event_to_cloudevent(req)
+    assert cloudevent == firebase_auth_cloudevent_output
+
+
+def test_firebase_auth_event_to_cloudevent_no_metadata_timestamps(
+    firebase_auth_background_input, firebase_auth_cloudevent_output
+):
+    # Remove metadata timestamps from the events to verify conversion still works.
+    del firebase_auth_background_input["data"]["metadata"]["createdAt"]
+    del firebase_auth_background_input["data"]["metadata"]["lastSignedInAt"]
+    del firebase_auth_cloudevent_output.data["metadata"]["createTime"]
+    del firebase_auth_cloudevent_output.data["metadata"]["lastSignInTime"]
+
+    req = flask.Request.from_values(json=firebase_auth_background_input)
+    cloudevent = convert.background_event_to_cloudevent(req)
+    assert cloudevent == firebase_auth_cloudevent_output
+
+
+def test_firebase_auth_event_to_cloudevent_no_uid(
+    firebase_auth_background_input, firebase_auth_cloudevent_output
+):
+    # Remove UIDs from the events to verify conversion still works. The UID is mapped
+    # to the subject in the CloudEvent so remove that from the expected CloudEvent.
+    del firebase_auth_background_input["data"]["uid"]
+    del firebase_auth_cloudevent_output.data["uid"]
+    del firebase_auth_cloudevent_output["subject"]
+
+    req = flask.Request.from_values(json=firebase_auth_background_input)
+    cloudevent = convert.background_event_to_cloudevent(req)
+    assert cloudevent == firebase_auth_cloudevent_output
+
+
 def test_split_resource():
     background_resource = {
         "service": "storage.googleapis.com",
