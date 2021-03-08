@@ -13,10 +13,11 @@
 # limitations under the License.
 import json
 import pathlib
+
+import flask
 import pytest
 
 from cloudevents.http import from_json
-import flask
 
 from functions_framework import convert
 from functions_framework.background import Event

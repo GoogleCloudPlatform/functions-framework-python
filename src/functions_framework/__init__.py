@@ -27,15 +27,15 @@ import werkzeug
 
 from cloudevents.http import from_http, is_binary
 
-from functions_framework.background import Event
 from functions_framework import convert
+from functions_framework.background import Event
 from functions_framework.exceptions import (
+    EventConversionException,
     FunctionsFrameworkException,
     InvalidConfigurationException,
     InvalidTargetTypeException,
     MissingSourceException,
     MissingTargetException,
-    EventConversionException,
 )
 from google.cloud.functions.context import Context
 
