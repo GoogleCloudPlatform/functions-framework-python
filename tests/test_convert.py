@@ -52,6 +52,19 @@ PUBSUB_BACKGROUND_EVENT_WITHOUT_CONTEXT = {
     },
 }
 
+BACKGROUND_RESOURCE = {
+    "service": "storage.googleapis.com",
+    "name": "projects/_/buckets/some-bucket/objects/folder/Test.cs",
+    "type": "storage#object",
+}
+
+BACKGROUND_RESOURCE_WITHOUT_SERVICE = {
+    "name": "projects/_/buckets/some-bucket/objects/folder/Test.cs",
+    "type": "storage#object",
+}
+
+BACKGROUND_RESOURCE_STRING = "projects/_/buckets/some-bucket/objects/folder/Test.cs"
+
 
 @pytest.fixture
 def pubsub_cloudevent_output():
@@ -141,39 +154,15 @@ def test_firebase_auth_event_to_cloudevent_no_uid(
     assert cloudevent == firebase_auth_cloudevent_output
 
 
-def test_split_resource():
-    background_resource = {
-        "service": "storage.googleapis.com",
-        "name": "projects/_/buckets/some-bucket/objects/folder/Test.cs",
-        "type": "storage#object",
-    }
-    context = Context(
-        eventType="google.storage.object.finalize", resource=background_resource
-    )
-    service, resource, subject = event_conversion._split_resource(context)
-    assert service == "storage.googleapis.com"
-    assert resource == "projects/_/buckets/some-bucket"
-    assert subject == "objects/folder/Test.cs"
-
-
-def test_split_resource_without_service():
-    background_resource = {
-        "name": "projects/_/buckets/some-bucket/objects/folder/Test.cs",
-        "type": "storage#object",
-    }
-    # This event type will be successfully mapped to an equivalent CloudEvent type.
-    context = Context(
-        eventType="google.storage.object.finalize", resource=background_resource
-    )
-    service, resource, subject = event_conversion._split_resource(context)
-    assert service == "storage.googleapis.com"
-    assert resource == "projects/_/buckets/some-bucket"
-    assert subject == "objects/folder/Test.cs"
-
-
-def test_split_resource_string_resource():
-    background_resource = "projects/_/buckets/some-bucket/objects/folder/Test.cs"
-    # This event type will be successfully mapped to an equivalent CloudEvent type.
+@pytest.mark.parametrize(
+    "background_resource",
+    [
+        BACKGROUND_RESOURCE,
+        BACKGROUND_RESOURCE_WITHOUT_SERVICE,
+        BACKGROUND_RESOURCE_STRING,
+    ],
+)
+def test_split_resource(background_resource):
     context = Context(
         eventType="google.storage.object.finalize", resource=background_resource
     )
