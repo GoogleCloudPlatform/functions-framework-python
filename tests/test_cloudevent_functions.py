@@ -21,6 +21,7 @@ from cloudevents.http import CloudEvent, from_http, to_binary, to_structured
 from functions_framework import LazyWSGIApp, create_app, exceptions
 
 TEST_FUNCTIONS_DIR = pathlib.Path(__file__).resolve().parent / "test_functions"
+TEST_DATA_DIR = pathlib.Path(__file__).resolve().parent / "test_data"
 
 # Python 3.5: ModuleNotFoundError does not exist
 try:
@@ -83,6 +84,12 @@ def create_structured_data():
 
 
 @pytest.fixture
+def background_event():
+    with open(TEST_DATA_DIR / "pubsub_text-legacy-input.json", "r") as f:
+        return json.load(f)
+
+
+@pytest.fixture
 def client():
     source = TEST_FUNCTIONS_DIR / "cloudevents" / "main.py"
     target = "function"
@@ -92,6 +99,13 @@ def client():
 @pytest.fixture
 def empty_client():
     source = TEST_FUNCTIONS_DIR / "cloudevents" / "empty_data.py"
+    target = "function"
+    return create_app(target, source, "cloudevent").test_client()
+
+
+@pytest.fixture
+def converted_background_event_client():
+    source = TEST_FUNCTIONS_DIR / "cloudevents" / "converted_background_event.py"
     target = "function"
     return create_app(target, source, "cloudevent").test_client()
 
@@ -142,9 +156,7 @@ def test_cloudevent_missing_required_binary_fields(
         resp = client.post("/", headers=invalid_headers, json=data_payload)
 
         assert resp.status_code == 400
-        assert (
-            "cloudevents.exceptions.MissingRequiredFields" in resp.get_data().decode()
-        )
+        assert "MissingRequiredFields" in resp.get_data().decode()
 
 
 @pytest.mark.parametrize("specversion", ["0.3", "1.0"])
@@ -162,7 +174,7 @@ def test_cloudevent_missing_required_structured_fields(
         resp = client.post("/", headers=headers, json=invalid_data)
 
         assert resp.status_code == 400
-        assert "cloudevents.exceptions.MissingRequiredFields" in resp.data.decode()
+        assert "MissingRequiredFields" in resp.data.decode()
 
 
 def test_invalid_fields_binary(client, create_headers_binary, data_payload):
@@ -171,15 +183,14 @@ def test_invalid_fields_binary(client, create_headers_binary, data_payload):
     resp = client.post("/", headers=headers, json=data_payload)
 
     assert resp.status_code == 400
-    assert "cloudevents.exceptions.InvalidRequiredFields" in resp.data.decode()
-    assert "found one or more invalid required cloudevent field" in resp.data.decode()
+    assert "InvalidRequiredFields" in resp.data.decode()
 
 
 def test_unparsable_cloudevent(client):
     resp = client.post("/", headers={}, data="")
 
     assert resp.status_code == 400
-    assert "cloudevents.exceptions.MissingRequiredFields" in resp.data.decode()
+    assert "MissingRequiredFields" in resp.data.decode()
 
 
 @pytest.mark.parametrize("specversion", ["0.3", "1.0"])
@@ -206,6 +217,15 @@ def test_empty_data_structured(empty_client, specversion, create_structured_data
 def test_no_mime_type_structured(empty_client, specversion, create_structured_data):
     data = create_structured_data(specversion)
     resp = empty_client.post("/", headers={}, json=data)
+
+    assert resp.status_code == 200
+    assert resp.get_data() == b"OK"
+
+
+def test_background_event(converted_background_event_client, background_event):
+    resp = converted_background_event_client.post(
+        "/", headers={}, json=background_event
+    )
 
     assert resp.status_code == 200
     assert resp.get_data() == b"OK"

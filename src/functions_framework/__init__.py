@@ -27,7 +27,10 @@ import werkzeug
 
 from cloudevents.http import from_http, is_binary
 
+from functions_framework import event_conversion
+from functions_framework.background_event import BackgroundEvent
 from functions_framework.exceptions import (
+    EventConversionException,
     FunctionsFrameworkException,
     InvalidConfigurationException,
     InvalidTargetTypeException,
@@ -43,30 +46,7 @@ MAX_CONTENT_LENGTH = 10 * 1024 * 1024
 _FUNCTION_STATUS_HEADER_FIELD = "X-Google-Status"
 _CRASH = "crash"
 
-
-class _Event(object):
-    """Event passed to background functions."""
-
-    # Supports both v1beta1 and v1beta2 event formats.
-    def __init__(
-        self,
-        context=None,
-        data="",
-        eventId="",
-        timestamp="",
-        eventType="",
-        resource="",
-        **kwargs,
-    ):
-        self.context = context
-        if not self.context:
-            self.context = {
-                "eventId": eventId,
-                "timestamp": timestamp,
-                "eventType": eventType,
-                "resource": resource,
-            }
-        self.data = data
+_CLOUDEVENT_MIME_TYPE = "application/cloudevents+json"
 
 
 class _LoggingHandler(io.TextIOWrapper):
@@ -97,26 +77,32 @@ def _run_cloudevent(function, request):
 
 def _cloudevent_view_func_wrapper(function, request):
     def view_func(path):
+        ce_exception = None
+        event = None
         try:
-            _run_cloudevent(function, request)
-        except cloud_exceptions.MissingRequiredFields as e:
+            event = from_http(request.headers, request.get_data())
+        except (
+            cloud_exceptions.MissingRequiredFields,
+            cloud_exceptions.InvalidRequiredFields,
+        ) as e:
+            ce_exception = e
+
+        if not ce_exception:
+            function(event)
+            return "OK"
+
+        # Not a CloudEvent. Try converting to a CloudEvent.
+        try:
+            function(event_conversion.background_event_to_cloudevent(request))
+        except EventConversionException as e:
             flask.abort(
                 400,
                 description=(
                     "Function was defined with FUNCTION_SIGNATURE_TYPE=cloudevent but"
-                    " failed to find all required cloudevent fields. Found HTTP"
-                    f" headers: {request.headers} and data: {request.get_data()}. "
-                    f"cloudevents.exceptions.MissingRequiredFields: {e}"
-                ),
-            )
-        except cloud_exceptions.InvalidRequiredFields as e:
-            flask.abort(
-                400,
-                description=(
-                    "Function was defined with FUNCTION_SIGNATURE_TYPE=cloudevent but"
-                    " found one or more invalid required cloudevent fields. Found HTTP"
-                    f" headers: {request.headers} and data: {request.get_data()}. "
-                    f"cloudevents.exceptions.InvalidRequiredFields: {e}"
+                    " parsing CloudEvent failed and converting from background event to"
+                    f" CloudEvent also failed.\nGot HTTP headers: {request.headers}\nGot"
+                    f" data: {request.get_data()}\nGot CloudEvent exception: {repr(ce_exception)}"
+                    f"\nGot background event conversion exception: {repr(e)}"
                 ),
             )
         return "OK"
@@ -143,7 +129,7 @@ def _event_view_func_wrapper(function, request):
             event_data = request.get_json()
             if not event_data:
                 flask.abort(400)
-            event_object = _Event(**event_data)
+            event_object = BackgroundEvent(**event_data)
             data = event_object.data
             context = Context(**event_object.context)
             function(data, context)

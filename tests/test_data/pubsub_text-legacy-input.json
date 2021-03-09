@@ -1,0 +1,19 @@
+{
+   "context": {
+      "eventId":"aaaaaa-1111-bbbb-2222-cccccccccccc",
+      "timestamp":"2020-09-29T11:32:00.000Z",
+      "eventType":"google.pubsub.topic.publish",
+      "resource":{
+        "service":"pubsub.googleapis.com",
+        "name":"projects/sample-project/topics/gcf-test",
+        "type":"type.googleapis.com/google.pubsub.v1.PubsubMessage"
+      }
+   },
+   "data": {
+      "@type": "type.googleapis.com/google.pubsub.v1.PubsubMessage",
+      "attributes": {
+         "attr1":"attr1-value"
+      },
+      "data": "dGVzdCBtZXNzYWdlIDM="
+   }
+}
