@@ -13,10 +13,16 @@
 # limitations under the License.
 
 
-class Event(object):
-    """Event passed to background functions."""
+class BackgroundEvent(object):
+    """BackgroundEvent is an event passed to GCF background event functions.
 
-    # Supports both v1beta1 and v1beta2 event formats.
+    Background event functions take data and context as parameters, both of
+    which this class represents. By contrast, CloudEvent functions take a
+    single CloudEvent object as their parameter. This class does not represent
+    CloudEvents.
+    """
+
+    # Supports v1beta1, v1beta2, and v1 event formats.
     def __init__(
         self,
         context=None,

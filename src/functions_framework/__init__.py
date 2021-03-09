@@ -28,7 +28,7 @@ import werkzeug
 from cloudevents.http import from_http, is_binary
 
 from functions_framework import convert
-from functions_framework.background import Event
+from functions_framework.background import BackgroundEvent
 from functions_framework.exceptions import (
     EventConversionException,
     FunctionsFrameworkException,
@@ -129,7 +129,7 @@ def _event_view_func_wrapper(function, request):
             event_data = request.get_json()
             if not event_data:
                 flask.abort(400)
-            event_object = Event(**event_data)
+            event_object = BackgroundEvent(**event_data)
             data = event_object.data
             context = Context(**event_object.context)
             function(data, context)

@@ -23,6 +23,9 @@ from google.cloud.functions.context import Context
 
 _CLOUDEVENT_SPEC_VERSION = "1.0"
 
+# Maps background/legacy event types to their equivalent CloudEvent types.
+# For more info on event mappings see
+# https://github.com/GoogleCloudPlatform/functions-framework-conformance/blob/master/docs/mapping.md
 _BACKGROUND_TO_CE_TYPE = {
     "google.pubsub.topic.publish": "google.cloud.pubsub.topic.v1.messagePublished",
     "providers/cloud.pubsub/eventTypes/topic.publish": "google.cloud.pubsub.topic.v1.messagePublished",
@@ -44,6 +47,7 @@ _BACKGROUND_TO_CE_TYPE = {
     "providers/cloud.storage/eventTypes/object.change": "google.cloud.storage.object.v1.finalized",
 }
 
+# CloudEvent service names.
 _FIREBASE_AUTH_CE_SERVICE = "firebaseauth.googleapis.com"
 _FIREBASE_CE_SERVICE = "firebase.googleapis.com"
 _FIREBASE_DB_CE_SERVICE = "firebasedatabase.googleapis.com"
@@ -51,6 +55,7 @@ _FIRESTORE_CE_SERVICE = "firestore.googleapis.com"
 _PUBSUB_CE_SERVICE = "pubsub.googleapis.com"
 _STORAGE_CE_SERVICE = "storage.googleapis.com"
 
+# Maps background event services to their equivalent CloudEvent services.
 _SERVICE_BACKGROUND_TO_CE = {
     "providers/cloud.firestore/": _FIRESTORE_CE_SERVICE,
     "providers/google.firebase.analytics/": _FIREBASE_CE_SERVICE,
@@ -62,6 +67,10 @@ _SERVICE_BACKGROUND_TO_CE = {
     "google.storage": _STORAGE_CE_SERVICE,
 }
 
+# Maps CloudEvent service strings to regular expressions used to split a background
+# event resource string into CloudEvent resource and subject strings. Each regex
+# must have exactly two capture groups: the first for the resource and the second
+# for the subject.
 _CE_SERVICE_TO_RESOURCE_RE = {
     _FIREBASE_CE_SERVICE: re.compile(r"^(projects/[^/]+)/(events/[^/]+)$"),
     _FIREBASE_DB_CE_SERVICE: re.compile(r"^(projects/[^/]/instances/[^/]+)/(refs/.+)$"),
@@ -80,11 +89,12 @@ _FIREBASE_AUTH_METADATA_FIELDS_BACKGROUND_TO_CE = {
 
 
 def background_event_to_cloudevent(request) -> CloudEvent:
+    """Converts a background event represented by the given HTTP request into a CloudEvent. """
     event_data = request.get_json()
     if not event_data:
         raise EventConversionException("Failed to parse JSON")
 
-    event_object = background.Event(**event_data)
+    event_object = background.BackgroundEvent(**event_data)
     data = event_object.data
     context = Context(**event_object.context)
 
@@ -126,8 +136,8 @@ def background_event_to_cloudevent(request) -> CloudEvent:
     return CloudEvent(metadata, data)
 
 
-# Splits a background event's resource into a CloudEvent service, resource, and subject.
 def _split_resource(context: Context) -> Tuple[str, str, str]:
+    """Splits a background event's resource into a CloudEvent service, resource, and subject."""
     service = ""
     resource = ""
     if isinstance(context.resource, dict):
