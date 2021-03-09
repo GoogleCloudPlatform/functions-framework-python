@@ -17,7 +17,7 @@ from typing import Tuple
 
 from cloudevents.http import CloudEvent
 
-from functions_framework import background
+from functions_framework.background_event import BackgroundEvent
 from functions_framework.exceptions import EventConversionException
 from google.cloud.functions.context import Context
 
@@ -94,7 +94,7 @@ def background_event_to_cloudevent(request) -> CloudEvent:
     if not event_data:
         raise EventConversionException("Failed to parse JSON")
 
-    event_object = background.BackgroundEvent(**event_data)
+    event_object = BackgroundEvent(**event_data)
     data = event_object.data
     context = Context(**event_object.context)
 

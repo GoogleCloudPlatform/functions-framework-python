@@ -27,8 +27,8 @@ import werkzeug
 
 from cloudevents.http import from_http, is_binary
 
-from functions_framework import convert
-from functions_framework.background import BackgroundEvent
+from functions_framework import event_conversion
+from functions_framework.background_event import BackgroundEvent
 from functions_framework.exceptions import (
     EventConversionException,
     FunctionsFrameworkException,
@@ -93,7 +93,7 @@ def _cloudevent_view_func_wrapper(function, request):
 
         # Not a CloudEvent. Try converting to a CloudEvent.
         try:
-            function(convert.background_event_to_cloudevent(request))
+            function(event_conversion.background_event_to_cloudevent(request))
         except EventConversionException as e:
             flask.abort(
                 400,

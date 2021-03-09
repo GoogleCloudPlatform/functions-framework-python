@@ -19,7 +19,7 @@ import pytest
 
 from cloudevents.http import from_json
 
-from functions_framework import convert
+from functions_framework import event_conversion
 from functions_framework.exceptions import EventConversionException
 from google.cloud.functions.context import Context
 
@@ -89,7 +89,7 @@ def firebase_auth_cloudevent_output():
 )
 def test_pubsub_event_to_cloudevent(event, pubsub_cloudevent_output):
     req = flask.Request.from_values(json=event)
-    cloudevent = convert.background_event_to_cloudevent(req)
+    cloudevent = event_conversion.background_event_to_cloudevent(req)
     assert cloudevent == pubsub_cloudevent_output
 
 
@@ -97,7 +97,7 @@ def test_firebase_auth_event_to_cloudevent(
     firebase_auth_background_input, firebase_auth_cloudevent_output
 ):
     req = flask.Request.from_values(json=firebase_auth_background_input)
-    cloudevent = convert.background_event_to_cloudevent(req)
+    cloudevent = event_conversion.background_event_to_cloudevent(req)
     assert cloudevent == firebase_auth_cloudevent_output
 
 
@@ -109,7 +109,7 @@ def test_firebase_auth_event_to_cloudevent_no_metadata(
     del firebase_auth_cloudevent_output.data["metadata"]
 
     req = flask.Request.from_values(json=firebase_auth_background_input)
-    cloudevent = convert.background_event_to_cloudevent(req)
+    cloudevent = event_conversion.background_event_to_cloudevent(req)
     assert cloudevent == firebase_auth_cloudevent_output
 
 
@@ -123,7 +123,7 @@ def test_firebase_auth_event_to_cloudevent_no_metadata_timestamps(
     del firebase_auth_cloudevent_output.data["metadata"]["lastSignInTime"]
 
     req = flask.Request.from_values(json=firebase_auth_background_input)
-    cloudevent = convert.background_event_to_cloudevent(req)
+    cloudevent = event_conversion.background_event_to_cloudevent(req)
     assert cloudevent == firebase_auth_cloudevent_output
 
 
@@ -137,7 +137,7 @@ def test_firebase_auth_event_to_cloudevent_no_uid(
     del firebase_auth_cloudevent_output["subject"]
 
     req = flask.Request.from_values(json=firebase_auth_background_input)
-    cloudevent = convert.background_event_to_cloudevent(req)
+    cloudevent = event_conversion.background_event_to_cloudevent(req)
     assert cloudevent == firebase_auth_cloudevent_output
 
 
@@ -150,7 +150,7 @@ def test_split_resource():
     context = Context(
         eventType="google.storage.object.finalize", resource=background_resource
     )
-    service, resource, subject = convert._split_resource(context)
+    service, resource, subject = event_conversion._split_resource(context)
     assert service == "storage.googleapis.com"
     assert resource == "projects/_/buckets/some-bucket"
     assert subject == "objects/folder/Test.cs"
@@ -165,7 +165,7 @@ def test_split_resource_without_service():
     context = Context(
         eventType="google.storage.object.finalize", resource=background_resource
     )
-    service, resource, subject = convert._split_resource(context)
+    service, resource, subject = event_conversion._split_resource(context)
     assert service == "storage.googleapis.com"
     assert resource == "projects/_/buckets/some-bucket"
     assert subject == "objects/folder/Test.cs"
@@ -177,7 +177,7 @@ def test_split_resource_string_resource():
     context = Context(
         eventType="google.storage.object.finalize", resource=background_resource
     )
-    service, resource, subject = convert._split_resource(context)
+    service, resource, subject = event_conversion._split_resource(context)
     assert service == "storage.googleapis.com"
     assert resource == "projects/_/buckets/some-bucket"
     assert subject == "objects/folder/Test.cs"
@@ -192,7 +192,7 @@ def test_split_resource_unknown_service_and_event_type():
         "type": "storage#object",
     }
     context = Context(eventType="not_a_known_event_type", resource=background_resource)
-    service, resource, subject = convert._split_resource(context)
+    service, resource, subject = event_conversion._split_resource(context)
     assert service == "not_a_known_service"
     assert resource == "projects/_/my/stuff/at/test.txt"
     assert subject == ""
@@ -206,7 +206,7 @@ def test_split_resource_without_service_unknown_event_type():
     # This event type cannot be mapped to an equivalent CloudEvent type.
     context = Context(eventType="not_a_known_event_type", resource=background_resource)
     with pytest.raises(EventConversionException) as exc_info:
-        convert._split_resource(context)
+        event_conversion._split_resource(context)
     assert "Unable to find CloudEvent equivalent service" in exc_info.value.args[0]
 
 
@@ -221,5 +221,5 @@ def test_split_resource_no_resource_regex_match():
         eventType="google.storage.object.finalize", resource=background_resource
     )
     with pytest.raises(EventConversionException) as exc_info:
-        convert._split_resource(context)
+        event_conversion._split_resource(context)
     assert "Resource regex did not match" in exc_info.value.args[0]
