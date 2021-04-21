@@ -13,7 +13,8 @@
 # limitations under the License.
 import re
 
-from typing import Tuple
+from datetime import datetime
+from typing import Optional, Tuple
 
 from cloudevents.http import CloudEvent
 
@@ -55,6 +56,12 @@ _FIRESTORE_CE_SERVICE = "firestore.googleapis.com"
 _PUBSUB_CE_SERVICE = "pubsub.googleapis.com"
 _STORAGE_CE_SERVICE = "storage.googleapis.com"
 
+# Raw pubsub types
+_PUBSUB_EVENT_TYPE = 'google.pubsub.topic.publish'
+_PUBSUB_MESSAGE_TYPE = 'type.googleapis.com/google.pubsub.v1.PubsubMessage'
+
+_PUBSUB_TOPIC_REQUEST_PATH = re.compile(r"projects\/[^/?]+\/topics\/[^/?]+")
+
 # Maps background event services to their equivalent CloudEvent services.
 _SERVICE_BACKGROUND_TO_CE = {
     "providers/cloud.firestore/": _FIRESTORE_CE_SERVICE,
@@ -90,7 +97,7 @@ _FIREBASE_AUTH_METADATA_FIELDS_BACKGROUND_TO_CE = {
 
 def background_event_to_cloudevent(request) -> CloudEvent:
     """Converts a background event represented by the given HTTP request into a CloudEvent. """
-    event_data = request.get_json()
+    event_data = marshal_background_event_data(request)
     if not event_data:
         raise EventConversionException("Failed to parse JSON")
 
@@ -109,6 +116,10 @@ def background_event_to_cloudevent(request) -> CloudEvent:
     # Handle Pub/Sub events.
     if service == _PUBSUB_CE_SERVICE:
         data = {"message": data}
+        # It is possible to configure a Pub/Sub subscription to push directly to this function
+        # without passing the topic name in the URL path.
+        if resource is None:
+            resource = ""
 
     # Handle Firebase Auth events.
     if service == _FIREBASE_AUTH_CE_SERVICE:
@@ -168,3 +179,50 @@ def _split_resource(context: Context) -> Tuple[str, str, str]:
         raise EventConversionException("Resource regex did not match")
 
     return service, match.group(1), match.group(2)
+
+
+def marshal_background_event_data(request):
+    """Marshal the request body of a raw Pub/Sub HTTP request into the schema that is expected of
+    a background event"""
+    request_data = request.get_json()
+    if not _is_raw_pubsub_payload(request_data):
+        # If this in not a raw Pub/Sub request, return the unaltered request data.
+        return request_data
+    
+    return {
+        "context": {
+            "eventId": request_data["message"]["messageId"],
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "eventType": _PUBSUB_EVENT_TYPE,
+            "resource": {
+                "service": _PUBSUB_CE_SERVICE,
+                "type": _PUBSUB_MESSAGE_TYPE,
+                "name": _parse_pubsub_topic(request.path),
+            },
+        },
+        "data": {
+            '@type': _PUBSUB_MESSAGE_TYPE,
+            "data": request_data["message"]["data"],
+            "attributes": request_data["message"]["attributes"],
+        }
+    }
+
+
+def _is_raw_pubsub_payload(request_data) -> bool:
+    """Does the given request body match the schema of a unmarshalled Pub/Sub request"""
+    return (
+        request_data is not None and
+        "context" not in request_data and
+        "subscription" in request_data and
+        "message" in request_data and
+        "data" in request_data["message"] and
+        "messageId" in request_data["message"]
+    )
+
+
+def _parse_pubsub_topic(request_path) -> Optional[str]:
+    match = _PUBSUB_TOPIC_REQUEST_PATH.search(request_path)
+    if match:
+        return match.group(0)
+    else:
+        return None
