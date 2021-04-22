@@ -116,10 +116,6 @@ def background_event_to_cloudevent(request) -> CloudEvent:
     # Handle Pub/Sub events.
     if service == _PUBSUB_CE_SERVICE:
         data = {"message": data}
-        # It is possible to configure a Pub/Sub subscription to push directly to this function
-        # without passing the topic name in the URL path.
-        if resource is None:
-            resource = ""
 
     # Handle Firebase Auth events.
     if service == _FIREBASE_AUTH_CE_SERVICE:
@@ -225,4 +221,6 @@ def _parse_pubsub_topic(request_path) -> Optional[str]:
     if match:
         return match.group(0)
     else:
-        return None
+        # It is possible to configure a Pub/Sub subscription to push directly to this function
+        # without passing the topic name in the URL path.
+        return ""

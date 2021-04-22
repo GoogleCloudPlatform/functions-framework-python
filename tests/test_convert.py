@@ -265,8 +265,8 @@ def test_marshal_background_event_data_without_topic_in_path(
     del marshalled_pubsub_request["context"]["timestamp"]
     del payload["context"]["timestamp"]
 
-    # Resource name is set to None when it cannot be parsed from the request path
-    marshalled_pubsub_request["context"]["resource"]["name"] = None
+    # Resource name is set to empty string when it cannot be parsed from the request path
+    marshalled_pubsub_request["context"]["resource"]["name"] = ""
 
     assert payload == marshalled_pubsub_request
 
