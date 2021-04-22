@@ -317,3 +317,15 @@ def test_pubsub_emulator_request_to_cloudevent_without_topic_path(
     raw_pubsub_cloudevent_output["source"] = "//pubsub.googleapis.com/"
 
     assert cloudevent == raw_pubsub_cloudevent_output
+
+
+def test_pubsub_emulator_request_with_invalid_message(
+    raw_pubsub_request, raw_pubsub_cloudevent_output
+):
+    # Create an invalid message payload
+    raw_pubsub_request["message"] = None
+    req = flask.Request.from_values(json=raw_pubsub_request, path="/")
+    
+    with pytest.raises(EventConversionException) as exc_info:
+        cloudevent = event_conversion.background_event_to_cloudevent(req)
+    assert "Failed to convert Pub/Sub payload to event" in exc_info.value.args[0]

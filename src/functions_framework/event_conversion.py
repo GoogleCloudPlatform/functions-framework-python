@@ -180,16 +180,15 @@ def _split_resource(context: Context) -> Tuple[str, str, str]:
 def marshal_background_event_data(request):
     """Marshal the request body of a raw Pub/Sub HTTP request into the schema that is expected of
     a background event"""
-    request_data = request.get_json()
-    if not _is_raw_pubsub_payload(request_data):
-        # If this in not a raw Pub/Sub request, return the unaltered request data.
-        return request_data
-
     try:
+        request_data = request.get_json()
+        if not _is_raw_pubsub_payload(request_data):
+            # If this in not a raw Pub/Sub request, return the unaltered request data.
+            return request_data
         return {
             "context": {
                 "eventId": request_data["message"]["messageId"],
-                "timestamp": datetime.utcnow().isoformat() + "Z",
+                "timestamp": request_data["message"].get("publishTime", datetime.utcnow().isoformat() + "Z"),
                 "eventType": _PUBSUB_EVENT_TYPE,
                 "resource": {
                     "service": _PUBSUB_CE_SERVICE,
@@ -203,7 +202,7 @@ def marshal_background_event_data(request):
                 "attributes": request_data["message"]["attributes"],
             },
         }
-    except (KeyError, AttributeError):
+    except (AttributeError, KeyError, TypeError):
         raise EventConversionException("Failed to convert Pub/Sub payload to event")
 
 
