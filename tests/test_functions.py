@@ -48,19 +48,21 @@ def background_json(tmpdir):
         "data": {"filename": str(tmpdir / "filename.txt"), "value": "some-value"},
     }
 
+
 @pytest.fixture
 def pubsub_emulator_request_payload(tmpdir):
     return {
         "subscription": "projects/FOO/subscriptions/BAR_SUB",
         "message": {
-            "data": 'eyJmb28iOiJiYXIifQ==',
+            "data": "eyJmb28iOiJiYXIifQ==",
             "messageId": "1",
             "attributes": {
                 "filename": str(tmpdir / "filename.txt"),
-                "value": "some-value"
-            }
-        }
+                "value": "some-value",
+            },
+        },
     }
+
 
 def test_http_function_executes_success():
     source = TEST_FUNCTIONS_DIR / "http_trigger" / "main.py"
@@ -255,6 +257,7 @@ def test_pubsub_payload(background_json):
             background_json["data"]["value"]
         )
 
+
 def test_pubsub_emulator_payload(pubsub_emulator_request_payload):
     source = TEST_FUNCTIONS_DIR / "background_trigger" / "main.py"
     target = "function"
@@ -266,10 +269,13 @@ def test_pubsub_emulator_payload(pubsub_emulator_request_payload):
     assert resp.status_code == 200
     assert resp.data == b"OK"
 
-    with open(pubsub_emulator_request_payload["message"]["attributes"]["filename"]) as f:
+    with open(
+        pubsub_emulator_request_payload["message"]["attributes"]["filename"]
+    ) as f:
         assert f.read() == '{{"entryPoint": "function", "value": "{}"}}'.format(
             pubsub_emulator_request_payload["message"]["attributes"]["value"]
         )
+
 
 def test_background_function_no_data(background_json):
     source = TEST_FUNCTIONS_DIR / "background_trigger" / "main.py"

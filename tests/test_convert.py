@@ -84,6 +84,7 @@ PUBSUB_CLOUD_EVENT = {
 def pubsub_cloudevent_output():
     return from_json(json.dumps(PUBSUB_CLOUD_EVENT))
 
+
 @pytest.fixture
 def raw_pubsub_request():
     return {
@@ -91,11 +92,10 @@ def raw_pubsub_request():
         "message": {
             "data": "eyJmb28iOiJiYXIifQ==",
             "messageId": "1215011316659232",
-            "attributes": {
-                "test": "123"
-            }
-        }
+            "attributes": {"test": "123"},
+        },
     }
+
 
 @pytest.fixture
 def marshalled_pubsub_request():
@@ -103,9 +103,7 @@ def marshalled_pubsub_request():
         "data": {
             "@type": "type.googleapis.com/google.pubsub.v1.PubsubMessage",
             "data": "eyJmb28iOiJiYXIifQ==",
-            "attributes": {
-                "test": "123"
-            }
+            "attributes": {"test": "123"},
         },
         "context": {
             "eventId": "1215011316659232",
@@ -113,19 +111,18 @@ def marshalled_pubsub_request():
             "resource": {
                 "name": "projects/sample-project/topics/gcf-test",
                 "service": "pubsub.googleapis.com",
-                "type": "type.googleapis.com/google.pubsub.v1.PubsubMessage"
+                "type": "type.googleapis.com/google.pubsub.v1.PubsubMessage",
             },
             "timestamp": "2021-04-17T07:21:18.249Z",
-        }
+        },
     }
+
 
 @pytest.fixture
 def raw_pubsub_cloudevent_output(marshalled_pubsub_request):
     event = PUBSUB_CLOUD_EVENT.copy()
     # the data payload is more complex for the raw pubsub request
-    event["data"] = {
-        "message": marshalled_pubsub_request["data"]
-    }
+    event["data"] = {"message": marshalled_pubsub_request["data"]}
     return from_json(json.dumps(event))
 
 
@@ -273,11 +270,13 @@ def test_marshal_background_event_data_without_topic_in_path(
 
     assert payload == marshalled_pubsub_request
 
+
 def test_marshal_background_event_data_with_topic_path(
     raw_pubsub_request, marshalled_pubsub_request
 ):
     req = flask.Request.from_values(
-        json=raw_pubsub_request, path="x/projects/sample-project/topics/gcf-test?pubsub_trigger=true"
+        json=raw_pubsub_request,
+        path="x/projects/sample-project/topics/gcf-test?pubsub_trigger=true",
     )
     payload = event_conversion.marshal_background_event_data(req)
 
@@ -287,16 +286,19 @@ def test_marshal_background_event_data_with_topic_path(
 
     assert payload == marshalled_pubsub_request
 
-def test_pubsub_emulator_request_to_cloudevent(raw_pubsub_request, raw_pubsub_cloudevent_output):
+
+def test_pubsub_emulator_request_to_cloudevent(
+    raw_pubsub_request, raw_pubsub_cloudevent_output
+):
     req = flask.Request.from_values(
         json=raw_pubsub_request,
-        path="x/projects/sample-project/topics/gcf-test?pubsub_trigger=true"
+        path="x/projects/sample-project/topics/gcf-test?pubsub_trigger=true",
     )
     cloudevent = event_conversion.background_event_to_cloudevent(req)
 
     # Remove timestamps as they are generated on the fly.
-    del raw_pubsub_cloudevent_output['time']
-    del cloudevent['time']
+    del raw_pubsub_cloudevent_output["time"]
+    del cloudevent["time"]
 
     assert cloudevent == raw_pubsub_cloudevent_output
 
@@ -304,16 +306,14 @@ def test_pubsub_emulator_request_to_cloudevent(raw_pubsub_request, raw_pubsub_cl
 def test_pubsub_emulator_request_to_cloudevent_without_topic_path(
     raw_pubsub_request, raw_pubsub_cloudevent_output
 ):
-    req = flask.Request.from_values(
-        json=raw_pubsub_request, path="/"
-    )
+    req = flask.Request.from_values(json=raw_pubsub_request, path="/")
     cloudevent = event_conversion.background_event_to_cloudevent(req)
 
     # Remove timestamps as they are generated on the fly.
-    del raw_pubsub_cloudevent_output['time']
-    del cloudevent['time']
+    del raw_pubsub_cloudevent_output["time"]
+    del cloudevent["time"]
 
     # Default to the service name, when the topic is not configured subscription's pushEndpoint.
-    raw_pubsub_cloudevent_output['source'] = "//pubsub.googleapis.com/"
+    raw_pubsub_cloudevent_output["source"] = "//pubsub.googleapis.com/"
 
     assert cloudevent == raw_pubsub_cloudevent_output

@@ -57,8 +57,8 @@ _PUBSUB_CE_SERVICE = "pubsub.googleapis.com"
 _STORAGE_CE_SERVICE = "storage.googleapis.com"
 
 # Raw pubsub types
-_PUBSUB_EVENT_TYPE = 'google.pubsub.topic.publish'
-_PUBSUB_MESSAGE_TYPE = 'type.googleapis.com/google.pubsub.v1.PubsubMessage'
+_PUBSUB_EVENT_TYPE = "google.pubsub.topic.publish"
+_PUBSUB_MESSAGE_TYPE = "type.googleapis.com/google.pubsub.v1.PubsubMessage"
 
 _PUBSUB_TOPIC_REQUEST_PATH = re.compile(r"projects\/[^/?]+\/topics\/[^/?]+")
 
@@ -188,7 +188,7 @@ def marshal_background_event_data(request):
     if not _is_raw_pubsub_payload(request_data):
         # If this in not a raw Pub/Sub request, return the unaltered request data.
         return request_data
-    
+
     return {
         "context": {
             "eventId": request_data["message"]["messageId"],
@@ -201,22 +201,22 @@ def marshal_background_event_data(request):
             },
         },
         "data": {
-            '@type': _PUBSUB_MESSAGE_TYPE,
+            "@type": _PUBSUB_MESSAGE_TYPE,
             "data": request_data["message"]["data"],
             "attributes": request_data["message"]["attributes"],
-        }
+        },
     }
 
 
 def _is_raw_pubsub_payload(request_data) -> bool:
     """Does the given request body match the schema of a unmarshalled Pub/Sub request"""
     return (
-        request_data is not None and
-        "context" not in request_data and
-        "subscription" in request_data and
-        "message" in request_data and
-        "data" in request_data["message"] and
-        "messageId" in request_data["message"]
+        request_data is not None
+        and "context" not in request_data
+        and "subscription" in request_data
+        and "message" in request_data
+        and "data" in request_data["message"]
+        and "messageId" in request_data["message"]
     )
 
 
