@@ -188,7 +188,9 @@ def marshal_background_event_data(request):
         return {
             "context": {
                 "eventId": request_data["message"]["messageId"],
-                "timestamp": request_data["message"].get("publishTime", datetime.utcnow().isoformat() + "Z"),
+                "timestamp": request_data["message"].get(
+                    "publishTime", datetime.utcnow().isoformat() + "Z"
+                ),
                 "eventType": _PUBSUB_EVENT_TYPE,
                 "resource": {
                     "service": _PUBSUB_CE_SERVICE,

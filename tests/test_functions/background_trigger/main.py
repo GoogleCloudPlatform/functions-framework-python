@@ -29,9 +29,8 @@ def function(
         data dictionary.
       context (google.cloud.functions.Context): The Cloud Functions event context.
     """
-    attributes = event.get("attributes", {})
-    filename = event.get("filename", attributes.get("filename"))
-    value = event.get("value", attributes.get("value"))
+    filename = event["filename"]
+    value = event["value"]
     f = open(filename, "w")
     f.write('{{"entryPoint": "function", "value": "{}"}}'.format(value))
     f.close()
