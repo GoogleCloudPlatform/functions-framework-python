@@ -185,23 +185,26 @@ def marshal_background_event_data(request):
         # If this in not a raw Pub/Sub request, return the unaltered request data.
         return request_data
 
-    return {
-        "context": {
-            "eventId": request_data["message"]["messageId"],
-            "timestamp": datetime.utcnow().isoformat() + "Z",
-            "eventType": _PUBSUB_EVENT_TYPE,
-            "resource": {
-                "service": _PUBSUB_CE_SERVICE,
-                "type": _PUBSUB_MESSAGE_TYPE,
-                "name": _parse_pubsub_topic(request.path),
+    try:
+        return {
+            "context": {
+                "eventId": request_data["message"]["messageId"],
+                "timestamp": datetime.utcnow().isoformat() + "Z",
+                "eventType": _PUBSUB_EVENT_TYPE,
+                "resource": {
+                    "service": _PUBSUB_CE_SERVICE,
+                    "type": _PUBSUB_MESSAGE_TYPE,
+                    "name": _parse_pubsub_topic(request.path),
+                },
             },
-        },
-        "data": {
-            "@type": _PUBSUB_MESSAGE_TYPE,
-            "data": request_data["message"]["data"],
-            "attributes": request_data["message"]["attributes"],
-        },
-    }
+            "data": {
+                "@type": _PUBSUB_MESSAGE_TYPE,
+                "data": request_data["message"]["data"],
+                "attributes": request_data["message"]["attributes"],
+            },
+        }
+    except (KeyError, AttributeError):
+        raise EventConversionException("Failed to convert Pub/Sub payload to event")
 
 
 def _is_raw_pubsub_payload(request_data) -> bool:
