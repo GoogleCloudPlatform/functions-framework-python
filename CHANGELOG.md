@@ -6,7 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [2.1.2] - 2020-02-23
+## [2.1.3] - 2021-04-23
+### Changed
+- Change gunicorn loglevel to error ([#122])
+
+### Added
+- Add support for background to CloudEvent conversion ([#116])
+
+## [2.1.2] - 2021-02-23
 ### Added
 - Add crash header to 500 responses ([#114])
 
@@ -94,7 +101,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Initial release
 
-[Unreleased]: https://github.com/GoogleCloudPlatform/functions-framework-python/compare/v2.1.2...HEAD
+[Unreleased]: https://github.com/GoogleCloudPlatform/functions-framework-python/compare/v2.1.3...HEAD
+[2.1.3]: https://github.com/GoogleCloudPlatform/functions-framework-python/releases/tag/v2.1.3
 [2.1.2]: https://github.com/GoogleCloudPlatform/functions-framework-python/releases/tag/v2.1.2
 [2.1.1]: https://github.com/GoogleCloudPlatform/functions-framework-python/releases/tag/v2.1.1
 [2.1.0]: https://github.com/GoogleCloudPlatform/functions-framework-python/releases/tag/v2.1.0
@@ -113,6 +121,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [1.0.1]: https://github.com/GoogleCloudPlatform/functions-framework-python/releases/tag/v1.0.1
 [1.0.0]: https://github.com/GoogleCloudPlatform/functions-framework-python/releases/tag/v1.0.0
 
+[#122]: https://github.com/GoogleCloudPlatform/functions-framework-python/pull/122
+[#116]: https://github.com/GoogleCloudPlatform/functions-framework-python/pull/116
 [#114]: https://github.com/GoogleCloudPlatform/functions-framework-python/pull/114
 [#107]: https://github.com/GoogleCloudPlatform/functions-framework-python/pull/107
 [#105]: https://github.com/GoogleCloudPlatform/functions-framework-python/pull/105
