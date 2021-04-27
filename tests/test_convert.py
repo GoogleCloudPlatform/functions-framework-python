@@ -17,7 +17,7 @@ import pathlib
 import flask
 import pytest
 
-from cloudevents.http import from_json
+from cloudevents.http import from_json, to_binary
 
 from functions_framework import event_conversion
 from functions_framework.exceptions import EventConversionException
@@ -136,6 +136,18 @@ def firebase_auth_background_input():
 def firebase_auth_cloudevent_output():
     with open(TEST_DATA_DIR / "firebase-auth-cloudevent-output.json", "r") as f:
         return from_json(f.read())
+
+
+@pytest.fixture
+def create_ce_headers():
+    return lambda event_type, source: {
+        "ce-id": "my-id",
+        "ce-type": event_type,
+        "ce-source": source,
+        "ce-specversion": "1.0",
+        "ce-subject": "my/subject",
+        "ce-time": "2020-08-16T13:58:54.471765",
+    }
 
 
 @pytest.mark.parametrize(
@@ -329,3 +341,189 @@ def test_pubsub_emulator_request_with_invalid_message(
     with pytest.raises(EventConversionException) as exc_info:
         cloudevent = event_conversion.background_event_to_cloudevent(req)
     assert "Failed to convert Pub/Sub payload to event" in exc_info.value.args[0]
+
+
+@pytest.mark.parametrize(
+    "ce_event_type, ce_source, expected_type, expected_resource",
+    [
+        (
+            "google.firebase.database.document.v1.written",
+            "//firebasedatabase.googleapis.com/projects/_/instances/my-project-id",
+            "providers/google.firebase.database/eventTypes/ref.write",
+            "projects/_/instances/my-project-id/my/subject",
+        ),
+        (
+            "google.cloud.pubsub.topic.v1.messagePublished",
+            "//pubsub.googleapis.com/projects/sample-project/topics/gcf-test",
+            "google.pubsub.topic.publish",
+            {
+                "service": "pubsub.googleapis.com",
+                "name": "projects/sample-project/topics/gcf-test",
+                "type": "type.googleapis.com/google.pubsub.v1.PubsubMessage",
+            },
+        ),
+        (
+            "google.cloud.storage.object.v1.finalized",
+            "//storage.googleapis.com/projects/_/buckets/some-bucket",
+            "google.storage.object.finalize",
+            {
+                "service": "storage.googleapis.com",
+                "name": "projects/_/buckets/some-bucket/my/subject",
+                "type": "value",
+            },
+        ),
+        (
+            "google.firebase.auth.user.v1.created",
+            "//firebaseauth.googleapis.com/projects/my-project-id",
+            "providers/firebase.auth/eventTypes/user.create",
+            "projects/my-project-id",
+        ),
+    ],
+)
+def test_cloud_event_to_legacy_event(
+    create_ce_headers,
+    ce_event_type,
+    ce_source,
+    expected_type,
+    expected_resource,
+):
+    headers = create_ce_headers(ce_event_type, ce_source)
+    req = flask.Request.from_values(headers=headers, json={"kind": "value"})
+
+    (res_data, res_context) = event_conversion.cloud_event_to_background_event(req)
+
+    assert res_context.event_id == "my-id"
+    assert res_context.timestamp == "2020-08-16T13:58:54.471765"
+    assert res_context.event_type == expected_type
+    assert res_context.resource == expected_resource
+    assert res_data == {"kind": "value"}
+
+
+def test_cloud_event_to_legacy_event_with_pubsub_message_payload(
+    create_ce_headers,
+):
+    headers = create_ce_headers(
+        "google.cloud.pubsub.topic.v1.messagePublished",
+        "//pubsub.googleapis.com/projects/sample-project/topics/gcf-test",
+    )
+    data = {"message": {"data": "fizzbuzz"}}
+    req = flask.Request.from_values(headers=headers, json=data)
+
+    (res_data, res_context) = event_conversion.cloud_event_to_background_event(req)
+
+    assert res_context.event_type == "google.pubsub.topic.publish"
+    assert res_data == {"data": "fizzbuzz"}
+
+
+def test_cloud_event_to_legacy_event_with_firebase_auth_ce(
+    create_ce_headers,
+):
+    headers = create_ce_headers(
+        "google.firebase.auth.user.v1.created",
+        "//firebaseauth.googleapis.com/projects/my-project-id",
+    )
+    data = {
+        "metadata": {
+            "createTime": "2020-05-26T10:42:27Z",
+            "lastSignInTime": "2020-10-24T11:00:00Z",
+        },
+        "uid": "my-id",
+    }
+    req = flask.Request.from_values(headers=headers, json=data)
+
+    (res_data, res_context) = event_conversion.cloud_event_to_background_event(req)
+
+    assert res_context.event_type == "providers/firebase.auth/eventTypes/user.create"
+    assert res_data == {
+        "metadata": {
+            "createdAt": "2020-05-26T10:42:27Z",
+            "lastSignedInAt": "2020-10-24T11:00:00Z",
+        },
+        "uid": "my-id",
+    }
+
+
+def test_cloud_event_to_legacy_event_with_firebase_auth_ce_empty_metadata(
+    create_ce_headers,
+):
+    headers = create_ce_headers(
+        "google.firebase.auth.user.v1.created",
+        "//firebaseauth.googleapis.com/projects/my-project-id",
+    )
+    data = {"metadata": {}, "uid": "my-id"}
+    req = flask.Request.from_values(headers=headers, json=data)
+
+    (res_data, res_context) = event_conversion.cloud_event_to_background_event(req)
+
+    assert res_context.event_type == "providers/firebase.auth/eventTypes/user.create"
+    assert res_data == data
+
+
+@pytest.mark.parametrize(
+    "header_overrides, exception_message",
+    [
+        (
+            {"ce-source": "invalid-source-format"},
+            "Unexpected Cloud Event source",
+        ),
+        (
+            {"ce-source": None},
+            "Failed to convert CloudEvent to BackgroundEvent",
+        ),
+        (
+            {"ce-subject": None},
+            "Failed to convert CloudEvent to BackgroundEvent",
+        ),
+        (
+            {"ce-type": "unknown-type"},
+            "Unable to find background event equivalent type for",
+        ),
+    ],
+)
+def test_cloud_event_to_legacy_event_with_invalid_event(
+    create_ce_headers,
+    header_overrides,
+    exception_message,
+):
+    headers = create_ce_headers(
+        "google.firebase.database.document.v1.written",
+        "//firebasedatabase.googleapis.com/projects/_/instances/my-project-id",
+    )
+    for k, v in header_overrides.items():
+        if v is None:
+            del headers[k]
+        else:
+            headers[k] = v
+
+    req = flask.Request.from_values(headers=headers, json={"some": "val"})
+
+    with pytest.raises(EventConversionException) as exc_info:
+        event_conversion.cloud_event_to_background_event(req)
+
+    assert exception_message in exc_info.value.args[0]
+
+
+@pytest.mark.parametrize(
+    "source,expected_service,expected_name",
+    [
+        (
+            "//firebasedatabase.googleapis.com/projects/_/instances/my-project-id",
+            "firebasedatabase.googleapis.com",
+            "projects/_/instances/my-project-id",
+        ),
+        (
+            "//firebaseauth.googleapis.com/projects/my-project-id",
+            "firebaseauth.googleapis.com",
+            "projects/my-project-id",
+        ),
+        (
+            "//firestore.googleapis.com/projects/project-id/databases/(default)",
+            "firestore.googleapis.com",
+            "projects/project-id/databases/(default)",
+        ),
+    ],
+)
+def test_split_ce_source(source, expected_service, expected_name):
+    service, name = event_conversion._split_ce_source(source)
+    assert service == expected_service
+    assert name == expected_name

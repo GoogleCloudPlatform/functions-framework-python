@@ -13,6 +13,7 @@
 # limitations under the License.
 
 
+import json
 import os
 import pathlib
 import re
@@ -37,7 +38,12 @@ except:
 
 
 @pytest.fixture
-def background_json(tmpdir):
+def tempfile_payload(tmpdir):
+    return {"filename": str(tmpdir / "filename.txt"), "value": "some-value"}
+
+
+@pytest.fixture
+def background_json(tempfile_payload):
     return {
         "context": {
             "eventId": "some-eventId",
@@ -45,7 +51,26 @@ def background_json(tmpdir):
             "eventType": "some-eventType",
             "resource": "some-resource",
         },
-        "data": {"filename": str(tmpdir / "filename.txt"), "value": "some-value"},
+        "data": tempfile_payload,
+    }
+
+
+@pytest.fixture
+def background_event_client():
+    source = TEST_FUNCTIONS_DIR / "background_trigger" / "main.py"
+    target = "function"
+    return create_app(target, source, "event").test_client()
+
+
+@pytest.fixture
+def create_ce_headers():
+    return lambda event_type: {
+        "ce-id": "my-id",
+        "ce-source": "//firebasedatabase.googleapis.com/projects/_/instances/my-project-id",
+        "ce-type": event_type,
+        "ce-specversion": "1.0",
+        "ce-subject": "refs/gcf-test/xyz",
+        "ce-time": "2020-08-16T13:58:54.471765",
     }
 
 
@@ -172,23 +197,13 @@ def test_http_function_execution_time():
     assert resp.data == b"OK"
 
 
-def test_background_function_executes(background_json):
-    source = TEST_FUNCTIONS_DIR / "background_trigger" / "main.py"
-    target = "function"
-
-    client = create_app(target, source, "event").test_client()
-
-    resp = client.post("/", json=background_json)
+def test_background_function_executes(background_event_client, background_json):
+    resp = background_event_client.post("/", json=background_json)
     assert resp.status_code == 200
 
 
-def test_background_function_supports_get(background_json):
-    source = TEST_FUNCTIONS_DIR / "background_trigger" / "main.py"
-    target = "function"
-
-    client = create_app(target, source, "event").test_client()
-
-    resp = client.get("/")
+def test_background_function_supports_get(background_event_client, background_json):
+    resp = background_event_client.get("/")
     assert resp.status_code == 200
 
 
@@ -226,14 +241,8 @@ def test_multiple_calls(background_json):
     assert resp.status_code == 200
 
 
-def test_pubsub_payload(background_json):
-    source = TEST_FUNCTIONS_DIR / "background_trigger" / "main.py"
-    target = "function"
-
-    client = create_app(target, source, "event").test_client()
-
-    resp = client.post("/", json=background_json)
-
+def test_pubsub_payload(background_event_client, background_json):
+    resp = background_event_client.post("/", json=background_json)
     assert resp.status_code == 200
     assert resp.data == b"OK"
 
@@ -243,13 +252,8 @@ def test_pubsub_payload(background_json):
         )
 
 
-def test_background_function_no_data(background_json):
-    source = TEST_FUNCTIONS_DIR / "background_trigger" / "main.py"
-    target = "function"
-
-    client = create_app(target, source, "event").test_client()
-
-    resp = client.post("/")
+def test_background_function_no_data(background_event_client, background_json):
+    resp = background_event_client.post("/")
     assert resp.status_code == 400
 
 
@@ -544,3 +548,39 @@ def test_errorhandler(monkeypatch):
 
     assert resp.status_code == 418
     assert resp.data == b"I'm a teapot"
+
+
+@pytest.mark.parametrize(
+    "event_type",
+    [
+        "google.cloud.firestore.document.v1.written",
+        "google.cloud.pubsub.topic.v1.messagePublished",
+        "google.cloud.storage.object.v1.finalized",
+        "google.cloud.storage.object.v1.metadataUpdated",
+        "google.firebase.analytics.log.v1.written",
+        "google.firebase.auth.user.v1.created",
+        "google.firebase.auth.user.v1.deleted",
+        "google.firebase.database.document.v1.written",
+    ],
+)
+def tests_cloud_to_background_event_client(
+    background_event_client, create_ce_headers, tempfile_payload, event_type
+):
+    headers = create_ce_headers(event_type)
+    resp = background_event_client.post("/", headers=headers, json=tempfile_payload)
+
+    assert resp.status_code == 200
+    with open(tempfile_payload["filename"]) as json_file:
+        data = json.load(json_file)
+        assert data["value"] == "some-value"
+
+
+def tests_cloud_to_background_event_client_invalid_source(
+    background_event_client, create_ce_headers, tempfile_payload
+):
+    headers = create_ce_headers("google.cloud.firestore.document.v1.written")
+    headers["ce-source"] = "invalid"
+
+    resp = background_event_client.post("/", headers=headers, json=tempfile_payload)
+
+    assert resp.status_code == 500

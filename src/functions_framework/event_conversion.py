@@ -14,9 +14,10 @@
 import re
 
 from datetime import datetime
-from typing import Optional, Tuple
+from typing import Any, Optional, Tuple
 
-from cloudevents.http import CloudEvent
+from cloudevents.exceptions import MissingRequiredFields
+from cloudevents.http import CloudEvent, from_http, is_binary
 
 from functions_framework.background_event import BackgroundEvent
 from functions_framework.exceptions import EventConversionException
@@ -46,6 +47,17 @@ _BACKGROUND_TO_CE_TYPE = {
     "providers/google.firebase.database/eventTypes/ref.update": "google.firebase.database.document.v1.updated",
     "providers/google.firebase.database/eventTypes/ref.delete": "google.firebase.database.document.v1.deleted",
     "providers/cloud.storage/eventTypes/object.change": "google.cloud.storage.object.v1.finalized",
+}
+
+_NONINVERTALBE_CE_TYPES = {
+    "providers/cloud.pubsub/eventTypes/topic.publish",
+    "providers/cloud.storage/eventTypes/object.change",
+}
+
+# Maps CloudEvent types to the equivalent background/legacy event types (inverse
+# of _BACKGROUND_TO_CE_TYPE)
+_CE_TO_BACKGROUND_TYPE = {
+    v: k for k, v in _BACKGROUND_TO_CE_TYPE.items() if k not in _NONINVERTALBE_CE_TYPES
 }
 
 # CloudEvent service names.
@@ -92,6 +104,11 @@ _CE_SERVICE_TO_RESOURCE_RE = {
 _FIREBASE_AUTH_METADATA_FIELDS_BACKGROUND_TO_CE = {
     "createdAt": "createTime",
     "lastSignedInAt": "lastSignInTime",
+}
+# Maps Firebase Auth CloudEvent metadata field names to their equivalent
+# background event field names (inverse of _FIREBASE_AUTH_METADATA_FIELDS_BACKGROUND_TO_CE).
+_FIREBASE_AUTH_METADATA_FIELDS_CE_TO_BACKGROUND = {
+    v: k for k, v in _FIREBASE_AUTH_METADATA_FIELDS_BACKGROUND_TO_CE.items()
 }
 
 
@@ -141,6 +158,74 @@ def background_event_to_cloudevent(request) -> CloudEvent:
         metadata["subject"] = subject
 
     return CloudEvent(metadata, data)
+
+
+def is_convertable_cloud_event(request) -> bool:
+    """Is the given request a known CloudEvent that can be converted to background event."""
+    if is_binary(request.headers):
+        event_type = request.headers.get("ce-type")
+        event_source = request.headers.get("ce-source")
+        return (
+            event_source is not None
+            and event_type is not None
+            and event_type in _CE_TO_BACKGROUND_TYPE
+        )
+    return False
+
+
+def _split_ce_source(source) -> Tuple[str, str]:
+    """Splits a CloudEvent source string into resource and subject components."""
+    regex = re.compile(r"\/\/([^/]+)\/(.+)")
+    match = regex.fullmatch(source)
+    if not match:
+        raise EventConversionException("Unexpected Cloud Event source.")
+
+    return match.group(1), match.group(2)
+
+
+def cloud_event_to_background_event(request) -> Tuple[Any, Context]:
+    """Converts a background event represented by the given HTTP request into a CloudEvent."""
+    try:
+        event = from_http(request.headers, request.get_data())
+        data = event.data
+        service, name = _split_ce_source(event["source"])
+
+        if event["type"] not in _CE_TO_BACKGROUND_TYPE:
+            raise EventConversionException(
+                f'Unable to find background event equivalent type for "{event["type"]}"'
+            )
+
+        if service == _PUBSUB_CE_SERVICE:
+            resource = {"service": service, "name": name, "type": _PUBSUB_MESSAGE_TYPE}
+            if "message" in data:
+                data = data["message"]
+        elif service == _FIREBASE_AUTH_CE_SERVICE:
+            resource = name
+            if "metadata" in data:
+                for old, new in _FIREBASE_AUTH_METADATA_FIELDS_CE_TO_BACKGROUND.items():
+                    if old in data["metadata"]:
+                        data["metadata"][new] = data["metadata"][old]
+                        del data["metadata"][old]
+        elif service == _STORAGE_CE_SERVICE:
+            resource = {
+                "name": f"{name}/{event['subject']}",
+                "service": service,
+                "type": data["kind"],
+            }
+        else:
+            resource = f"{name}/{event['subject']}"
+
+        context = Context(
+            eventId=event["id"],
+            timestamp=event["time"],
+            eventType=_CE_TO_BACKGROUND_TYPE[event["type"]],
+            resource=resource,
+        )
+        return (data, context)
+    except (AttributeError, KeyError, TypeError, MissingRequiredFields):
+        raise EventConversionException(
+            "Failed to convert CloudEvent to BackgroundEvent."
+        )
 
 
 def _split_resource(context: Context) -> Tuple[str, str, str]:
