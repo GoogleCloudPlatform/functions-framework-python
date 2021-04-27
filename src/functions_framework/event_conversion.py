@@ -96,7 +96,7 @@ _FIREBASE_AUTH_METADATA_FIELDS_BACKGROUND_TO_CE = {
 
 
 def background_event_to_cloudevent(request) -> CloudEvent:
-    """Converts a background event represented by the given HTTP request into a CloudEvent. """
+    """Converts a background event represented by the given HTTP request into a CloudEvent."""
     event_data = marshal_background_event_data(request)
     if not event_data:
         raise EventConversionException("Failed to parse JSON")
