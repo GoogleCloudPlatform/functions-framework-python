@@ -126,7 +126,7 @@ def _event_view_func_wrapper(function, request):
             function(data, context)
         else:
             # This is a regular CloudEvent
-            event_data = request.get_json()
+            event_data = event_conversion.marshal_background_event_data(request)
             if not event_data:
                 flask.abort(400)
             event_object = BackgroundEvent(**event_data)

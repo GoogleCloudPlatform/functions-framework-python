@@ -65,23 +65,64 @@ BACKGROUND_RESOURCE_WITHOUT_SERVICE = {
 
 BACKGROUND_RESOURCE_STRING = "projects/_/buckets/some-bucket/objects/folder/Test.cs"
 
+PUBSUB_CLOUD_EVENT = {
+    "specversion": "1.0",
+    "id": "1215011316659232",
+    "source": "//pubsub.googleapis.com/projects/sample-project/topics/gcf-test",
+    "time": "2020-05-18T12:13:19Z",
+    "type": "google.cloud.pubsub.topic.v1.messagePublished",
+    "datacontenttype": "application/json",
+    "data": {
+        "message": {
+            "data": "10",
+        },
+    },
+}
+
 
 @pytest.fixture
 def pubsub_cloudevent_output():
-    event = {
-        "specversion": "1.0",
-        "id": "1215011316659232",
-        "source": "//pubsub.googleapis.com/projects/sample-project/topics/gcf-test",
-        "time": "2020-05-18T12:13:19Z",
-        "type": "google.cloud.pubsub.topic.v1.messagePublished",
-        "datacontenttype": "application/json",
-        "data": {
-            "message": {
-                "data": "10",
-            },
+    return from_json(json.dumps(PUBSUB_CLOUD_EVENT))
+
+
+@pytest.fixture
+def raw_pubsub_request():
+    return {
+        "subscription": "projects/sample-project/subscriptions/gcf-test-sub",
+        "message": {
+            "data": "eyJmb28iOiJiYXIifQ==",
+            "messageId": "1215011316659232",
+            "attributes": {"test": "123"},
         },
     }
 
+
+@pytest.fixture
+def marshalled_pubsub_request():
+    return {
+        "data": {
+            "@type": "type.googleapis.com/google.pubsub.v1.PubsubMessage",
+            "data": "eyJmb28iOiJiYXIifQ==",
+            "attributes": {"test": "123"},
+        },
+        "context": {
+            "eventId": "1215011316659232",
+            "eventType": "google.pubsub.topic.publish",
+            "resource": {
+                "name": "projects/sample-project/topics/gcf-test",
+                "service": "pubsub.googleapis.com",
+                "type": "type.googleapis.com/google.pubsub.v1.PubsubMessage",
+            },
+            "timestamp": "2021-04-17T07:21:18.249Z",
+        },
+    }
+
+
+@pytest.fixture
+def raw_pubsub_cloudevent_output(marshalled_pubsub_request):
+    event = PUBSUB_CLOUD_EVENT.copy()
+    # the data payload is more complex for the raw pubsub request
+    event["data"] = {"message": marshalled_pubsub_request["data"]}
     return from_json(json.dumps(event))
 
 
@@ -212,3 +253,79 @@ def test_split_resource_no_resource_regex_match():
     with pytest.raises(EventConversionException) as exc_info:
         event_conversion._split_resource(context)
     assert "Resource regex did not match" in exc_info.value.args[0]
+
+
+def test_marshal_background_event_data_without_topic_in_path(
+    raw_pubsub_request, marshalled_pubsub_request
+):
+    req = flask.Request.from_values(json=raw_pubsub_request, path="/myfunc/")
+    payload = event_conversion.marshal_background_event_data(req)
+
+    # Remove timestamps as they get generates on the fly
+    del marshalled_pubsub_request["context"]["timestamp"]
+    del payload["context"]["timestamp"]
+
+    # Resource name is set to empty string when it cannot be parsed from the request path
+    marshalled_pubsub_request["context"]["resource"]["name"] = ""
+
+    assert payload == marshalled_pubsub_request
+
+
+def test_marshal_background_event_data_with_topic_path(
+    raw_pubsub_request, marshalled_pubsub_request
+):
+    req = flask.Request.from_values(
+        json=raw_pubsub_request,
+        path="x/projects/sample-project/topics/gcf-test?pubsub_trigger=true",
+    )
+    payload = event_conversion.marshal_background_event_data(req)
+
+    # Remove timestamps as they are generated on the fly.
+    del marshalled_pubsub_request["context"]["timestamp"]
+    del payload["context"]["timestamp"]
+
+    assert payload == marshalled_pubsub_request
+
+
+def test_pubsub_emulator_request_to_cloudevent(
+    raw_pubsub_request, raw_pubsub_cloudevent_output
+):
+    req = flask.Request.from_values(
+        json=raw_pubsub_request,
+        path="x/projects/sample-project/topics/gcf-test?pubsub_trigger=true",
+    )
+    cloudevent = event_conversion.background_event_to_cloudevent(req)
+
+    # Remove timestamps as they are generated on the fly.
+    del raw_pubsub_cloudevent_output["time"]
+    del cloudevent["time"]
+
+    assert cloudevent == raw_pubsub_cloudevent_output
+
+
+def test_pubsub_emulator_request_to_cloudevent_without_topic_path(
+    raw_pubsub_request, raw_pubsub_cloudevent_output
+):
+    req = flask.Request.from_values(json=raw_pubsub_request, path="/")
+    cloudevent = event_conversion.background_event_to_cloudevent(req)
+
+    # Remove timestamps as they are generated on the fly.
+    del raw_pubsub_cloudevent_output["time"]
+    del cloudevent["time"]
+
+    # Default to the service name, when the topic is not configured subscription's pushEndpoint.
+    raw_pubsub_cloudevent_output["source"] = "//pubsub.googleapis.com/"
+
+    assert cloudevent == raw_pubsub_cloudevent_output
+
+
+def test_pubsub_emulator_request_with_invalid_message(
+    raw_pubsub_request, raw_pubsub_cloudevent_output
+):
+    # Create an invalid message payload
+    raw_pubsub_request["message"] = None
+    req = flask.Request.from_values(json=raw_pubsub_request, path="/")
+
+    with pytest.raises(EventConversionException) as exc_info:
+        cloudevent = event_conversion.background_event_to_cloudevent(req)
+    assert "Failed to convert Pub/Sub payload to event" in exc_info.value.args[0]
