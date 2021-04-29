@@ -49,6 +49,8 @@ _BACKGROUND_TO_CE_TYPE = {
     "providers/cloud.storage/eventTypes/object.change": "google.cloud.storage.object.v1.finalized",
 }
 
+# _BACKGROUND_TO_CE_TYPE contains duplicate values for some keys. This set contains the duplicates
+# that should be dropped when generating the inverse mapping _CE_TO_BACKGROUND_TYPE
 _NONINVERTALBE_CE_TYPES = {
     "providers/cloud.pubsub/eventTypes/topic.publish",
     "providers/cloud.storage/eventTypes/object.change",
@@ -160,7 +162,7 @@ def background_event_to_cloudevent(request) -> CloudEvent:
     return CloudEvent(metadata, data)
 
 
-def is_convertable_cloud_event(request) -> bool:
+def is_convertable_cloudevent(request) -> bool:
     """Is the given request a known CloudEvent that can be converted to background event."""
     if is_binary(request.headers):
         event_type = request.headers.get("ce-type")
@@ -178,12 +180,12 @@ def _split_ce_source(source) -> Tuple[str, str]:
     regex = re.compile(r"\/\/([^/]+)\/(.+)")
     match = regex.fullmatch(source)
     if not match:
-        raise EventConversionException("Unexpected Cloud Event source.")
+        raise EventConversionException("Unexpected CloudEvent source.")
 
     return match.group(1), match.group(2)
 
 
-def cloud_event_to_background_event(request) -> Tuple[Any, Context]:
+def cloudevent_to_background_event(request) -> Tuple[Any, Context]:
     """Converts a background event represented by the given HTTP request into a CloudEvent."""
     try:
         event = from_http(request.headers, request.get_data())

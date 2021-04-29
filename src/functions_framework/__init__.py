@@ -112,9 +112,9 @@ def _cloudevent_view_func_wrapper(function, request):
 
 def _event_view_func_wrapper(function, request):
     def view_func(path):
-        if event_conversion.is_convertable_cloud_event(request):
-            # Convert this CloudEvent to the euqivalent background event data and context.
-            data, context = event_conversion.cloud_event_to_background_event(request)
+        if event_conversion.is_convertable_cloudevent(request):
+            # Convert this CloudEvent to the equivalent background event data and context.
+            data, context = event_conversion.cloudevent_to_background_event(request)
             function(data, context)
         elif is_binary(request.headers):
             # Support CloudEvents in binary content mode, with data being the

@@ -380,7 +380,7 @@ def test_pubsub_emulator_request_with_invalid_message(
         ),
     ],
 )
-def test_cloud_event_to_legacy_event(
+def test_cloudevent_to_legacy_event(
     create_ce_headers,
     ce_event_type,
     ce_source,
@@ -390,7 +390,7 @@ def test_cloud_event_to_legacy_event(
     headers = create_ce_headers(ce_event_type, ce_source)
     req = flask.Request.from_values(headers=headers, json={"kind": "value"})
 
-    (res_data, res_context) = event_conversion.cloud_event_to_background_event(req)
+    (res_data, res_context) = event_conversion.cloudevent_to_background_event(req)
 
     assert res_context.event_id == "my-id"
     assert res_context.timestamp == "2020-08-16T13:58:54.471765"
@@ -399,7 +399,7 @@ def test_cloud_event_to_legacy_event(
     assert res_data == {"kind": "value"}
 
 
-def test_cloud_event_to_legacy_event_with_pubsub_message_payload(
+def test_cloudevent_to_legacy_event_with_pubsub_message_payload(
     create_ce_headers,
 ):
     headers = create_ce_headers(
@@ -409,13 +409,13 @@ def test_cloud_event_to_legacy_event_with_pubsub_message_payload(
     data = {"message": {"data": "fizzbuzz"}}
     req = flask.Request.from_values(headers=headers, json=data)
 
-    (res_data, res_context) = event_conversion.cloud_event_to_background_event(req)
+    (res_data, res_context) = event_conversion.cloudevent_to_background_event(req)
 
     assert res_context.event_type == "google.pubsub.topic.publish"
     assert res_data == {"data": "fizzbuzz"}
 
 
-def test_cloud_event_to_legacy_event_with_firebase_auth_ce(
+def test_cloudevent_to_legacy_event_with_firebase_auth_ce(
     create_ce_headers,
 ):
     headers = create_ce_headers(
@@ -431,7 +431,7 @@ def test_cloud_event_to_legacy_event_with_firebase_auth_ce(
     }
     req = flask.Request.from_values(headers=headers, json=data)
 
-    (res_data, res_context) = event_conversion.cloud_event_to_background_event(req)
+    (res_data, res_context) = event_conversion.cloudevent_to_background_event(req)
 
     assert res_context.event_type == "providers/firebase.auth/eventTypes/user.create"
     assert res_data == {
@@ -443,7 +443,7 @@ def test_cloud_event_to_legacy_event_with_firebase_auth_ce(
     }
 
 
-def test_cloud_event_to_legacy_event_with_firebase_auth_ce_empty_metadata(
+def test_cloudevent_to_legacy_event_with_firebase_auth_ce_empty_metadata(
     create_ce_headers,
 ):
     headers = create_ce_headers(
@@ -453,7 +453,7 @@ def test_cloud_event_to_legacy_event_with_firebase_auth_ce_empty_metadata(
     data = {"metadata": {}, "uid": "my-id"}
     req = flask.Request.from_values(headers=headers, json=data)
 
-    (res_data, res_context) = event_conversion.cloud_event_to_background_event(req)
+    (res_data, res_context) = event_conversion.cloudevent_to_background_event(req)
 
     assert res_context.event_type == "providers/firebase.auth/eventTypes/user.create"
     assert res_data == data
@@ -464,7 +464,7 @@ def test_cloud_event_to_legacy_event_with_firebase_auth_ce_empty_metadata(
     [
         (
             {"ce-source": "invalid-source-format"},
-            "Unexpected Cloud Event source",
+            "Unexpected CloudEvent source",
         ),
         (
             {"ce-source": None},
@@ -480,7 +480,7 @@ def test_cloud_event_to_legacy_event_with_firebase_auth_ce_empty_metadata(
         ),
     ],
 )
-def test_cloud_event_to_legacy_event_with_invalid_event(
+def test_cloudevent_to_legacy_event_with_invalid_event(
     create_ce_headers,
     header_overrides,
     exception_message,
@@ -498,7 +498,7 @@ def test_cloud_event_to_legacy_event_with_invalid_event(
     req = flask.Request.from_values(headers=headers, json={"some": "val"})
 
     with pytest.raises(EventConversionException) as exc_info:
-        event_conversion.cloud_event_to_background_event(req)
+        event_conversion.cloudevent_to_background_event(req)
 
     assert exception_message in exc_info.value.args[0]
 

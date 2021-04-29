@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Function used to test handling Cloud Event functions."""
+"""Function used to test handling CloudEvent functions."""
 import flask
 
 
@@ -22,7 +22,7 @@ def function(cloudevent):
     The function returns 200 if it received the expected event, otherwise 500.
 
     Args:
-        cloudevent: A Cloud event as defined by https://github.com/cloudevents/sdk-python.
+        cloudevent: A CloudEvent as defined by https://github.com/cloudevents/sdk-python.
 
     Returns:
         HTTP status code indicating whether valid event was sent or not.
