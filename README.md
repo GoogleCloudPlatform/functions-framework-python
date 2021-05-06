@@ -128,13 +128,13 @@ def function(request):
 This function will catch the `ZeroDivisionError` and return a different
 response instead.
 
-### Quickstart: With Pub/Sub Emulator
+### Quickstart: With Pub/Sub emulator
 
-1. Start Functions Frameworks in your local development server listening on port 8082:
+1. Start Functions Framework in your local development server listening on port 8082:
    ```sh
     functions-framework --target=hello --debug --port=8082
    ```
-1. Start the Pub/Sub Emulator.
+1. Start the Pub/Sub emulator.
    ```sh
     export PUBSUB_PROJECT_ID=abc
     gcloud beta emulators pubsub start \
