@@ -142,7 +142,7 @@ response instead.
    functions-framework --target=hello --debug --port=8080
    ```
 
-1. Start the Pub/Sub emulator on port 8085.
+1. In a second terminal, start the Pub/Sub emulator on port 8085.
 
    ```sh
    export PUBSUB_PROJECT_ID=my-project
@@ -157,15 +157,17 @@ response instead.
    [pubsub] INFO: Server started, listening on 8085
    ```
 
-1. Create a Pub/Sub topic and attach a push subscription to the topic, using `http://localhost:8085` as its push endpoint. [Publish](https://cloud.google.com/pubsub/docs/quickstart-client-libraries#publish_messages) some messages to the topic. Observe your function getting triggered by the Pub/Sub messages.
+1. In a third terminal, create a Pub/Sub topic and attach a push subscription to the topic, using `http://localhost:8085` as its push endpoint. [Publish](https://cloud.google.com/pubsub/docs/quickstart-client-libraries#publish_messages) some messages to the topic. Observe your function getting triggered by the Pub/Sub messages.
 
    ```sh
+   export PUBSUB_PROJECT_ID=my-project
    export TOPIC_ID=my-topic
    export PUSH_SUBSCRIPTION_ID=my-subscription
    $(gcloud beta emulators pubsub env-init)
 
    git clone https://github.com/googleapis/python-pubsub.git
    cd python-pubsub/samples/snippets/
+   pip install -r requirements.txt
     
    python publisher.py $PUBSUB_PROJECT_ID create $TOPIC_ID   
    python subscriber.py $PUBSUB_PROJECT_ID create-push $TOPIC_ID $PUSH_SUBSCRIPTION_ID http://localhost:8085
