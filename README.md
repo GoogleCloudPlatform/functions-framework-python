@@ -128,6 +128,78 @@ def function(request):
 This function will catch the `ZeroDivisionError` and return a different
 response instead.
 
+### Quickstart: Pub/Sub emulator
+1. Create a `main.py` file with the following contents:
+
+   ```python
+   def hello(request):
+        return "Hello world!"
+   ```
+
+1. Start the Functions Framework on port 8080:
+
+   ```sh
+   functions-framework --target=hello --debug --port=8080
+   ```
+
+1. Start the Pub/Sub emulator on port 8085.
+
+   ```sh
+   export PUBSUB_PROJECT_ID=my-project
+   gcloud beta emulators pubsub start \
+       --project=$PUBSUB_PROJECT_ID \
+       --host-port=localhost:8085
+   ```
+
+   You should see the following after the Pub/Sub emulator has started successfully:
+
+   ```none
+   [pubsub] INFO: Server started, listening on 8085
+   ```
+
+1. Create a Pub/Sub topic and attach a push subscription to the topic, using `http://localhost:8085` as its push endpoint. [Publish](https://cloud.google.com/pubsub/docs/quickstart-client-libraries#publish_messages) some messages to the topic. Observe your function getting triggered by the Pub/Sub messages.
+
+   ```sh
+   export TOPIC_ID=my-topic
+   export PUSH_SUBSCRIPTION_ID=my-subscription
+   $(gcloud beta emulators pubsub env-init)
+
+   git clone https://github.com/googleapis/python-pubsub.git
+   cd python-pubsub/samples/snippets/
+    
+   python publisher.py $PUBSUB_PROJECT_ID create $TOPIC_ID   
+   python subscriber.py $PUBSUB_PROJECT_ID create-push $TOPIC_ID $PUSH_SUBSCRIPTION_ID http://localhost:8085
+   python publisher.py $PUBSUB_PROJECT_ID publish $TOPIC_ID
+   ```
+
+   You should see the following after the commands have run successfully:
+
+   ```none
+   Created topic: projects/my-project/topics/my-topic
+   
+   topic: "projects/my-project/topics/my-topic"
+   push_config {
+     push_endpoint: "http://localhost:8085"
+   }
+   ack_deadline_seconds: 10
+   message_retention_duration {
+     seconds: 604800
+   }
+   .
+   Endpoint for subscription is: http://localhost:8085
+    
+   1
+   2
+   3
+   4
+   5
+   6
+   7
+   8
+   9
+   Published messages to projects/my-project/topics/my-topic.
+   ```
+
 ### Quickstart: Build a Deployable Container
 
 1. Install [Docker](https://store.docker.com/search?type=edition&offering=community) and the [`pack` tool](https://buildpacks.io/docs/install-pack/).
