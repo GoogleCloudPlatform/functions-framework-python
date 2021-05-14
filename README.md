@@ -142,7 +142,7 @@ response instead.
    functions-framework --target=hello --debug --port=8080
    ```
 
-1. Start the Pub/Sub emulator on port 8085.
+1. In a second terminal, start the Pub/Sub emulator on port 8085.
 
    ```sh
    export PUBSUB_PROJECT_ID=my-project
