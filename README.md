@@ -167,6 +167,7 @@ response instead.
 
    git clone https://github.com/googleapis/python-pubsub.git
    cd python-pubsub/samples/snippets/
+   pip install -r requirements.txt
     
    python publisher.py $PUBSUB_PROJECT_ID create $TOPIC_ID   
    python subscriber.py $PUBSUB_PROJECT_ID create-push $TOPIC_ID $PUSH_SUBSCRIPTION_ID http://localhost:8085
