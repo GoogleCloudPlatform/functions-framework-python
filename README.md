@@ -45,7 +45,7 @@ pip install functions-framework
 Or, for deployment, add the Functions Framework to your `requirements.txt` file:
 
 ```
-functions-framework==2.1.3
+functions-framework==2.2.0
 ```
 
 ## Quickstarts
@@ -168,8 +168,8 @@ response instead.
    git clone https://github.com/googleapis/python-pubsub.git
    cd python-pubsub/samples/snippets/
    pip install -r requirements.txt
-    
-   python publisher.py $PUBSUB_PROJECT_ID create $TOPIC_ID   
+
+   python publisher.py $PUBSUB_PROJECT_ID create $TOPIC_ID
    python subscriber.py $PUBSUB_PROJECT_ID create-push $TOPIC_ID $PUSH_SUBSCRIPTION_ID http://localhost:8085
    python publisher.py $PUBSUB_PROJECT_ID publish $TOPIC_ID
    ```
@@ -178,7 +178,7 @@ response instead.
 
    ```none
    Created topic: projects/my-project/topics/my-topic
-   
+
    topic: "projects/my-project/topics/my-topic"
    push_config {
      push_endpoint: "http://localhost:8085"
@@ -189,7 +189,7 @@ response instead.
    }
    .
    Endpoint for subscription is: http://localhost:8085
-    
+
    1
    2
    3
