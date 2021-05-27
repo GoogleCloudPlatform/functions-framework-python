@@ -16,6 +16,7 @@ import functools
 import importlib.util
 import io
 import json
+import logging
 import os.path
 import pathlib
 import sys
@@ -60,6 +61,18 @@ class _LoggingHandler(io.TextIOWrapper):
     def write(self, out):
         payload = dict(severity=self.level, message=out.rstrip("\n"))
         return self.stderr.write(json.dumps(payload) + "\n")
+
+
+def setup_logging():
+    logging.getLogger().setLevel(logging.INFO)
+    info_handler = logging.StreamHandler(sys.stdout)
+    info_handler.setLevel(logging.NOTSET)
+    info_handler.addFilter(lambda record: record.levelno <= logging.INFO)
+    logging.getLogger().addHandler(info_handler)
+
+    warn_handler = logging.StreamHandler(sys.stderr)
+    warn_handler.setLevel(logging.WARNING)
+    logging.getLogger().addHandler(warn_handler)
 
 
 def _http_view_func_wrapper(function, request):
@@ -237,15 +250,9 @@ def create_app(target=None, source=None, signature_type=None):
         app.make_response = handle_none
 
         # Handle log severity backwards compatibility
-        import logging  # isort:skip
-
-        logging.info = _LoggingHandler("INFO", sys.stderr).write
-        logging.warn = _LoggingHandler("ERROR", sys.stderr).write
-        logging.warning = _LoggingHandler("ERROR", sys.stderr).write
-        logging.error = _LoggingHandler("ERROR", sys.stderr).write
-        logging.critical = _LoggingHandler("ERROR", sys.stderr).write
         sys.stdout = _LoggingHandler("INFO", sys.stderr)
         sys.stderr = _LoggingHandler("ERROR", sys.stderr)
+        setup_logging()
 
     # Extract the target function from the source file
     if not hasattr(source_module, target):
