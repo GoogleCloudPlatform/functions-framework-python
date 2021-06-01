@@ -524,6 +524,22 @@ def test_legacy_function_log_severity(monkeypatch, capfd, mode, expected):
     assert expected in captured
 
 
+def test_legacy_function_log_exception(monkeypatch, capfd):
+    source = TEST_FUNCTIONS_DIR / "http_log_exception" / "main.py"
+    target = "function"
+    severity = '"severity": "ERROR"'
+    traceback = "Traceback (most recent call last)"
+
+    monkeypatch.setenv("ENTRY_POINT", target)
+
+    client = create_app(target, source).test_client()
+    resp = client.post("/")
+    captured = capfd.readouterr().err
+    assert resp.status_code == 200
+    assert severity in captured
+    assert traceback in captured
+
+
 def test_legacy_function_returns_none(monkeypatch):
     source = TEST_FUNCTIONS_DIR / "returns_none" / "main.py"
     target = "function"
