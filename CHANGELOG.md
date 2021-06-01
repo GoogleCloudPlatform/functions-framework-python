@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.1] - 2021-06-01
+### Changed
+- Update GCF Python 3.7 backwards-compatible logging ([#131])
+
 ## [2.2.0] - 2021-05-24
 ### Added
 - Relax constraint to `flask<3.0` and `click<9.0` ([#129])
@@ -105,7 +109,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Initial release
 
-[Unreleased]: https://github.com/GoogleCloudPlatform/functions-framework-python/compare/v2.2.0...HEAD
+[Unreleased]: https://github.com/GoogleCloudPlatform/functions-framework-python/compare/v2.2.1...HEAD
+[2.2.1]: https://github.com/GoogleCloudPlatform/functions-framework-python/releases/tag/v2.2.1
 [2.2.0]: https://github.com/GoogleCloudPlatform/functions-framework-python/releases/tag/v2.2.0
 [2.1.3]: https://github.com/GoogleCloudPlatform/functions-framework-python/releases/tag/v2.1.3
 [2.1.2]: https://github.com/GoogleCloudPlatform/functions-framework-python/releases/tag/v2.1.2
@@ -126,6 +131,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [1.0.1]: https://github.com/GoogleCloudPlatform/functions-framework-python/releases/tag/v1.0.1
 [1.0.0]: https://github.com/GoogleCloudPlatform/functions-framework-python/releases/tag/v1.0.0
 
+[#131]: https://github.com/GoogleCloudPlatform/functions-framework-python/pull/131
 [#129]: https://github.com/GoogleCloudPlatform/functions-framework-python/pull/129
 [#122]: https://github.com/GoogleCloudPlatform/functions-framework-python/pull/122
 [#116]: https://github.com/GoogleCloudPlatform/functions-framework-python/pull/116
