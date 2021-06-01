@@ -45,7 +45,7 @@ pip install functions-framework
 Or, for deployment, add the Functions Framework to your `requirements.txt` file:
 
 ```
-functions-framework==2.2.0
+functions-framework==2.2.1
 ```
 
 ## Quickstarts
