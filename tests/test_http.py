@@ -99,6 +99,7 @@ def test_gunicorn_application(debug):
         "workers": 1,
         "threads": 8,
         "timeout": 0,
+        "loglevel": "error",
     }
 
     assert gunicorn_app.cfg.bind == ["1.2.3.4:1234"]

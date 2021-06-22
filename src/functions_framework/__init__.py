@@ -16,6 +16,7 @@ import functools
 import importlib.util
 import io
 import json
+import logging
 import os.path
 import pathlib
 import sys
@@ -60,6 +61,18 @@ class _LoggingHandler(io.TextIOWrapper):
     def write(self, out):
         payload = dict(severity=self.level, message=out.rstrip("\n"))
         return self.stderr.write(json.dumps(payload) + "\n")
+
+
+def setup_logging():
+    logging.getLogger().setLevel(logging.INFO)
+    info_handler = logging.StreamHandler(sys.stdout)
+    info_handler.setLevel(logging.NOTSET)
+    info_handler.addFilter(lambda record: record.levelno <= logging.INFO)
+    logging.getLogger().addHandler(info_handler)
+
+    warn_handler = logging.StreamHandler(sys.stderr)
+    warn_handler.setLevel(logging.WARNING)
+    logging.getLogger().addHandler(warn_handler)
 
 
 def _http_view_func_wrapper(function, request):
@@ -112,7 +125,11 @@ def _cloudevent_view_func_wrapper(function, request):
 
 def _event_view_func_wrapper(function, request):
     def view_func(path):
-        if is_binary(request.headers):
+        if event_conversion.is_convertable_cloudevent(request):
+            # Convert this CloudEvent to the equivalent background event data and context.
+            data, context = event_conversion.cloudevent_to_background_event(request)
+            function(data, context)
+        elif is_binary(request.headers):
             # Support CloudEvents in binary content mode, with data being the
             # whole request body and context attributes retrieved from request
             # headers.
@@ -126,7 +143,7 @@ def _event_view_func_wrapper(function, request):
             function(data, context)
         else:
             # This is a regular CloudEvent
-            event_data = request.get_json()
+            event_data = event_conversion.marshal_background_event_data(request)
             if not event_data:
                 flask.abort(400)
             event_object = BackgroundEvent(**event_data)
@@ -233,15 +250,9 @@ def create_app(target=None, source=None, signature_type=None):
         app.make_response = handle_none
 
         # Handle log severity backwards compatibility
-        import logging  # isort:skip
-
-        logging.info = _LoggingHandler("INFO", sys.stderr).write
-        logging.warn = _LoggingHandler("ERROR", sys.stderr).write
-        logging.warning = _LoggingHandler("ERROR", sys.stderr).write
-        logging.error = _LoggingHandler("ERROR", sys.stderr).write
-        logging.critical = _LoggingHandler("ERROR", sys.stderr).write
         sys.stdout = _LoggingHandler("INFO", sys.stderr)
         sys.stderr = _LoggingHandler("ERROR", sys.stderr)
+        setup_logging()
 
     # Extract the target function from the source file
     if not hasattr(source_module, target):
