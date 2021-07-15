@@ -25,7 +25,7 @@ import pytest
 
 import functions_framework
 
-from functions_framework import LazyWSGIApp, create_app, exceptions
+from functions_framework import LazyWSGIApp, create_app, errorhandler, exceptions
 
 TEST_FUNCTIONS_DIR = pathlib.Path.cwd() / "tests" / "test_functions"
 
@@ -452,6 +452,12 @@ def test_lazy_wsgi_app(monkeypatch, target, source, signature_type):
         pretend.call(*args, **kwargs),
         pretend.call(*args, **kwargs),
     ]
+
+
+def test_dummy_error_handler():
+    @errorhandler("foo", bar="baz")
+    def function():
+        pass
 
 
 def test_class_in_main_is_in_right_module():
