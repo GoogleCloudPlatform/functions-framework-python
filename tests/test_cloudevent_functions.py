@@ -16,9 +16,9 @@ import pathlib
 
 import pytest
 
-from cloudevents.http import CloudEvent, from_http, to_binary, to_structured
+from cloudevents.http import CloudEvent, to_binary, to_structured
 
-from functions_framework import LazyWSGIApp, create_app, exceptions
+from functions_framework import create_app
 
 TEST_FUNCTIONS_DIR = pathlib.Path(__file__).resolve().parent / "test_functions"
 TEST_DATA_DIR = pathlib.Path(__file__).resolve().parent / "test_data"
