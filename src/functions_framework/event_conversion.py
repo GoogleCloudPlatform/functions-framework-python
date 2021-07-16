@@ -94,7 +94,7 @@ _SERVICE_BACKGROUND_TO_CE = {
 # for the subject.
 _CE_SERVICE_TO_RESOURCE_RE = {
     _FIREBASE_CE_SERVICE: re.compile(r"^(projects/[^/]+)/(events/[^/]+)$"),
-    _FIREBASE_DB_CE_SERVICE: re.compile(r"^(projects/[^/]/instances/[^/]+)/(refs/.+)$"),
+    _FIREBASE_DB_CE_SERVICE: re.compile(r"^projects/_/(instances/[^/]+)/(refs/.+)$"),
     _FIRESTORE_CE_SERVICE: re.compile(
         r"^(projects/[^/]+/databases/\(default\))/(documents/.+)$"
     ),
@@ -131,9 +131,14 @@ def background_event_to_cloudevent(request) -> CloudEvent:
     new_type = _BACKGROUND_TO_CE_TYPE[context.event_type]
 
     service, resource, subject = _split_resource(context)
+    source = f"//{service}/{resource}"
 
     # Handle Pub/Sub events.
     if service == _PUBSUB_CE_SERVICE:
+        if "messageId" not in data:
+            data["messageId"] = context.event_id
+        if "publishTime" not in data:
+            data["publishTime"] = context.timestamp
         data = {"message": data}
 
     # Handle Firebase Auth events.
@@ -147,13 +152,30 @@ def background_event_to_cloudevent(request) -> CloudEvent:
             uid = data["uid"]
             subject = f"users/{uid}"
 
+    # Handle Firebase DB events.
+    if service == _FIREBASE_DB_CE_SERVICE:
+        # The CE source of firebasedatabase cloudevents includes location information
+        # that is inferred from the 'domain' field of legacy events.
+        if "domain" not in event_data:
+            raise EventConversionException(
+                "Invalid FirebaseDB event payload: missing 'domain'"
+            )
+
+        domain = event_data["domain"]
+        location = "us-central1"
+        if domain != "firebaseio.com":
+            location = domain.split(".")[0]
+
+        resource = f"projects/_/locations/{location}/{resource}"
+        source = f"//{service}/{resource}"
+
     metadata = {
         "id": context.event_id,
         "time": context.timestamp,
         "specversion": _CLOUDEVENT_SPEC_VERSION,
         "datacontenttype": "application/json",
         "type": new_type,
-        "source": f"//{service}/{resource}",
+        "source": source,
     }
 
     if subject:
@@ -201,6 +223,10 @@ def cloudevent_to_background_event(request) -> Tuple[Any, Context]:
             resource = {"service": service, "name": name, "type": _PUBSUB_MESSAGE_TYPE}
             if "message" in data:
                 data = data["message"]
+            if "messageId" in data:
+                del data["messageId"]
+            if "publishTime" in data:
+                del data["publishTime"]
         elif service == _FIREBASE_AUTH_CE_SERVICE:
             resource = name
             if "metadata" in data:
@@ -214,6 +240,9 @@ def cloudevent_to_background_event(request) -> Tuple[Any, Context]:
                 "service": service,
                 "type": data["kind"],
             }
+        elif service == _FIREBASE_DB_CE_SERVICE:
+            name = re.sub("/locations/[^/]+", "", name)
+            resource = f"{name}/{event['subject']}"
         else:
             resource = f"{name}/{event['subject']}"
 

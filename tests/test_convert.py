@@ -75,6 +75,8 @@ PUBSUB_CLOUD_EVENT = {
     "data": {
         "message": {
             "data": "10",
+            "publishTime": "2020-05-18T12:13:19Z",
+            "messageId": "1215011316659232",
         },
     },
 }
@@ -122,7 +124,10 @@ def marshalled_pubsub_request():
 def raw_pubsub_cloudevent_output(marshalled_pubsub_request):
     event = PUBSUB_CLOUD_EVENT.copy()
     # the data payload is more complex for the raw pubsub request
-    event["data"] = {"message": marshalled_pubsub_request["data"]}
+    data = marshalled_pubsub_request["data"]
+    data["messageId"] = event["id"]
+    data["publishTime"] = event["time"]
+    event["data"] = {"message": data}
     return from_json(json.dumps(event))
 
 
@@ -135,6 +140,18 @@ def firebase_auth_background_input():
 @pytest.fixture
 def firebase_auth_cloudevent_output():
     with open(TEST_DATA_DIR / "firebase-auth-cloudevent-output.json", "r") as f:
+        return from_json(f.read())
+
+
+@pytest.fixture
+def firebase_db_background_input():
+    with open(TEST_DATA_DIR / "firebase-db-legacy-input.json", "r") as f:
+        return json.load(f)
+
+
+@pytest.fixture
+def firebase_db_cloudevent_output():
+    with open(TEST_DATA_DIR / "firebase-db-cloudevent-output.json", "r") as f:
         return from_json(f.read())
 
 
@@ -205,6 +222,41 @@ def test_firebase_auth_event_to_cloudevent_no_uid(
     req = flask.Request.from_values(json=firebase_auth_background_input)
     cloudevent = event_conversion.background_event_to_cloudevent(req)
     assert cloudevent == firebase_auth_cloudevent_output
+
+
+def test_firebase_db_event_to_cloudevent_default_location(
+    firebase_db_background_input, firebase_db_cloudevent_output
+):
+    req = flask.Request.from_values(json=firebase_db_background_input)
+    cloudevent = event_conversion.background_event_to_cloudevent(req)
+    assert cloudevent == firebase_db_cloudevent_output
+
+
+def test_firebase_db_event_to_cloudevent_location_subdomain(
+    firebase_db_background_input, firebase_db_cloudevent_output
+):
+    firebase_db_background_input["domain"] = "europe-west1.firebasedatabase.app"
+    firebase_db_cloudevent_output["source"] = firebase_db_cloudevent_output[
+        "source"
+    ].replace("us-central1", "europe-west1")
+
+    req = flask.Request.from_values(json=firebase_db_background_input)
+    cloudevent = event_conversion.background_event_to_cloudevent(req)
+    assert cloudevent == firebase_db_cloudevent_output
+
+
+def test_firebase_db_event_to_cloudevent_missing_domain(
+    firebase_db_background_input, firebase_db_cloudevent_output
+):
+    del firebase_db_background_input["domain"]
+    req = flask.Request.from_values(json=firebase_db_background_input)
+
+    with pytest.raises(EventConversionException) as exc_info:
+        event_conversion.background_event_to_cloudevent(req)
+
+    assert (
+        "Invalid FirebaseDB event payload: missing 'domain'" in exc_info.value.args[0]
+    )
 
 
 @pytest.mark.parametrize(
@@ -299,34 +351,39 @@ def test_marshal_background_event_data_with_topic_path(
     assert payload == marshalled_pubsub_request
 
 
+@pytest.mark.parametrize(
+    "request_fixture, overrides",
+    [
+        (
+            "raw_pubsub_request",
+            {
+                "request_path": "x/projects/sample-project/topics/gcf-test?pubsub_trigger=true",
+            },
+        ),
+        ("raw_pubsub_request", {"source": "//pubsub.googleapis.com/"}),
+        ("marshalled_pubsub_request", {}),
+    ],
+)
 def test_pubsub_emulator_request_to_cloudevent(
-    raw_pubsub_request, raw_pubsub_cloudevent_output
+    raw_pubsub_cloudevent_output, request_fixture, overrides, request
 ):
+    request_path = overrides.get("request_path", "/")
+    payload = request.getfixturevalue(request_fixture)
     req = flask.Request.from_values(
-        json=raw_pubsub_request,
-        path="x/projects/sample-project/topics/gcf-test?pubsub_trigger=true",
+        path=request_path,
+        json=payload,
     )
     cloudevent = event_conversion.background_event_to_cloudevent(req)
 
     # Remove timestamps as they are generated on the fly.
     del raw_pubsub_cloudevent_output["time"]
+    del raw_pubsub_cloudevent_output.data["message"]["publishTime"]
     del cloudevent["time"]
+    del cloudevent.data["message"]["publishTime"]
 
-    assert cloudevent == raw_pubsub_cloudevent_output
-
-
-def test_pubsub_emulator_request_to_cloudevent_without_topic_path(
-    raw_pubsub_request, raw_pubsub_cloudevent_output
-):
-    req = flask.Request.from_values(json=raw_pubsub_request, path="/")
-    cloudevent = event_conversion.background_event_to_cloudevent(req)
-
-    # Remove timestamps as they are generated on the fly.
-    del raw_pubsub_cloudevent_output["time"]
-    del cloudevent["time"]
-
-    # Default to the service name, when the topic is not configured subscription's pushEndpoint.
-    raw_pubsub_cloudevent_output["source"] = "//pubsub.googleapis.com/"
+    if "source" in overrides:
+        # Default to the service name, when the topic is not configured subscription's pushEndpoint.
+        raw_pubsub_cloudevent_output["source"] = overrides["source"]
 
     assert cloudevent == raw_pubsub_cloudevent_output
 
@@ -378,6 +435,18 @@ def test_pubsub_emulator_request_with_invalid_message(
             "providers/firebase.auth/eventTypes/user.create",
             "projects/my-project-id",
         ),
+        (
+            "google.firebase.database.document.v1.written",
+            "//firebasedatabase.googleapis.com/projects/_/locations/us-central1/instances/my-project-id",
+            "providers/google.firebase.database/eventTypes/ref.write",
+            "projects/_/instances/my-project-id/my/subject",
+        ),
+        (
+            "google.cloud.firestore.document.v1.written",
+            "//firestore.googleapis.com/projects/project-id/databases/(default)",
+            "providers/cloud.firestore/eventTypes/document.write",
+            "projects/project-id/databases/(default)/my/subject",
+        ),
     ],
 )
 def test_cloudevent_to_legacy_event(
@@ -406,7 +475,13 @@ def test_cloudevent_to_legacy_event_with_pubsub_message_payload(
         "google.cloud.pubsub.topic.v1.messagePublished",
         "//pubsub.googleapis.com/projects/sample-project/topics/gcf-test",
     )
-    data = {"message": {"data": "fizzbuzz"}}
+    data = {
+        "message": {
+            "data": "fizzbuzz",
+            "messageId": "aaaaaa-1111-bbbb-2222-cccccccccccc",
+            "publishTime": "2020-09-29T11:32:00.000Z",
+        }
+    }
     req = flask.Request.from_values(headers=headers, json=data)
 
     (res_data, res_context) = event_conversion.cloudevent_to_background_event(req)
