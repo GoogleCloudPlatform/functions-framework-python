@@ -35,6 +35,8 @@ def function(cloudevent):
                 "attr1": "attr1-value",
             },
             "data": "dGVzdCBtZXNzYWdlIDM=",
+            "messageId": "aaaaaa-1111-bbbb-2222-cccccccccccc",
+            "publishTime": "2020-09-29T11:32:00.000Z",
         },
     }
 
