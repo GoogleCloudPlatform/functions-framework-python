@@ -6,3 +6,6 @@ build/
 dist/
 .coverage
 .vscode/
+function_output.json
+serverlog_stderr.txt
+serverlog_stdout.txt

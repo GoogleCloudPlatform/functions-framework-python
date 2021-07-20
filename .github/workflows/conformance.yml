@@ -24,7 +24,7 @@ jobs:
         go-version: '1.15'
 
     - name: Run HTTP conformance tests
-      uses: GoogleCloudPlatform/functions-framework-conformance/action@v0.3.10
+      uses: GoogleCloudPlatform/functions-framework-conformance/action@v0.3.12
       with:
         functionType: 'http'
         useBuildpacks: false
@@ -32,7 +32,7 @@ jobs:
         cmd: "'functions-framework --source tests/conformance/main.py --target write_http --signature-type http'"
 
     - name: Run event conformance tests
-      uses: GoogleCloudPlatform/functions-framework-conformance/action@v0.3.10
+      uses: GoogleCloudPlatform/functions-framework-conformance/action@v0.3.12
       with:
         functionType: 'legacyevent'
         useBuildpacks: false
@@ -40,7 +40,7 @@ jobs:
         cmd: "'functions-framework --source tests/conformance/main.py --target write_legacy_event --signature-type event'"
 
     - name: Run cloudevent conformance tests
-      uses: GoogleCloudPlatform/functions-framework-conformance/action@v0.3.10
+      uses: GoogleCloudPlatform/functions-framework-conformance/action@v0.3.12
       with:
         functionType: 'cloudevent'
         useBuildpacks: false
