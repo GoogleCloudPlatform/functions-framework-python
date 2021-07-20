@@ -59,6 +59,8 @@ def hello(request):
     return "Hello world!"
 ```
 
+> Your function is passed a single parameter, `(request)`, which is a Flask [`Request`](http://flask.pocoo.org/docs/1.0/api/#flask.Request) object.
+
 Run the following command:
 
 ```sh
