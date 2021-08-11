@@ -236,6 +236,9 @@ response instead.
    127.0.0.1 - - [11/Aug/2021 14:42:39] "POST / HTTP/1.1" 200 -
    ```
 
+For more details on extracting data from a Pub/Sub event, see
+https://cloud.google.com/functions/docs/tutorials/pubsub#functions_helloworld_pubsub_tutorial-python
+
 ### Quickstart: Build a Deployable Container
 
 1. Install [Docker](https://store.docker.com/search?type=edition&offering=community) and the [`pack` tool](https://buildpacks.io/docs/install-pack/).
