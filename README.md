@@ -134,14 +134,14 @@ response instead.
 1. Create a `main.py` file with the following contents:
 
    ```python
-   def hello(request):
-        return "Hello world!"
+   def hello(data, context):
+        print("Received", context.event_id)
    ```
 
 1. Start the Functions Framework on port 8080:
 
    ```sh
-   functions-framework --target=hello --debug --port=8080
+   functions-framework --target=hello --signature-type=event --debug --port=8080
    ```
 
 1. In a second terminal, start the Pub/Sub emulator on port 8085.
@@ -172,7 +172,7 @@ response instead.
    pip install -r requirements.txt
 
    python publisher.py $PUBSUB_PROJECT_ID create $TOPIC_ID
-   python subscriber.py $PUBSUB_PROJECT_ID create-push $TOPIC_ID $PUSH_SUBSCRIPTION_ID http://localhost:8085
+   python subscriber.py $PUBSUB_PROJECT_ID create-push $TOPIC_ID $PUSH_SUBSCRIPTION_ID http://localhost:8080
    python publisher.py $PUBSUB_PROJECT_ID publish $TOPIC_ID
    ```
 
@@ -202,6 +202,38 @@ response instead.
    8
    9
    Published messages to projects/my-project/topics/my-topic.
+   ```
+
+   And in the terminal where the Functions Framework is running:
+
+   ```none
+    * Serving Flask app "hello" (lazy loading)
+    * Environment: production
+      WARNING: This is a development server. Do not use it in a production deployment.
+      Use a production WSGI server instead.
+    * Debug mode: on
+    * Running on http://0.0.0.0:8080/ (Press CTRL+C to quit)
+    * Restarting with fsevents reloader
+    * Debugger is active!
+    * Debugger PIN: 911-794-046
+   Received 1
+   127.0.0.1 - - [11/Aug/2021 14:42:22] "POST / HTTP/1.1" 200 -
+   Received 2
+   127.0.0.1 - - [11/Aug/2021 14:42:22] "POST / HTTP/1.1" 200 -
+   Received 5
+   127.0.0.1 - - [11/Aug/2021 14:42:22] "POST / HTTP/1.1" 200 -
+   Received 6
+   127.0.0.1 - - [11/Aug/2021 14:42:22] "POST / HTTP/1.1" 200 -
+   Received 7
+   127.0.0.1 - - [11/Aug/2021 14:42:22] "POST / HTTP/1.1" 200 -
+   Received 8
+   127.0.0.1 - - [11/Aug/2021 14:42:22] "POST / HTTP/1.1" 200 -
+   Received 9
+   127.0.0.1 - - [11/Aug/2021 14:42:39] "POST / HTTP/1.1" 200 -
+   Received 3
+   127.0.0.1 - - [11/Aug/2021 14:42:39] "POST / HTTP/1.1" 200 -
+   Received 4
+   127.0.0.1 - - [11/Aug/2021 14:42:39] "POST / HTTP/1.1" 200 -
    ```
 
 ### Quickstart: Build a Deployable Container
