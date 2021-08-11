@@ -159,7 +159,7 @@ response instead.
    [pubsub] INFO: Server started, listening on 8085
    ```
 
-1. In a third terminal, create a Pub/Sub topic and attach a push subscription to the topic, using `http://localhost:8085` as its push endpoint. [Publish](https://cloud.google.com/pubsub/docs/quickstart-client-libraries#publish_messages) some messages to the topic. Observe your function getting triggered by the Pub/Sub messages.
+1. In a third terminal, create a Pub/Sub topic and attach a push subscription to the topic, using `http://localhost:8080` as its push endpoint. [Publish](https://cloud.google.com/pubsub/docs/quickstart-client-libraries#publish_messages) some messages to the topic. Observe your function getting triggered by the Pub/Sub messages.
 
    ```sh
    export PUBSUB_PROJECT_ID=my-project
@@ -183,14 +183,14 @@ response instead.
 
    topic: "projects/my-project/topics/my-topic"
    push_config {
-     push_endpoint: "http://localhost:8085"
+     push_endpoint: "http://localhost:8080"
    }
    ack_deadline_seconds: 10
    message_retention_duration {
      seconds: 604800
    }
    .
-   Endpoint for subscription is: http://localhost:8085
+   Endpoint for subscription is: http://localhost:8080
 
    1
    2
