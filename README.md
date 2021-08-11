@@ -134,7 +134,7 @@ response instead.
 1. Create a `main.py` file with the following contents:
 
    ```python
-   def hello(data, context):
+   def hello(event, context):
         print("Received", context.event_id)
    ```
 
@@ -295,13 +295,13 @@ You can configure the Functions Framework using command-line flags or environmen
 ## Enable Google Cloud Functions Events
 
 The Functions Framework can unmarshall incoming
-Google Cloud Functions [event](https://cloud.google.com/functions/docs/concepts/events-triggers#events) payloads to `data` and `context` objects.
+Google Cloud Functions [event](https://cloud.google.com/functions/docs/concepts/events-triggers#events) payloads to `event` and `context` objects.
 These will be passed as arguments to your function when it receives a request.
 Note that your function must use the `event`-style function signature:
 
 ```python
-def hello(data, context):
-    print(data)
+def hello(event, context):
+    print(event)
     print(context)
 ```
 

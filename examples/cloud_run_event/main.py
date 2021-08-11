@@ -13,5 +13,5 @@
 # limitations under the License.
 
 
-def hello(data, context):
+def hello(event, context):
     pass
