@@ -134,14 +134,14 @@ response instead.
 1. Create a `main.py` file with the following contents:
 
    ```python
-   def hello(request):
-        return "Hello world!"
+   def hello(event, context):
+        print("Received", context.event_id)
    ```
 
 1. Start the Functions Framework on port 8080:
 
    ```sh
-   functions-framework --target=hello --debug --port=8080
+   functions-framework --target=hello --signature-type=event --debug --port=8080
    ```
 
 1. In a second terminal, start the Pub/Sub emulator on port 8085.
@@ -159,7 +159,7 @@ response instead.
    [pubsub] INFO: Server started, listening on 8085
    ```
 
-1. In a third terminal, create a Pub/Sub topic and attach a push subscription to the topic, using `http://localhost:8085` as its push endpoint. [Publish](https://cloud.google.com/pubsub/docs/quickstart-client-libraries#publish_messages) some messages to the topic. Observe your function getting triggered by the Pub/Sub messages.
+1. In a third terminal, create a Pub/Sub topic and attach a push subscription to the topic, using `http://localhost:8080` as its push endpoint. [Publish](https://cloud.google.com/pubsub/docs/quickstart-client-libraries#publish_messages) some messages to the topic. Observe your function getting triggered by the Pub/Sub messages.
 
    ```sh
    export PUBSUB_PROJECT_ID=my-project
@@ -172,7 +172,7 @@ response instead.
    pip install -r requirements.txt
 
    python publisher.py $PUBSUB_PROJECT_ID create $TOPIC_ID
-   python subscriber.py $PUBSUB_PROJECT_ID create-push $TOPIC_ID $PUSH_SUBSCRIPTION_ID http://localhost:8085
+   python subscriber.py $PUBSUB_PROJECT_ID create-push $TOPIC_ID $PUSH_SUBSCRIPTION_ID http://localhost:8080
    python publisher.py $PUBSUB_PROJECT_ID publish $TOPIC_ID
    ```
 
@@ -183,14 +183,14 @@ response instead.
 
    topic: "projects/my-project/topics/my-topic"
    push_config {
-     push_endpoint: "http://localhost:8085"
+     push_endpoint: "http://localhost:8080"
    }
    ack_deadline_seconds: 10
    message_retention_duration {
      seconds: 604800
    }
    .
-   Endpoint for subscription is: http://localhost:8085
+   Endpoint for subscription is: http://localhost:8080
 
    1
    2
@@ -203,6 +203,41 @@ response instead.
    9
    Published messages to projects/my-project/topics/my-topic.
    ```
+
+   And in the terminal where the Functions Framework is running:
+
+   ```none
+    * Serving Flask app "hello" (lazy loading)
+    * Environment: production
+      WARNING: This is a development server. Do not use it in a production deployment.
+      Use a production WSGI server instead.
+    * Debug mode: on
+    * Running on http://0.0.0.0:8080/ (Press CTRL+C to quit)
+    * Restarting with fsevents reloader
+    * Debugger is active!
+    * Debugger PIN: 911-794-046
+   Received 1
+   127.0.0.1 - - [11/Aug/2021 14:42:22] "POST / HTTP/1.1" 200 -
+   Received 2
+   127.0.0.1 - - [11/Aug/2021 14:42:22] "POST / HTTP/1.1" 200 -
+   Received 5
+   127.0.0.1 - - [11/Aug/2021 14:42:22] "POST / HTTP/1.1" 200 -
+   Received 6
+   127.0.0.1 - - [11/Aug/2021 14:42:22] "POST / HTTP/1.1" 200 -
+   Received 7
+   127.0.0.1 - - [11/Aug/2021 14:42:22] "POST / HTTP/1.1" 200 -
+   Received 8
+   127.0.0.1 - - [11/Aug/2021 14:42:22] "POST / HTTP/1.1" 200 -
+   Received 9
+   127.0.0.1 - - [11/Aug/2021 14:42:39] "POST / HTTP/1.1" 200 -
+   Received 3
+   127.0.0.1 - - [11/Aug/2021 14:42:39] "POST / HTTP/1.1" 200 -
+   Received 4
+   127.0.0.1 - - [11/Aug/2021 14:42:39] "POST / HTTP/1.1" 200 -
+   ```
+
+For more details on extracting data from a Pub/Sub event, see
+https://cloud.google.com/functions/docs/tutorials/pubsub#functions_helloworld_pubsub_tutorial-python
 
 ### Quickstart: Build a Deployable Container
 
@@ -263,13 +298,13 @@ You can configure the Functions Framework using command-line flags or environmen
 ## Enable Google Cloud Functions Events
 
 The Functions Framework can unmarshall incoming
-Google Cloud Functions [event](https://cloud.google.com/functions/docs/concepts/events-triggers#events) payloads to `data` and `context` objects.
+Google Cloud Functions [event](https://cloud.google.com/functions/docs/concepts/events-triggers#events) payloads to `event` and `context` objects.
 These will be passed as arguments to your function when it receives a request.
 Note that your function must use the `event`-style function signature:
 
 ```python
-def hello(data, context):
-    print(data)
+def hello(event, context):
+    print(event)
     print(context)
 ```
 
