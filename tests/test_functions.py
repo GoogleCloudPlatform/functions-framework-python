@@ -14,10 +14,8 @@
 
 
 import json
-import os
 import pathlib
 import re
-import sys
 import time
 
 import pretend
@@ -33,7 +31,7 @@ TEST_FUNCTIONS_DIR = pathlib.Path.cwd() / "tests" / "test_functions"
 # Python 3.5: ModuleNotFoundError does not exist
 try:
     _ModuleNotFoundError = ModuleNotFoundError
-except:
+except NameError:
     _ModuleNotFoundError = ImportError
 
 
@@ -195,6 +193,7 @@ def test_http_function_execution_time():
 
     assert resp.status_code == 200
     assert resp.data == b"OK"
+    assert execution_time_sec > 1
 
 
 def test_background_function_executes(background_event_client, background_json):
@@ -274,7 +273,8 @@ def test_invalid_function_definition_multiple_entry_points():
     target = "function"
 
     with pytest.raises(exceptions.MissingTargetException) as excinfo:
-        create_app(target, source, "event")
+        app = create_app(target, source, "event")
+        app.load_function()
 
     assert re.match(
         "File .* is expected to contain a function named function", str(excinfo.value)
@@ -286,7 +286,8 @@ def test_invalid_function_definition_multiple_entry_points_invalid_function():
     target = "invalidFunction"
 
     with pytest.raises(exceptions.MissingTargetException) as excinfo:
-        create_app(target, source, "event")
+        app = create_app(target, source, "event")
+        app.load_function()
 
     assert re.match(
         "File .* is expected to contain a function named invalidFunction",
@@ -299,7 +300,8 @@ def test_invalid_function_definition_multiple_entry_points_not_a_function():
     target = "notAFunction"
 
     with pytest.raises(exceptions.InvalidTargetTypeException) as excinfo:
-        create_app(target, source, "event")
+        app = create_app(target, source, "event")
+        app.load_function()
 
     assert re.match(
         "The function defined in file .* as notAFunction needs to be of type "
@@ -313,7 +315,8 @@ def test_invalid_function_definition_function_syntax_error():
     target = "function"
 
     with pytest.raises(SyntaxError) as excinfo:
-        create_app(target, source, "event")
+        app = create_app(target, source, "event")
+        app.load_function()
 
     assert any(
         (
@@ -328,7 +331,8 @@ def test_invalid_function_definition_missing_dependency():
     target = "function"
 
     with pytest.raises(_ModuleNotFoundError) as excinfo:
-        create_app(target, source, "event")
+        app = create_app(target, source, "event")
+        app.load_function()
 
     assert "No module named 'nonexistentpackage'" in str(excinfo.value)
 
@@ -347,7 +351,7 @@ def test_invalid_signature_type():
     source = TEST_FUNCTIONS_DIR / "http_trigger" / "main.py"
     target = "function"
 
-    with pytest.raises(exceptions.FunctionsFrameworkException) as excinfo:
+    with pytest.raises(exceptions.FunctionsFrameworkException):
         create_app(target, source, "invalid_signature_type")
 
 
@@ -432,7 +436,7 @@ def test_lazy_wsgi_app(monkeypatch, target, source, signature_type):
     # Test that it's lazy
     lazy_app = LazyWSGIApp(target, source, signature_type)
 
-    assert lazy_app.app == None
+    assert lazy_app.app is None
 
     args = [pretend.stub(), pretend.stub()]
     kwargs = {"a": pretend.stub(), "b": pretend.stub()}

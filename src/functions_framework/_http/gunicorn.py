@@ -23,10 +23,15 @@ class GunicornApplication(gunicorn.app.base.BaseApplication):
             "threads": 8,
             "timeout": 0,
             "loglevel": "error",
+            "post_fork": self.post_fork,
         }
         self.options.update(options)
         self.app = app
         super().__init__()
+
+    def post_fork(self, server, worker):
+        # Load the function only once the worker process has forked
+        self.app.load_function()
 
     def load_config(self):
         for key, value in self.options.items():

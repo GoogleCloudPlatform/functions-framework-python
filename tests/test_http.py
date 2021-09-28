@@ -82,7 +82,7 @@ def test_httpserver(monkeypatch, debug, gunicorn_missing, expected):
 @pytest.mark.skipif("platform.system() == 'Windows'")
 @pytest.mark.parametrize("debug", [True, False])
 def test_gunicorn_application(debug):
-    app = pretend.stub()
+    app = pretend.stub(load_function=pretend.call_recorder(lambda: None))
     host = "1.2.3.4"
     port = "1234"
     options = {}
@@ -100,6 +100,7 @@ def test_gunicorn_application(debug):
         "threads": 8,
         "timeout": 0,
         "loglevel": "error",
+        "post_fork": gunicorn_app.post_fork,
     }
 
     assert gunicorn_app.cfg.bind == ["1.2.3.4:1234"]
@@ -108,10 +109,17 @@ def test_gunicorn_application(debug):
     assert gunicorn_app.cfg.timeout == 0
     assert gunicorn_app.load() == app
 
+    gunicorn_app.post_fork(pretend.stub(), pretend.stub())
+
+    assert app.load_function.calls == [pretend.call()]
+
 
 @pytest.mark.parametrize("debug", [True, False])
 def test_flask_application(debug):
-    app = pretend.stub(run=pretend.call_recorder(lambda *a, **kw: None))
+    app = pretend.stub(
+        run=pretend.call_recorder(lambda *a, **kw: None),
+        load_function=pretend.call_recorder(lambda: None),
+    )
     host = pretend.stub()
     port = pretend.stub()
     options = {"a": pretend.stub(), "b": pretend.stub()}

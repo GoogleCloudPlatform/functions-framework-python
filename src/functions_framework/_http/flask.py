@@ -21,5 +21,8 @@ class FlaskApplication:
         self.debug = debug
         self.options = options
 
+        # Go ahead and load the user's function as soon as possible
+        self.app.load_function()
+
     def run(self):
         self.app.run(self.host, self.port, debug=self.debug, **self.options)

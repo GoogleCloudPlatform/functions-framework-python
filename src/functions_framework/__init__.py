@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import functools
 import importlib.util
 import io
 import json
@@ -250,27 +249,46 @@ def create_app(target=None, source=None, signature_type=None):
         sys.stderr = _LoggingHandler("ERROR", sys.stderr)
         setup_logging()
 
-    # 7. Execute the module, within the application context
-    with app.app_context():
-        spec.loader.exec_module(source_module)
+    # Define a lazy function that can be loaded after the app has been initialized
+    class LazyFunction:
+        def __init__(self):
+            self.function = None
 
-    # Extract the target function from the source file
-    if not hasattr(source_module, target):
-        raise MissingTargetException(
-            "File {source} is expected to contain a function named {target}".format(
-                source=source, target=target
-            )
-        )
-    function = getattr(source_module, target)
+        def _load_function(self):
+            if self.function is None:
+                # Execute the module, within the application context
+                with app.app_context():
+                    spec.loader.exec_module(source_module)
 
-    # Check that it is a function
-    if not isinstance(function, types.FunctionType):
-        raise InvalidTargetTypeException(
-            "The function defined in file {source} as {target} needs to be of "
-            "type function. Got: invalid type {target_type}".format(
-                source=source, target=target, target_type=type(function)
-            )
-        )
+                # Extract the target function from the source file
+                if not hasattr(source_module, target):
+                    raise MissingTargetException(
+                        "File {source} is expected to contain a function named {target}".format(
+                            source=source, target=target
+                        )
+                    )
+                function = getattr(source_module, target)
+
+                # Check that it is a function
+                if not isinstance(function, types.FunctionType):
+                    raise InvalidTargetTypeException(
+                        "The function defined in file {source} as {target} needs to be of "
+                        "type function. Got: invalid type {target_type}".format(
+                            source=source, target=target, target_type=type(function)
+                        )
+                    )
+
+                self.function = function
+
+        def __call__(self, *args, **kwargs):
+            self._load_function()
+            return self.function(*args, **kwargs)
+
+    # Initialize the lazy function, to use as a placeholder for the actual function
+    function = LazyFunction()
+
+    # Provide our application with a hook to force the function to load
+    app.load_function = function._load_function
 
     # Mount the function at the root. Support GCF's default path behavior
     # Modify the url_map and view_functions directly here instead of using
