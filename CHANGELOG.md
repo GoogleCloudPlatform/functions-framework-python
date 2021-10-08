@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.0] - 2021-10-08
+### Added
+- Support Python 3.10
+
 ## [2.2.1] - 2021-06-01
 ### Changed
 - Update GCF Python 3.7 backwards-compatible logging ([#131])
