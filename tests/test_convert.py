@@ -404,7 +404,7 @@ def test_pubsub_emulator_request_with_invalid_message(
     "ce_event_type, ce_source, expected_type, expected_resource",
     [
         (
-            "google.firebase.database.document.v1.written",
+            "google.firebase.database.ref.v1.written",
             "//firebasedatabase.googleapis.com/projects/_/instances/my-project-id",
             "providers/google.firebase.database/eventTypes/ref.write",
             "projects/_/instances/my-project-id/my/subject",
@@ -436,7 +436,7 @@ def test_pubsub_emulator_request_with_invalid_message(
             "projects/my-project-id",
         ),
         (
-            "google.firebase.database.document.v1.written",
+            "google.firebase.database.ref.v1.written",
             "//firebasedatabase.googleapis.com/projects/_/locations/us-central1/instances/my-project-id",
             "providers/google.firebase.database/eventTypes/ref.write",
             "projects/_/instances/my-project-id/my/subject",
@@ -561,7 +561,7 @@ def test_cloudevent_to_legacy_event_with_invalid_event(
     exception_message,
 ):
     headers = create_ce_headers(
-        "google.firebase.database.document.v1.written",
+        "google.firebase.database.ref.v1.written",
         "//firebasedatabase.googleapis.com/projects/_/instances/my-project-id",
     )
     for k, v in header_overrides.items():
