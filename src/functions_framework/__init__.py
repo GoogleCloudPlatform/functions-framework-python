@@ -232,7 +232,7 @@ def create_app(target=None, source=None, signature_type=None):
     global errorhandler
     errorhandler = app.errorhandler
 
-   # 6. Handle legacy GCF Python 3.7 behavior
+    # 6. Handle legacy GCF Python 3.7 behavior
     if os.environ.get("ENTRY_POINT"):
         os.environ["FUNCTION_TRIGGER_TYPE"] = signature_type
         os.environ["FUNCTION_NAME"] = os.environ.get("K_SERVICE", target)
