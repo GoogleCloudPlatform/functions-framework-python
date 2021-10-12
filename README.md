@@ -1,4 +1,8 @@
-# Functions Framework for Python [![Build Status](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2FGoogleCloudPlatform%2Ffunctions-framework-python%2Fbadge&style=flat)](https://actions-badge.atrox.dev/GoogleCloudPlatform/functions-framework-python/goto) [![PyPI version](https://badge.fury.io/py/functions-framework.svg)](https://badge.fury.io/py/functions-framework)
+# Functions Framework for Python
+
+[![PyPI version](https://badge.fury.io/py/functions-framework.svg)](https://badge.fury.io/py/functions-framework)
+
+[![Python unit CI][ff_python_unit_img]][ff_python_unit_link] [![Python lint CI][ff_python_lint_img]][ff_python_lint_link] [![Python conformace CI][ff_python_conformance_img]][ff_python_conformance_link]
 
 An open source FaaS (Function as a service) framework for writing portable
 Python functions -- brought to you by the Google Cloud Functions team.
@@ -339,3 +343,10 @@ You can also find examples on using the CloudEvent Python SDK [here](https://git
 ## Contributing
 
 Contributions to this library are welcome and encouraged. See [CONTRIBUTING](CONTRIBUTING.md) for more information on how to get started.
+
+[ff_python_unit_img]: https://github.com/GoogleCloudPlatform/functions-framework-python/workflows/Python%20Unit%20CI/badge.svg
+[ff_python_unit_link]: https://github.com/GoogleCloudPlatform/functions-framework-python/actions?query=workflow%3A"Python+Unit+CI"
+[ff_python_lint_img]: https://github.com/GoogleCloudPlatform/functions-framework-python/workflows/Python%20Lint%20CI/badge.svg
+[ff_python_lint_link]: https://github.com/GoogleCloudPlatform/functions-framework-python/actions?query=workflow%3A"Python+Lint+CI"
+[ff_python_conformance_img]: https://github.com/GoogleCloudPlatform/functions-framework-python/workflows/Python%20Conformance%20CI/badge.svg
+[ff_python_conformance_link]: https://github.com/GoogleCloudPlatform/functions-framework-python/actions?query=workflow%3A"Python+Conformance+CI"
