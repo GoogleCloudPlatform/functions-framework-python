@@ -582,7 +582,7 @@ def test_errorhandler(monkeypatch):
         "google.firebase.analytics.log.v1.written",
         "google.firebase.auth.user.v1.created",
         "google.firebase.auth.user.v1.deleted",
-        "google.firebase.database.document.v1.written",
+        "google.firebase.database.ref.v1.written",
     ],
 )
 def tests_cloud_to_background_event_client(

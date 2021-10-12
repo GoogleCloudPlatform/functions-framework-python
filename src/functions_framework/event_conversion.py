@@ -42,10 +42,10 @@ _BACKGROUND_TO_CE_TYPE = {
     "providers/firebase.auth/eventTypes/user.create": "google.firebase.auth.user.v1.created",
     "providers/firebase.auth/eventTypes/user.delete": "google.firebase.auth.user.v1.deleted",
     "providers/google.firebase.analytics/eventTypes/event.log": "google.firebase.analytics.log.v1.written",
-    "providers/google.firebase.database/eventTypes/ref.create": "google.firebase.database.document.v1.created",
-    "providers/google.firebase.database/eventTypes/ref.write": "google.firebase.database.document.v1.written",
-    "providers/google.firebase.database/eventTypes/ref.update": "google.firebase.database.document.v1.updated",
-    "providers/google.firebase.database/eventTypes/ref.delete": "google.firebase.database.document.v1.deleted",
+    "providers/google.firebase.database/eventTypes/ref.create": "google.firebase.database.ref.v1.created",
+    "providers/google.firebase.database/eventTypes/ref.write": "google.firebase.database.ref.v1.written",
+    "providers/google.firebase.database/eventTypes/ref.update": "google.firebase.database.ref.v1.updated",
+    "providers/google.firebase.database/eventTypes/ref.delete": "google.firebase.database.ref.v1.deleted",
     "providers/cloud.storage/eventTypes/object.change": "google.cloud.storage.object.v1.finalized",
 }
 
