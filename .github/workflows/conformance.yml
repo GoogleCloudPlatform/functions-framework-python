@@ -21,27 +21,30 @@ jobs:
     - name: Setup Go
       uses: actions/setup-go@v2
       with:
-        go-version: '1.15'
+        go-version: '1.16'
 
     - name: Run HTTP conformance tests
-      uses: GoogleCloudPlatform/functions-framework-conformance/action@v0.3.12
+      uses: GoogleCloudPlatform/functions-framework-conformance/action@v1.1.0
       with:
+        version: 'v1.1.0'
         functionType: 'http'
         useBuildpacks: false
         validateMapping: false
         cmd: "'functions-framework --source tests/conformance/main.py --target write_http --signature-type http'"
 
     - name: Run event conformance tests
-      uses: GoogleCloudPlatform/functions-framework-conformance/action@v0.3.12
+      uses: GoogleCloudPlatform/functions-framework-conformance/action@v1.1.0
       with:
+        version: 'v1.1.0'
         functionType: 'legacyevent'
         useBuildpacks: false
         validateMapping: true
         cmd: "'functions-framework --source tests/conformance/main.py --target write_legacy_event --signature-type event'"
 
     - name: Run cloudevent conformance tests
-      uses: GoogleCloudPlatform/functions-framework-conformance/action@v0.3.12
+      uses: GoogleCloudPlatform/functions-framework-conformance/action@v1.1.0
       with:
+        version: 'v1.1.0'
         functionType: 'cloudevent'
         useBuildpacks: false
         validateMapping: true
