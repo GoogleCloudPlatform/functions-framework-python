@@ -256,9 +256,15 @@ def create_app(target=None, source=None, signature_type=None):
 
     # Extract the target function from the source file
     if not hasattr(source_module, target):
+        non_target_functions = ", ".join(
+            "'{attr}'".format(attr=attr)
+            for attr in dir(source_module)
+            if isinstance(getattr(source_module, attr), types.FunctionType)
+        )
+
         raise MissingTargetException(
-            "File {source} is expected to contain a function named {target}".format(
-                source=source, target=target
+            "File {source} is expected to contain a function named '{target}' (found: {non_target_functions} instead)".format(
+                source=source, target=target, non_target_functions=non_target_functions
             )
         )
     function = getattr(source_module, target)
