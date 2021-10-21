@@ -72,9 +72,10 @@ class TestSamples:
             try:
                 headers, data = to_structured(cloudevent_1_0)
                 response = requests.post(
-                    "http://localhost:8080", headers=headers, data=data
+                    "http://localhost:8080/", headers=headers, data=data
                 )
 
+                print(response.text)
                 if "Received" in response.text:
                     success = True
             except:
