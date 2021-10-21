@@ -14,6 +14,7 @@
 
 """Function used to test handling functions using decorators."""
 import flask
+
 import functions_framework
 
 

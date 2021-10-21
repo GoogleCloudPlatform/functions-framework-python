@@ -12,8 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import pathlib
+
 import pytest
+
 from cloudevents.http import CloudEvent, to_binary, to_structured
+
 from functions_framework import create_app
 
 TEST_FUNCTIONS_DIR = pathlib.Path(__file__).resolve().parent / "test_functions"

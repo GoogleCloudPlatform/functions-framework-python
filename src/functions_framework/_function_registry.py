@@ -13,8 +13,8 @@
 # limitations under the License.
 import importlib.util
 import os
-import types
 import sys
+import types
 
 from functions_framework.exceptions import (
     InvalidConfigurationException,

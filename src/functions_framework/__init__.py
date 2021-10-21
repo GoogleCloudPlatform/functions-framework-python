@@ -26,7 +26,7 @@ import werkzeug
 
 from cloudevents.http import from_http, is_binary
 
-from functions_framework import event_conversion, _function_registry
+from functions_framework import _function_registry, event_conversion
 from functions_framework.background_event import BackgroundEvent
 from functions_framework.exceptions import (
     EventConversionException,
