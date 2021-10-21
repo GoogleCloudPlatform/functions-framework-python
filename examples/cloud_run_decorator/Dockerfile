@@ -16,5 +16,3 @@ RUN chmod +x send_cloudevent.py
 
 # Run the web service on container startup.
 CMD ["functions-framework", "--target=hello"]
-
-# TODO(kaylaaa) potentially calling more than just 1 target.
