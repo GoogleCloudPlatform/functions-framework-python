@@ -14,6 +14,9 @@
 
 # This sample creates a function using the CloudEvents SDK
 # (https://github.com/cloudevents/sdk-python)
+import functions_framework
 
+
+@functions_framework.cloudevent
 def hello(cloudevent):
     print(f"Received event with ID: {cloudevent['id']} and data {cloudevent.data}")
