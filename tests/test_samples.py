@@ -14,8 +14,6 @@ EXAMPLES_DIR = pathlib.Path(__file__).resolve().parent.parent / "examples"
 @pytest.mark.skipif(
     sys.platform != "linux", reason="docker only works on linux in GH actions"
 )
-
-
 @pytest.fixture
 def cloudevent_1_0():
     attributes = {
@@ -73,7 +71,9 @@ class TestSamples:
         while not success and timeout > 0:
             try:
                 headers, data = to_structured(cloudevent_1_0)
-                response = requests.post("http://localhost:8080", headers=headers, data=data)
+                response = requests.post(
+                    "http://localhost:8080", headers=headers, data=data
+                )
 
                 if "Received" in response.text:
                     success = True
