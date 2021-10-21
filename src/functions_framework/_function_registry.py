@@ -23,6 +23,7 @@ from functions_framework.exceptions import (
 )
 
 DEFAULT_SOURCE = os.path.realpath("./main.py")
+
 FUNCTION_SIGNATURE_TYPE = "FUNCTION_SIGNATURE_TYPE"
 HTTP_SIGNATURE_TYPE = "http"
 CLOUDEVENT_SIGNATURE_TYPE = "cloudevent"
@@ -33,6 +34,7 @@ REGISTRY_MAP = {}
 
 
 def get_user_function(source, source_module, target):
+    """Returns user function, raises exception for invalid function."""
     # Extract the target function from the source file
     if not hasattr(source_module, target):
         raise MissingTargetException(
