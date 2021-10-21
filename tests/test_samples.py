@@ -33,30 +33,30 @@ class TestSamples:
         for container in containers:
             container.stop()
 
-    @pytest.mark.slow_integration_test
-    def test_cloud_run_http(self):
-        client = docker.from_env()
-        self.stop_all_containers(client)
-
-        TAG = "cloud_run_http"
-        client.images.build(path=str(EXAMPLES_DIR / "cloud_run_http"), tag={TAG})
-        container = client.containers.run(image=TAG, detach=True, ports={8080: 8080})
-        timeout = 10
-        success = False
-        while success == False and timeout > 0:
-            try:
-                response = requests.get("http://localhost:8080")
-                if response.text == "Hello world!":
-                    success = True
-            except:
-                pass
-
-            time.sleep(1)
-            timeout -= 1
-
-        container.stop()
-
-        assert success
+    # @pytest.mark.slow_integration_test
+    # def test_cloud_run_http(self):
+    #     client = docker.from_env()
+    #     self.stop_all_containers(client)
+    #
+    #     TAG = "cloud_run_http"
+    #     client.images.build(path=str(EXAMPLES_DIR / "cloud_run_http"), tag={TAG})
+    #     container = client.containers.run(image=TAG, detach=True, ports={8080: 8080})
+    #     timeout = 10
+    #     success = False
+    #     while success == False and timeout > 0:
+    #         try:
+    #             response = requests.get("http://localhost:8080")
+    #             if response.text == "Hello world!":
+    #                 success = True
+    #         except:
+    #             pass
+    #
+    #         time.sleep(1)
+    #         timeout -= 1
+    #
+    #     container.stop()
+    #
+    #     assert success
 
     @pytest.mark.slow_integration_test
     def test_cloud_run_decorator(self):
