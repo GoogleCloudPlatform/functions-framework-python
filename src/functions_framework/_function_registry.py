@@ -101,8 +101,11 @@ def get_func_signature_type(func_name: str, signature_type: str) -> str:
     If none of the above is set, signature type defaults to be "http".
     """
     registered_type = REGISTRY_MAP[func_name] if func_name in REGISTRY_MAP else ""
-    sig_type = registered_type or signature_type or os.environ.get(
-        FUNCTION_SIGNATURE_TYPE, HTTP_SIGNATURE_TYPE)
+    sig_type = (
+        registered_type
+        or signature_type
+        or os.environ.get(FUNCTION_SIGNATURE_TYPE, HTTP_SIGNATURE_TYPE)
+    )
     # Set the environment variable if it wasn't already
     os.environ[FUNCTION_SIGNATURE_TYPE] = sig_type
     # Update signature type for legacy GCF Python 3.7

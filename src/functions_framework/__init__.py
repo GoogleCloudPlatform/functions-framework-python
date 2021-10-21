@@ -66,6 +66,7 @@ def cloudevent(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         return func(*args, **kwargs)
+
     return wrapper
 
 
@@ -76,6 +77,7 @@ def event(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         return func(*args, **kwargs)
+
     return wrapper
 
 
@@ -86,6 +88,7 @@ def http(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         return func(*args, **kwargs)
+
     return wrapper
 
 
@@ -182,7 +185,6 @@ def _event_view_func_wrapper(function, request):
     return view_func
 
 
-
 def _configure_app(app, function, signature_type):
     # Mount the function at the root. Support GCF's default path behavior
     # Modify the url_map and view_functions directly here instead of using
@@ -194,10 +196,8 @@ def _configure_app(app, function, signature_type):
         app.url_map.add(werkzeug.routing.Rule("/robots.txt", endpoint="error"))
         app.url_map.add(werkzeug.routing.Rule("/favicon.ico", endpoint="error"))
         app.url_map.add(werkzeug.routing.Rule("/<path:path>", endpoint="run"))
-        app.view_functions["run"] = _http_view_func_wrapper(function,
-                                                            flask.request)
-        app.view_functions["error"] = lambda: flask.abort(404,
-                                                          description="Not Found")
+        app.view_functions["run"] = _http_view_func_wrapper(function, flask.request)
+        app.view_functions["error"] = lambda: flask.abort(404, description="Not Found")
         app.after_request(read_request)
     elif signature_type == BACKGROUNDEVENT_SIGNATURE_TYPE:
         app.url_map.add(
@@ -206,20 +206,16 @@ def _configure_app(app, function, signature_type):
             )
         )
         app.url_map.add(
-            werkzeug.routing.Rule("/<path:path>", endpoint="run",
-                                  methods=["POST"])
+            werkzeug.routing.Rule("/<path:path>", endpoint="run", methods=["POST"])
         )
-        app.view_functions["run"] = _event_view_func_wrapper(function,
-                                                             flask.request)
+        app.view_functions["run"] = _event_view_func_wrapper(function, flask.request)
         # Add a dummy endpoint for GET /
-        app.url_map.add(
-            werkzeug.routing.Rule("/", endpoint="get", methods=["GET"]))
+        app.url_map.add(werkzeug.routing.Rule("/", endpoint="get", methods=["GET"]))
         app.view_functions["get"] = lambda: ""
     elif signature_type == CLOUDEVENT_SIGNATURE_TYPE:
         app.url_map.add(
             werkzeug.routing.Rule(
-                "/", defaults={"path": ""}, endpoint=signature_type,
-                methods=["POST"]
+                "/", defaults={"path": ""}, endpoint=signature_type, methods=["POST"]
             )
         )
         app.url_map.add(

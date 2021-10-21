@@ -43,7 +43,6 @@ class TestSamples:
 
         assert success
 
-
     @pytest.mark.slow_integration_test
     def test_cloud_run_decorator(self):
         client = docker.from_env()
