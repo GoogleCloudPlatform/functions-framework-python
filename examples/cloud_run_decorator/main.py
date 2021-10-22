@@ -19,4 +19,4 @@ import functions_framework
 
 @functions_framework.cloudevent
 def hello(cloudevent):
-    print(f"Received event with ID: {cloudevent['id']} and data {cloudevent.data}")
+    return f"Received event with ID: {cloudevent['id']} and data {cloudevent.data}"

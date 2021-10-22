@@ -76,7 +76,7 @@ class TestSamples:
                 )
 
                 print(response.text)
-                if "Received" in response.text:
+                if response.text:
                     success = True
             except:
                 pass
