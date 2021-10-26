@@ -1,4 +1,4 @@
-# Copyright 2020 Google LLC
+# Copyright 2021 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,6 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# This sample creates a function using the CloudEvents SDK
+# (https://github.com/cloudevents/sdk-python)
+import functions_framework
 
-def hello(request):
+
+@functions_framework.cloudevent
+def hello_cloudevent(cloudevent):
+    return f"Received event with ID: {cloudevent['id']} and data {cloudevent.data}"
+
+
+@functions_framework.http
+def hello_http(request):
     return "Hello world!"

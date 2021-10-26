@@ -14,7 +14,6 @@
 
 # This sample creates a function using the CloudEvents SDK
 # (https://github.com/cloudevents/sdk-python)
-import sys
 
 
 def hello(cloudevent):

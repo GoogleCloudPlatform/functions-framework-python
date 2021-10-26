@@ -13,14 +13,12 @@
 # limitations under the License.
 
 import functools
-import importlib.util
 import io
 import json
 import logging
 import os.path
 import pathlib
 import sys
-import types
 
 import cloudevents.exceptions as cloud_exceptions
 import flask
@@ -28,20 +26,15 @@ import werkzeug
 
 from cloudevents.http import from_http, is_binary
 
-from functions_framework import event_conversion
+from functions_framework import _function_registry, event_conversion
 from functions_framework.background_event import BackgroundEvent
 from functions_framework.exceptions import (
     EventConversionException,
     FunctionsFrameworkException,
-    InvalidConfigurationException,
-    InvalidTargetTypeException,
     MissingSourceException,
-    MissingTargetException,
 )
 from google.cloud.functions.context import Context
 
-DEFAULT_SOURCE = os.path.realpath("./main.py")
-DEFAULT_SIGNATURE_TYPE = "http"
 MAX_CONTENT_LENGTH = 10 * 1024 * 1024
 
 _FUNCTION_STATUS_HEADER_FIELD = "X-Google-Status"
@@ -61,6 +54,32 @@ class _LoggingHandler(io.TextIOWrapper):
     def write(self, out):
         payload = dict(severity=self.level, message=out.rstrip("\n"))
         return self.stderr.write(json.dumps(payload) + "\n")
+
+
+def cloudevent(func):
+    """Decorator that registers cloudevent as user function signature type."""
+    _function_registry.REGISTRY_MAP[
+        func.__name__
+    ] = _function_registry.CLOUDEVENT_SIGNATURE_TYPE
+
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        return func(*args, **kwargs)
+
+    return wrapper
+
+
+def http(func):
+    """Decorator that registers http as user function signature type."""
+    _function_registry.REGISTRY_MAP[
+        func.__name__
+    ] = _function_registry.HTTP_SIGNATURE_TYPE
+
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        return func(*args, **kwargs)
+
+    return wrapper
 
 
 def setup_logging():
@@ -156,126 +175,11 @@ def _event_view_func_wrapper(function, request):
     return view_func
 
 
-def read_request(response):
-    """
-    Force the framework to read the entire request before responding, to avoid
-    connection errors when returning prematurely.
-    """
-
-    flask.request.get_data()
-    return response
-
-
-def crash_handler(e):
-    """
-    Return crash header to allow logging 'crash' message in logs.
-    """
-    return str(e), 500, {_FUNCTION_STATUS_HEADER_FIELD: _CRASH}
-
-
-def create_app(target=None, source=None, signature_type=None):
-    # Get the configured function target
-    target = target or os.environ.get("FUNCTION_TARGET", "")
-    # Set the environment variable if it wasn't already
-    os.environ["FUNCTION_TARGET"] = target
-
-    if not target:
-        raise InvalidConfigurationException(
-            "Target is not specified (FUNCTION_TARGET environment variable not set)"
-        )
-
-    # Get the configured function source
-    source = source or os.environ.get("FUNCTION_SOURCE", DEFAULT_SOURCE)
-
-    # Python 3.5: os.path.exist does not support PosixPath
-    source = str(source)
-
-    # Set the template folder relative to the source path
-    # Python 3.5: join does not support PosixPath
-    template_folder = str(pathlib.Path(source).parent / "templates")
-
-    if not os.path.exists(source):
-        raise MissingSourceException(
-            "File {source} that is expected to define function doesn't exist".format(
-                source=source
-            )
-        )
-
-    # Get the configured function signature type
-    signature_type = signature_type or os.environ.get(
-        "FUNCTION_SIGNATURE_TYPE", DEFAULT_SIGNATURE_TYPE
-    )
-    # Set the environment variable if it wasn't already
-    os.environ["FUNCTION_SIGNATURE_TYPE"] = signature_type
-
-    # Load the source file:
-    # 1. Extract the module name from the source path
-    realpath = os.path.realpath(source)
-    directory, filename = os.path.split(realpath)
-    name, extension = os.path.splitext(filename)
-
-    # 2. Create a new module
-    spec = importlib.util.spec_from_file_location(name, realpath)
-    source_module = importlib.util.module_from_spec(spec)
-
-    # 3. Add the directory of the source to sys.path to allow the function to
-    # load modules relative to its location
-    sys.path.append(directory)
-
-    # 4. Add the module to sys.modules
-    sys.modules[name] = source_module
-
-    # 5. Create the application
-    app = flask.Flask(target, template_folder=template_folder)
-    app.config["MAX_CONTENT_LENGTH"] = MAX_CONTENT_LENGTH
-    app.register_error_handler(500, crash_handler)
-    global errorhandler
-    errorhandler = app.errorhandler
-
-    # 6. Handle legacy GCF Python 3.7 behavior
-    if os.environ.get("ENTRY_POINT"):
-        os.environ["FUNCTION_TRIGGER_TYPE"] = signature_type
-        os.environ["FUNCTION_NAME"] = os.environ.get("K_SERVICE", target)
-        app.make_response_original = app.make_response
-
-        def handle_none(rv):
-            if rv is None:
-                rv = "OK"
-            return app.make_response_original(rv)
-
-        app.make_response = handle_none
-
-        # Handle log severity backwards compatibility
-        sys.stdout = _LoggingHandler("INFO", sys.stderr)
-        sys.stderr = _LoggingHandler("ERROR", sys.stderr)
-        setup_logging()
-
-    # 7. Execute the module, within the application context
-    with app.app_context():
-        spec.loader.exec_module(source_module)
-
-    # Extract the target function from the source file
-    if not hasattr(source_module, target):
-        raise MissingTargetException(
-            "File {source} is expected to contain a function named {target}".format(
-                source=source, target=target
-            )
-        )
-    function = getattr(source_module, target)
-
-    # Check that it is a function
-    if not isinstance(function, types.FunctionType):
-        raise InvalidTargetTypeException(
-            "The function defined in file {source} as {target} needs to be of "
-            "type function. Got: invalid type {target_type}".format(
-                source=source, target=target, target_type=type(function)
-            )
-        )
-
+def _configure_app(app, function, signature_type):
     # Mount the function at the root. Support GCF's default path behavior
     # Modify the url_map and view_functions directly here instead of using
     # add_url_rule in order to create endpoints that route all methods
-    if signature_type == "http":
+    if signature_type == _function_registry.HTTP_SIGNATURE_TYPE:
         app.url_map.add(
             werkzeug.routing.Rule("/", defaults={"path": ""}, endpoint="run")
         )
@@ -285,7 +189,7 @@ def create_app(target=None, source=None, signature_type=None):
         app.view_functions["run"] = _http_view_func_wrapper(function, flask.request)
         app.view_functions["error"] = lambda: flask.abort(404, description="Not Found")
         app.after_request(read_request)
-    elif signature_type == "event":
+    elif signature_type == _function_registry.BACKGROUNDEVENT_SIGNATURE_TYPE:
         app.url_map.add(
             werkzeug.routing.Rule(
                 "/", defaults={"path": ""}, endpoint="run", methods=["POST"]
@@ -298,7 +202,7 @@ def create_app(target=None, source=None, signature_type=None):
         # Add a dummy endpoint for GET /
         app.url_map.add(werkzeug.routing.Rule("/", endpoint="get", methods=["GET"]))
         app.view_functions["get"] = lambda: ""
-    elif signature_type == "cloudevent":
+    elif signature_type == _function_registry.CLOUDEVENT_SIGNATURE_TYPE:
         app.url_map.add(
             werkzeug.routing.Rule(
                 "/", defaults={"path": ""}, endpoint=signature_type, methods=["POST"]
@@ -320,7 +224,76 @@ def create_app(target=None, source=None, signature_type=None):
             )
         )
 
-    return app
+
+def read_request(response):
+    """
+    Force the framework to read the entire request before responding, to avoid
+    connection errors when returning prematurely.
+    """
+
+    flask.request.get_data()
+    return response
+
+
+def crash_handler(e):
+    """
+    Return crash header to allow logging 'crash' message in logs.
+    """
+    return str(e), 500, {_FUNCTION_STATUS_HEADER_FIELD: _CRASH}
+
+
+def create_app(target=None, source=None, signature_type=None):
+    target = _function_registry.get_function_target(target)
+    source = _function_registry.get_function_source(source)
+
+    # Set the template folder relative to the source path
+    # Python 3.5: join does not support PosixPath
+    template_folder = str(pathlib.Path(source).parent / "templates")
+
+    if not os.path.exists(source):
+        raise MissingSourceException(
+            "File {source} that is expected to define function doesn't exist".format(
+                source=source
+            )
+        )
+
+    source_module, spec = _function_registry.load_function_module(source)
+
+    # Create the application
+    _app = flask.Flask(target, template_folder=template_folder)
+    _app.config["MAX_CONTENT_LENGTH"] = MAX_CONTENT_LENGTH
+    _app.register_error_handler(500, crash_handler)
+    global errorhandler
+    errorhandler = _app.errorhandler
+
+    # Handle legacy GCF Python 3.7 behavior
+    if os.environ.get("ENTRY_POINT"):
+        os.environ["FUNCTION_NAME"] = os.environ.get("K_SERVICE", target)
+        _app.make_response_original = _app.make_response
+
+        def handle_none(rv):
+            if rv is None:
+                rv = "OK"
+            return _app.make_response_original(rv)
+
+        _app.make_response = handle_none
+
+        # Handle log severity backwards compatibility
+        sys.stdout = _LoggingHandler("INFO", sys.stderr)
+        sys.stderr = _LoggingHandler("ERROR", sys.stderr)
+        setup_logging()
+
+    # Execute the module, within the application context
+    with _app.app_context():
+        spec.loader.exec_module(source_module)
+
+    # Get the configured function signature type
+    signature_type = _function_registry.get_func_signature_type(target, signature_type)
+    function = _function_registry.get_user_function(source, source_module, target)
+
+    _configure_app(_app, function, signature_type)
+
+    return _app
 
 
 class LazyWSGIApp:

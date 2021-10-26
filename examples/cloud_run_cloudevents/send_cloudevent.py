@@ -15,19 +15,18 @@
 # limitations under the License.
 from cloudevents.http import CloudEvent, to_structured
 import requests
-import json
 
 
 # Create a cloudevent using https://github.com/cloudevents/sdk-python
-# Note we only need source and type because the cloudevents constructor by 
-# default will set "specversion" to the most recent cloudevent version (e.g. 1.0) 
-# and "id" to a generated uuid.uuid4 string. 
+# Note we only need source and type because the cloudevents constructor by
+# default will set "specversion" to the most recent cloudevent version (e.g. 1.0)
+# and "id" to a generated uuid.uuid4 string.
 attributes = {
     "Content-Type": "application/json",
     "source": "from-galaxy-far-far-away",
-    "type": "cloudevent.greet.you"
+    "type": "cloudevent.greet.you",
 }
-data = {"name":"john"}
+data = {"name": "john"}
 
 event = CloudEvent(attributes, data)
 

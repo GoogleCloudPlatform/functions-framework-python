@@ -111,6 +111,40 @@ curl localhost:8080
 # Output: Hello world!
 ```
 
+### Quickstart: Register your function using decorator
+
+Create an `main.py` file with the following contents:
+
+```python
+import functions_framework
+
+@functions_framework.cloudevent
+def hello_cloudevent(cloudevent):
+   return f"Received event with ID: {cloudevent['id']} and data {cloudevent.data}"
+
+@functions_framework.http
+def hello_http(request):
+   return "Hello world!"
+
+```
+
+Run the following command to run `hello_http` target locally:
+
+```sh
+functions-framework --target=hello_http
+```
+
+Open http://localhost:8080/ in your browser and see *Hello world!*.
+
+Run the following command to run `hello_cloudevent` target locally:
+
+```sh
+functions-framework --target=hello_cloudevent
+```
+
+More info on sending [CloudEvents](http://cloudevents.io) payloads, see [`examples/cloud_run_cloudevents`](examples/cloud_run_cloudevents/) instruction.
+
+
 ### Quickstart: Error handling
 
 The framework includes an error handler that is similar to the
@@ -337,7 +371,7 @@ For more details on this signature type, check out the Google Cloud Functions do
 
 ## Advanced Examples
 
-More advanced guides can be found in the [`examples/`](https://github.com/GoogleCloudPlatform/functions-framework-python/blob/master/examples/) directory.
+More advanced guides can be found in the [`examples/`](examples/) directory.
 You can also find examples on using the CloudEvent Python SDK [here](https://github.com/cloudevents/sdk-python).
 
 ## Contributing
