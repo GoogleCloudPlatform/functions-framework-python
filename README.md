@@ -142,7 +142,7 @@ Run the following command to run `hello_cloudevent` target locally:
 functions-framework --target=hello_cloudevent
 ```
 
-More info on sending [CloudEvents](http://cloudevents.io) payloads, see [`examples/cloud_run_cloudevents`](https://github.com/GoogleCloudPlatform/functions-framework-python/blob/master/examples/cloud_run_cloudevents/) instruction.
+More info on sending [CloudEvents](http://cloudevents.io) payloads, see [`examples/cloud_run_cloudevents`](examples/cloud_run_cloudevents/) instruction.
 
 
 ### Quickstart: Error handling
@@ -371,7 +371,7 @@ For more details on this signature type, check out the Google Cloud Functions do
 
 ## Advanced Examples
 
-More advanced guides can be found in the [`examples/`](https://github.com/GoogleCloudPlatform/functions-framework-python/blob/master/examples/) directory.
+More advanced guides can be found in the [`examples/`](examples/) directory.
 You can also find examples on using the CloudEvent Python SDK [here](https://github.com/cloudevents/sdk-python).
 
 ## Contributing
