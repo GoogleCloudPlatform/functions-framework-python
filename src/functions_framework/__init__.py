@@ -35,9 +35,6 @@ from functions_framework.exceptions import (
 )
 from google.cloud.functions.context import Context
 
-HTTP_SIGNATURE_TYPE = "http"
-CLOUDEVENT_SIGNATURE_TYPE = "cloudevent"
-BACKGROUNDEVENT_SIGNATURE_TYPE = "event"
 MAX_CONTENT_LENGTH = 10 * 1024 * 1024
 
 _FUNCTION_STATUS_HEADER_FIELD = "X-Google-Status"
@@ -61,18 +58,9 @@ class _LoggingHandler(io.TextIOWrapper):
 
 def cloudevent(func):
     """Decorator that registers cloudevent as user function signature type."""
-    _function_registry.REGISTRY_MAP[func.__name__] = CLOUDEVENT_SIGNATURE_TYPE
-
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        return func(*args, **kwargs)
-
-    return wrapper
-
-
-def event(func):
-    """Decorator that registers event as user function signature type."""
-    _function_registry.REGISTRY_MAP[func.__name__] = BACKGROUNDEVENT_SIGNATURE_TYPE
+    _function_registry.REGISTRY_MAP[
+        func.__name__
+    ] = _function_registry.CLOUDEVENT_SIGNATURE_TYPE
 
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
@@ -83,7 +71,9 @@ def event(func):
 
 def http(func):
     """Decorator that registers http as user function signature type."""
-    _function_registry.REGISTRY_MAP[func.__name__] = HTTP_SIGNATURE_TYPE
+    _function_registry.REGISTRY_MAP[
+        func.__name__
+    ] = _function_registry.HTTP_SIGNATURE_TYPE
 
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
@@ -189,7 +179,7 @@ def _configure_app(app, function, signature_type):
     # Mount the function at the root. Support GCF's default path behavior
     # Modify the url_map and view_functions directly here instead of using
     # add_url_rule in order to create endpoints that route all methods
-    if signature_type == HTTP_SIGNATURE_TYPE:
+    if signature_type == _function_registry.HTTP_SIGNATURE_TYPE:
         app.url_map.add(
             werkzeug.routing.Rule("/", defaults={"path": ""}, endpoint="run")
         )
@@ -199,7 +189,7 @@ def _configure_app(app, function, signature_type):
         app.view_functions["run"] = _http_view_func_wrapper(function, flask.request)
         app.view_functions["error"] = lambda: flask.abort(404, description="Not Found")
         app.after_request(read_request)
-    elif signature_type == BACKGROUNDEVENT_SIGNATURE_TYPE:
+    elif signature_type == _function_registry.BACKGROUNDEVENT_SIGNATURE_TYPE:
         app.url_map.add(
             werkzeug.routing.Rule(
                 "/", defaults={"path": ""}, endpoint="run", methods=["POST"]
@@ -212,7 +202,7 @@ def _configure_app(app, function, signature_type):
         # Add a dummy endpoint for GET /
         app.url_map.add(werkzeug.routing.Rule("/", endpoint="get", methods=["GET"]))
         app.view_functions["get"] = lambda: ""
-    elif signature_type == CLOUDEVENT_SIGNATURE_TYPE:
+    elif signature_type == _function_registry.CLOUDEVENT_SIGNATURE_TYPE:
         app.url_map.add(
             werkzeug.routing.Rule(
                 "/", defaults={"path": ""}, endpoint=signature_type, methods=["POST"]

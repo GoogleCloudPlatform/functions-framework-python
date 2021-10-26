@@ -36,13 +36,6 @@ def cloudevent_decorator_client():
 
 
 @pytest.fixture
-def backgroundevent_decorator_client():
-    source = TEST_FUNCTIONS_DIR / "decorators" / "decorator.py"
-    target = "function_backgroundevent"
-    return create_app(target, source).test_client()
-
-
-@pytest.fixture
 def http_decorator_client():
     source = TEST_FUNCTIONS_DIR / "decorators" / "decorator.py"
     target = "function_http"
@@ -62,35 +55,12 @@ def cloudevent_1_0():
     return CloudEvent(attributes, data)
 
 
-@pytest.fixture
-def background_json(tempfile_payload):
-    return {
-        "context": {
-            "eventId": "some-eventId",
-            "timestamp": "some-timestamp",
-            "eventType": "some-eventType",
-            "resource": "some-resource",
-        },
-        "data": tempfile_payload,
-    }
-
-
-@pytest.fixture
-def tempfile_payload(tmpdir):
-    return {"filename": str(tmpdir / "filename.txt"), "value": "some-value"}
-
-
 def test_cloudevent_decorator(cloudevent_decorator_client, cloudevent_1_0):
     headers, data = to_structured(cloudevent_1_0)
     resp = cloudevent_decorator_client.post("/", headers=headers, data=data)
 
     assert resp.status_code == 200
     assert resp.data == b"OK"
-
-
-def test_backgroundevent_decorator(backgroundevent_decorator_client, background_json):
-    resp = backgroundevent_decorator_client.post("/", json=background_json)
-    assert resp.status_code == 200
 
 
 def test_http_decorator(http_decorator_client):

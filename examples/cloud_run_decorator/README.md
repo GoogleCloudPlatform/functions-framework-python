@@ -1,23 +1,22 @@
-# Deploying a CloudEvent Function to Cloud Run with the Functions Framework
-
-This sample uses the [CloudEvents SDK](https://github.com/cloudevents/sdk-python) to send and receive a [CloudEvent](http://cloudevents.io) on Cloud Run.
-
 ## How to run this locally
+This guide shows how to run `hello_http` target locally.
+To test with `hello_cloudevent`, change the target accordingly in Dockerfile.
 
 Build the Docker image:
 
 ```commandline
-docker build -t cloudevent_example .
+docker build -t decorator_example .
 ```
 
 Run the image and bind the correct ports:
 
 ```commandline
-docker run --rm -p 8080:8080 -e PORT=8080 cloudevent_example
+docker run --rm -p 8080:8080 -e PORT=8080 decorator_example
 ```
 
-Send an event to the container:
+Send requests to this function using `curl` from another terminal window:
 
-```python
-docker run -t cloudevent_example send_cloudevent.py
+```sh
+curl localhost:8080
+# Output: Hello world!
 ```

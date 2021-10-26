@@ -18,5 +18,10 @@ import functions_framework
 
 
 @functions_framework.cloudevent
-def hello(cloudevent):
+def hello_cloudevent(cloudevent):
     return f"Received event with ID: {cloudevent['id']} and data {cloudevent.data}"
+
+
+@functions_framework.http
+def hello_http(request):
+    return "Hello world!"

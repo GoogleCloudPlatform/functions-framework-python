@@ -43,26 +43,6 @@ def function_cloudevent(cloudevent):
         flask.abort(500)
 
 
-@functions_framework.event
-def function_backgroundevent(event, context):
-    """Test background function.
-
-    It writes the expected output (entry point name and the given value) to the
-    given file, as a response from the background function, verified by the test.
-
-    Args:
-      event: The event data (as dictionary) which triggered this background
-        function. Must contain entries for 'value' and 'filename' keys in the
-        data dictionary.
-      context (google.cloud.functions.Context): The Cloud Functions event context.
-    """
-    filename = event["filename"]
-    value = event["value"]
-    f = open(filename, "w")
-    f.write('{{"entryPoint": "function", "value": "{}"}}'.format(value))
-    f.close()
-
-
 @functions_framework.http
 def function_http(request):
     """Test function which returns the requested element of the HTTP request.

@@ -30,6 +30,7 @@ CLOUDEVENT_SIGNATURE_TYPE = "cloudevent"
 BACKGROUNDEVENT_SIGNATURE_TYPE = "event"
 
 # REGISTRY_MAP stores the registered functions.
+# Keys are user function names, values are user function signature types.
 REGISTRY_MAP = {}
 
 
@@ -95,9 +96,9 @@ def get_func_signature_type(func_name: str, signature_type: str) -> str:
     """Get user function's signature type.
 
     Signature type is searched in the following order:
-        - Decorator user used to register their function
-        - --signature-type flag
-        - environment variable FUNCTION_SIGNATURE_TYPE
+        1. Decorator user used to register their function
+        2. --signature-type flag
+        3. environment variable FUNCTION_SIGNATURE_TYPE
     If none of the above is set, signature type defaults to be "http".
     """
     registered_type = REGISTRY_MAP[func_name] if func_name in REGISTRY_MAP else ""
@@ -106,6 +107,9 @@ def get_func_signature_type(func_name: str, signature_type: str) -> str:
         or signature_type
         or os.environ.get(FUNCTION_SIGNATURE_TYPE, HTTP_SIGNATURE_TYPE)
     )
+    print("registered_type ", registered_type)
+    print("flag ", signature_type)
+    print("env ", os.environ.get(FUNCTION_SIGNATURE_TYPE, HTTP_SIGNATURE_TYPE))
     # Set the environment variable if it wasn't already
     os.environ[FUNCTION_SIGNATURE_TYPE] = sig_type
     # Update signature type for legacy GCF Python 3.7
