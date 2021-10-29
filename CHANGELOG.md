@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.4.0-beta.1] - 2021-10-29
+### Added
+- feat: Support declarative function signatures: `http` and `cloudevent` ([#160])
+
 ## [2.3.0] - 2021-10-12
 ### Added
 - feat: add support for Python 3.10 ([#151])
@@ -118,6 +122,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial release
 
 [Unreleased]: https://github.com/GoogleCloudPlatform/functions-framework-python/compare/v2.3.0...HEAD
+
+[2.4.0-beta.1]: https://github.com/GoogleCloudPlatform/functions-framework-python/releases/tag/v2.4.0-beta.1
 [2.3.0]: https://github.com/GoogleCloudPlatform/functions-framework-python/releases/tag/v2.3.0
 [2.2.1]: https://github.com/GoogleCloudPlatform/functions-framework-python/releases/tag/v2.2.1
 [2.2.0]: https://github.com/GoogleCloudPlatform/functions-framework-python/releases/tag/v2.2.0
@@ -140,6 +146,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [1.0.1]: https://github.com/GoogleCloudPlatform/functions-framework-python/releases/tag/v1.0.1
 [1.0.0]: https://github.com/GoogleCloudPlatform/functions-framework-python/releases/tag/v1.0.0
 
+[#160]: https://github.com/GoogleCloudPlatform/functions-framework-python/pull/160
 [#154]: https://github.com/GoogleCloudPlatform/functions-framework-python/pull/154
 [#152]: https://github.com/GoogleCloudPlatform/functions-framework-python/pull/152
 [#151]: https://github.com/GoogleCloudPlatform/functions-framework-python/pull/151
