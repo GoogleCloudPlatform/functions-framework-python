@@ -49,3 +49,21 @@ jobs:
         useBuildpacks: false
         validateMapping: true
         cmd: "'functions-framework --source tests/conformance/main.py --target write_cloud_event --signature-type cloudevent'"
+
+    - name: Run HTTP conformance tests declarative
+      uses: GoogleCloudPlatform/functions-framework-conformance/action@v1.1.0
+      with:
+        version: 'v1.1.0'
+        functionType: 'http'
+        useBuildpacks: false
+        validateMapping: false
+        cmd: "'functions-framework --source tests/conformance/main.py --target write_http_declarative'"
+
+    - name: Run cloudevent conformance tests declarative
+      uses: GoogleCloudPlatform/functions-framework-conformance/action@v1.1.0
+      with:
+        version: 'v1.1.0'
+        functionType: 'cloudevent'
+        useBuildpacks: false
+        validateMapping: true
+        cmd: "'functions-framework --source tests/conformance/main.py --target write_cloud_event_declarative'"
