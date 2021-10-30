@@ -107,9 +107,6 @@ def get_func_signature_type(func_name: str, signature_type: str) -> str:
         or signature_type
         or os.environ.get(FUNCTION_SIGNATURE_TYPE, HTTP_SIGNATURE_TYPE)
     )
-    print("registered_type ", registered_type)
-    print("flag ", signature_type)
-    print("env ", os.environ.get(FUNCTION_SIGNATURE_TYPE, HTTP_SIGNATURE_TYPE))
     # Set the environment variable if it wasn't already
     os.environ[FUNCTION_SIGNATURE_TYPE] = sig_type
     # Update signature type for legacy GCF Python 3.7
