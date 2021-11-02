@@ -2,6 +2,8 @@ import json
 
 from cloudevents.http import to_json
 
+import functions_framework
+
 filename = "function_output.json"
 
 
@@ -32,4 +34,15 @@ def write_legacy_event(data, context):
 
 
 def write_cloud_event(cloudevent):
+    _write_output(to_json(cloudevent).decode())
+
+
+@functions_framework.http
+def write_http_declarative(request):
+    _write_output(json.dumps(request.json))
+    return "OK", 200
+
+
+@functions_framework.cloudevent
+def write_cloudevent_declarative(cloudevent):
     _write_output(to_json(cloudevent).decode())
