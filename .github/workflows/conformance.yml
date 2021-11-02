@@ -66,4 +66,4 @@ jobs:
         functionType: 'cloudevent'
         useBuildpacks: false
         validateMapping: true
-        cmd: "'functions-framework --source tests/conformance/main.py --target write_cloud_event_declarative'"
+        cmd: "'functions-framework --source tests/conformance/main.py --target write_cloudevent_declarative'"

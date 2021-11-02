@@ -44,5 +44,5 @@ def write_http_declarative(request):
 
 
 @functions_framework.cloudevent
-def write_cloud_event_declarative(cloudevent):
+def write_cloudevent_declarative(cloudevent):
     _write_output(to_json(cloudevent).decode())
