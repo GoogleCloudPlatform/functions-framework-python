@@ -35,7 +35,7 @@ All without needing to worry about writing an HTTP server or complicated request
 
 *   Spin up a local development server for quick testing
 *   Invoke a function in response to a request
-*   Automatically unmarshal events conforming to the [CloudEvents](https://cloudevents.io/) spec
+*   Automatically unmarshal events conforming to the [CloudEvents](https://cloud_events.io/) spec
 *   Portable between serverless platforms
 
 ## Installation
@@ -118,9 +118,9 @@ Create an `main.py` file with the following contents:
 ```python
 import functions_framework
 
-@functions_framework.cloudevent
-def hello_cloudevent(cloudevent):
-   return f"Received event with ID: {cloudevent['id']} and data {cloudevent.data}"
+@functions_framework.cloud_event
+def hello_cloud_event(cloud_event):
+   return f"Received event with ID: {cloud_event['id']} and data {cloud_event.data}"
 
 @functions_framework.http
 def hello_http(request):
@@ -136,13 +136,13 @@ functions-framework --target=hello_http
 
 Open http://localhost:8080/ in your browser and see *Hello world!*.
 
-Run the following command to run `hello_cloudevent` target locally:
+Run the following command to run `hello_cloud_event` target locally:
 
 ```sh
-functions-framework --target=hello_cloudevent
+functions-framework --target=hello_cloud_event
 ```
 
-More info on sending [CloudEvents](http://cloudevents.io) payloads, see [`examples/cloud_run_cloudevents`](examples/cloud_run_cloudevents/) instruction.
+More info on sending [CloudEvents](http://cloudevents.io) payloads, see [`examples/cloud_run_cloud_events`](examples/cloud_run_cloud_events/) instruction.
 
 
 ### Quickstart: Error handling
@@ -358,11 +358,11 @@ See the [running example](examples/cloud_run_event).
 
 ## Enable CloudEvents
 
-The Functions framework can also unmarshall incoming [CloudEvents](http://cloudevents.io) payloads to the `cloudevent` object. This will be passed as a [cloudevent](https://github.com/cloudevents/sdk-python) to your function when it receives a request.  Note that your function must use the `cloudevents`-style function signature:
+The Functions framework can also unmarshall incoming [CloudEvents](http://cloudevents.io) payloads to the `cloud_event` object. This will be passed as a [cloud_event](https://github.com/cloudevents/sdk-python) to your function when it receives a request.  Note that your function must use the `cloud_events`-style function signature:
 
 ```python
-def hello(cloudevent):
-    print(f"Received event with ID: {cloudevent['id']}")
+def hello(cloud_event):
+    print(f"Received event with ID: {cloud_event['id']}")
 ```
 
 To enable automatic unmarshalling, set the function signature type to `cloudevent` using the `--signature-type` command-line flag or the `FUNCTION_SIGNATURE_TYPE` environment variable. By default, the HTTP signature type will be used and automatic event unmarshalling will be disabled.

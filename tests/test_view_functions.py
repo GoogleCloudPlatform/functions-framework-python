@@ -63,12 +63,12 @@ def test_event_view_func_wrapper(monkeypatch):
     ]
 
 
-def test_run_cloudevent():
+def test_run_cloud_event():
     headers = {"Content-Type": "application/cloudevents+json"}
     data = json.dumps(
         {
             "source": "from-galaxy-far-far-away",
-            "type": "cloudevent.greet.you",
+            "type": "cloud_event.greet.you",
             "specversion": "1.0",
             "id": "f6a65fcd-eed2-429d-9f71-ec0663d83025",
             "time": "2020-08-13T02:12:14.946587+00:00",
@@ -77,19 +77,19 @@ def test_run_cloudevent():
     )
     request = pretend.stub(headers=headers, get_data=lambda: data)
 
-    function = pretend.call_recorder(lambda cloudevent: "hello")
-    functions_framework._run_cloudevent(function, request)
-    expected_cloudevent = from_http(request.headers, request.get_data())
+    function = pretend.call_recorder(lambda cloud_event: "hello")
+    functions_framework._run_cloud_event(function, request)
+    expected_cloud_event = from_http(request.headers, request.get_data())
 
-    assert function.calls == [pretend.call(expected_cloudevent)]
+    assert function.calls == [pretend.call(expected_cloud_event)]
 
 
-def test_cloudevent_view_func_wrapper():
+def test_cloud_event_view_func_wrapper():
     headers = {"Content-Type": "application/cloudevents+json"}
     data = json.dumps(
         {
             "source": "from-galaxy-far-far-away",
-            "type": "cloudevent.greet.you",
+            "type": "cloud_event.greet.you",
             "specversion": "1.0",
             "id": "f6a65fcd-eed2-429d-9f71-ec0663d83025",
             "time": "2020-08-13T02:12:14.946587+00:00",
@@ -100,19 +100,19 @@ def test_cloudevent_view_func_wrapper():
     request = pretend.stub(headers=headers, get_data=lambda: data)
     event = from_http(request.headers, request.get_data())
 
-    function = pretend.call_recorder(lambda cloudevent: cloudevent)
+    function = pretend.call_recorder(lambda cloud_event: cloud_event)
 
-    view_func = functions_framework._cloudevent_view_func_wrapper(function, request)
+    view_func = functions_framework._cloud_event_view_func_wrapper(function, request)
     view_func("/some/path")
 
     assert function.calls == [pretend.call(event)]
 
 
-def test_binary_cloudevent_view_func_wrapper():
+def test_binary_cloud_event_view_func_wrapper():
     headers = {
         "ce-specversion": "1.0",
         "ce-source": "from-galaxy-far-far-away",
-        "ce-type": "cloudevent.greet.you",
+        "ce-type": "cloud_event.greet.you",
         "ce-id": "f6a65fcd-eed2-429d-9f71-ec0663d83025",
         "ce-time": "2020-08-13T02:12:14.946587+00:00",
     }
@@ -121,9 +121,9 @@ def test_binary_cloudevent_view_func_wrapper():
     request = pretend.stub(headers=headers, get_data=lambda: data)
     event = from_http(request.headers, request.get_data())
 
-    function = pretend.call_recorder(lambda cloudevent: cloudevent)
+    function = pretend.call_recorder(lambda cloud_event: cloud_event)
 
-    view_func = functions_framework._cloudevent_view_func_wrapper(function, request)
+    view_func = functions_framework._cloud_event_view_func_wrapper(function, request)
     view_func("/some/path")
 
     assert function.calls == [pretend.call(event)]

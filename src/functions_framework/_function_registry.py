@@ -26,7 +26,7 @@ DEFAULT_SOURCE = os.path.realpath("./main.py")
 
 FUNCTION_SIGNATURE_TYPE = "FUNCTION_SIGNATURE_TYPE"
 HTTP_SIGNATURE_TYPE = "http"
-CLOUDEVENT_SIGNATURE_TYPE = "cloudevent"
+CLOUD_EVENT_SIGNATURE_TYPE = "cloudevent"
 BACKGROUNDEVENT_SIGNATURE_TYPE = "event"
 
 # REGISTRY_MAP stores the registered functions.

@@ -7,17 +7,17 @@ This sample uses the [CloudEvents SDK](https://github.com/cloudevents/sdk-python
 Build the Docker image:
 
 ```commandline
-docker build -t cloudevent_example .
+docker build -t cloud_event_example .
 ```
 
 Run the image and bind the correct ports:
 
 ```commandline
-docker run --rm -p 8080:8080 -e PORT=8080 cloudevent_example
+docker run --rm -p 8080:8080 -e PORT=8080 cloud_event_example
 ```
 
 Send an event to the container:
 
 ```python
-docker run -t cloudevent_example send_cloudevent.py
+docker run -t cloud_event_example send_cloud_event.py
 ```

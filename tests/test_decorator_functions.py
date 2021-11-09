@@ -29,9 +29,9 @@ except:
 
 
 @pytest.fixture
-def cloudevent_decorator_client():
+def cloud_event_decorator_client():
     source = TEST_FUNCTIONS_DIR / "decorators" / "decorator.py"
-    target = "function_cloudevent"
+    target = "function_cloud_event"
     return create_app(target, source).test_client()
 
 
@@ -43,21 +43,21 @@ def http_decorator_client():
 
 
 @pytest.fixture
-def cloudevent_1_0():
+def cloud_event_1_0():
     attributes = {
         "specversion": "1.0",
         "id": "my-id",
         "source": "from-galaxy-far-far-away",
-        "type": "cloudevent.greet.you",
+        "type": "cloud_event.greet.you",
         "time": "2020-08-16T13:58:54.471765",
     }
     data = {"name": "john"}
     return CloudEvent(attributes, data)
 
 
-def test_cloudevent_decorator(cloudevent_decorator_client, cloudevent_1_0):
-    headers, data = to_structured(cloudevent_1_0)
-    resp = cloudevent_decorator_client.post("/", headers=headers, data=data)
+def test_cloud_event_decorator(cloud_event_decorator_client, cloud_event_1_0):
+    headers, data = to_structured(cloud_event_1_0)
+    resp = cloud_event_decorator_client.post("/", headers=headers, data=data)
 
     assert resp.status_code == 200
     assert resp.data == b"OK"

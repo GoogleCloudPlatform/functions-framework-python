@@ -83,7 +83,7 @@ PUBSUB_CLOUD_EVENT = {
 
 
 @pytest.fixture
-def pubsub_cloudevent_output():
+def pubsub_cloud_event_output():
     return from_json(json.dumps(PUBSUB_CLOUD_EVENT))
 
 
@@ -121,7 +121,7 @@ def marshalled_pubsub_request():
 
 
 @pytest.fixture
-def raw_pubsub_cloudevent_output(marshalled_pubsub_request):
+def raw_pubsub_cloud_event_output(marshalled_pubsub_request):
     event = PUBSUB_CLOUD_EVENT.copy()
     # the data payload is more complex for the raw pubsub request
     data = marshalled_pubsub_request["data"]
@@ -138,8 +138,8 @@ def firebase_auth_background_input():
 
 
 @pytest.fixture
-def firebase_auth_cloudevent_output():
-    with open(TEST_DATA_DIR / "firebase-auth-cloudevent-output.json", "r") as f:
+def firebase_auth_cloud_event_output():
+    with open(TEST_DATA_DIR / "firebase-auth-cloud-event-output.json", "r") as f:
         return from_json(f.read())
 
 
@@ -150,8 +150,8 @@ def firebase_db_background_input():
 
 
 @pytest.fixture
-def firebase_db_cloudevent_output():
-    with open(TEST_DATA_DIR / "firebase-db-cloudevent-output.json", "r") as f:
+def firebase_db_cloud_event_output():
+    with open(TEST_DATA_DIR / "firebase-db-cloud-event-output.json", "r") as f:
         return from_json(f.read())
 
 
@@ -170,89 +170,89 @@ def create_ce_headers():
 @pytest.mark.parametrize(
     "event", [PUBSUB_BACKGROUND_EVENT, PUBSUB_BACKGROUND_EVENT_WITHOUT_CONTEXT]
 )
-def test_pubsub_event_to_cloudevent(event, pubsub_cloudevent_output):
+def test_pubsub_event_to_cloud_event(event, pubsub_cloud_event_output):
     req = flask.Request.from_values(json=event)
-    cloudevent = event_conversion.background_event_to_cloudevent(req)
-    assert cloudevent == pubsub_cloudevent_output
+    cloud_event = event_conversion.background_event_to_cloud_event(req)
+    assert cloud_event == pubsub_cloud_event_output
 
 
-def test_firebase_auth_event_to_cloudevent(
-    firebase_auth_background_input, firebase_auth_cloudevent_output
+def test_firebase_auth_event_to_cloud_event(
+    firebase_auth_background_input, firebase_auth_cloud_event_output
 ):
     req = flask.Request.from_values(json=firebase_auth_background_input)
-    cloudevent = event_conversion.background_event_to_cloudevent(req)
-    assert cloudevent == firebase_auth_cloudevent_output
+    cloud_event = event_conversion.background_event_to_cloud_event(req)
+    assert cloud_event == firebase_auth_cloud_event_output
 
 
-def test_firebase_auth_event_to_cloudevent_no_metadata(
-    firebase_auth_background_input, firebase_auth_cloudevent_output
+def test_firebase_auth_event_to_cloud_event_no_metadata(
+    firebase_auth_background_input, firebase_auth_cloud_event_output
 ):
     # Remove metadata from the events to verify conversion still works.
     del firebase_auth_background_input["data"]["metadata"]
-    del firebase_auth_cloudevent_output.data["metadata"]
+    del firebase_auth_cloud_event_output.data["metadata"]
 
     req = flask.Request.from_values(json=firebase_auth_background_input)
-    cloudevent = event_conversion.background_event_to_cloudevent(req)
-    assert cloudevent == firebase_auth_cloudevent_output
+    cloud_event = event_conversion.background_event_to_cloud_event(req)
+    assert cloud_event == firebase_auth_cloud_event_output
 
 
-def test_firebase_auth_event_to_cloudevent_no_metadata_timestamps(
-    firebase_auth_background_input, firebase_auth_cloudevent_output
+def test_firebase_auth_event_to_cloud_event_no_metadata_timestamps(
+    firebase_auth_background_input, firebase_auth_cloud_event_output
 ):
     # Remove metadata timestamps from the events to verify conversion still works.
     del firebase_auth_background_input["data"]["metadata"]["createdAt"]
     del firebase_auth_background_input["data"]["metadata"]["lastSignedInAt"]
-    del firebase_auth_cloudevent_output.data["metadata"]["createTime"]
-    del firebase_auth_cloudevent_output.data["metadata"]["lastSignInTime"]
+    del firebase_auth_cloud_event_output.data["metadata"]["createTime"]
+    del firebase_auth_cloud_event_output.data["metadata"]["lastSignInTime"]
 
     req = flask.Request.from_values(json=firebase_auth_background_input)
-    cloudevent = event_conversion.background_event_to_cloudevent(req)
-    assert cloudevent == firebase_auth_cloudevent_output
+    cloud_event = event_conversion.background_event_to_cloud_event(req)
+    assert cloud_event == firebase_auth_cloud_event_output
 
 
-def test_firebase_auth_event_to_cloudevent_no_uid(
-    firebase_auth_background_input, firebase_auth_cloudevent_output
+def test_firebase_auth_event_to_cloud_event_no_uid(
+    firebase_auth_background_input, firebase_auth_cloud_event_output
 ):
     # Remove UIDs from the events to verify conversion still works. The UID is mapped
     # to the subject in the CloudEvent so remove that from the expected CloudEvent.
     del firebase_auth_background_input["data"]["uid"]
-    del firebase_auth_cloudevent_output.data["uid"]
-    del firebase_auth_cloudevent_output["subject"]
+    del firebase_auth_cloud_event_output.data["uid"]
+    del firebase_auth_cloud_event_output["subject"]
 
     req = flask.Request.from_values(json=firebase_auth_background_input)
-    cloudevent = event_conversion.background_event_to_cloudevent(req)
-    assert cloudevent == firebase_auth_cloudevent_output
+    cloud_event = event_conversion.background_event_to_cloud_event(req)
+    assert cloud_event == firebase_auth_cloud_event_output
 
 
-def test_firebase_db_event_to_cloudevent_default_location(
-    firebase_db_background_input, firebase_db_cloudevent_output
+def test_firebase_db_event_to_cloud_event_default_location(
+    firebase_db_background_input, firebase_db_cloud_event_output
 ):
     req = flask.Request.from_values(json=firebase_db_background_input)
-    cloudevent = event_conversion.background_event_to_cloudevent(req)
-    assert cloudevent == firebase_db_cloudevent_output
+    cloud_event = event_conversion.background_event_to_cloud_event(req)
+    assert cloud_event == firebase_db_cloud_event_output
 
 
-def test_firebase_db_event_to_cloudevent_location_subdomain(
-    firebase_db_background_input, firebase_db_cloudevent_output
+def test_firebase_db_event_to_cloud_event_location_subdomain(
+    firebase_db_background_input, firebase_db_cloud_event_output
 ):
     firebase_db_background_input["domain"] = "europe-west1.firebasedatabase.app"
-    firebase_db_cloudevent_output["source"] = firebase_db_cloudevent_output[
+    firebase_db_cloud_event_output["source"] = firebase_db_cloud_event_output[
         "source"
     ].replace("us-central1", "europe-west1")
 
     req = flask.Request.from_values(json=firebase_db_background_input)
-    cloudevent = event_conversion.background_event_to_cloudevent(req)
-    assert cloudevent == firebase_db_cloudevent_output
+    cloud_event = event_conversion.background_event_to_cloud_event(req)
+    assert cloud_event == firebase_db_cloud_event_output
 
 
-def test_firebase_db_event_to_cloudevent_missing_domain(
-    firebase_db_background_input, firebase_db_cloudevent_output
+def test_firebase_db_event_to_cloud_event_missing_domain(
+    firebase_db_background_input, firebase_db_cloud_event_output
 ):
     del firebase_db_background_input["domain"]
     req = flask.Request.from_values(json=firebase_db_background_input)
 
     with pytest.raises(EventConversionException) as exc_info:
-        event_conversion.background_event_to_cloudevent(req)
+        event_conversion.background_event_to_cloud_event(req)
 
     assert (
         "Invalid FirebaseDB event payload: missing 'domain'" in exc_info.value.args[0]
@@ -364,8 +364,8 @@ def test_marshal_background_event_data_with_topic_path(
         ("marshalled_pubsub_request", {}),
     ],
 )
-def test_pubsub_emulator_request_to_cloudevent(
-    raw_pubsub_cloudevent_output, request_fixture, overrides, request
+def test_pubsub_emulator_request_to_cloud_event(
+    raw_pubsub_cloud_event_output, request_fixture, overrides, request
 ):
     request_path = overrides.get("request_path", "/")
     payload = request.getfixturevalue(request_fixture)
@@ -373,30 +373,30 @@ def test_pubsub_emulator_request_to_cloudevent(
         path=request_path,
         json=payload,
     )
-    cloudevent = event_conversion.background_event_to_cloudevent(req)
+    cloud_event = event_conversion.background_event_to_cloud_event(req)
 
     # Remove timestamps as they are generated on the fly.
-    del raw_pubsub_cloudevent_output["time"]
-    del raw_pubsub_cloudevent_output.data["message"]["publishTime"]
-    del cloudevent["time"]
-    del cloudevent.data["message"]["publishTime"]
+    del raw_pubsub_cloud_event_output["time"]
+    del raw_pubsub_cloud_event_output.data["message"]["publishTime"]
+    del cloud_event["time"]
+    del cloud_event.data["message"]["publishTime"]
 
     if "source" in overrides:
         # Default to the service name, when the topic is not configured subscription's pushEndpoint.
-        raw_pubsub_cloudevent_output["source"] = overrides["source"]
+        raw_pubsub_cloud_event_output["source"] = overrides["source"]
 
-    assert cloudevent == raw_pubsub_cloudevent_output
+    assert cloud_event == raw_pubsub_cloud_event_output
 
 
 def test_pubsub_emulator_request_with_invalid_message(
-    raw_pubsub_request, raw_pubsub_cloudevent_output
+    raw_pubsub_request, raw_pubsub_cloud_event_output
 ):
     # Create an invalid message payload
     raw_pubsub_request["message"] = None
     req = flask.Request.from_values(json=raw_pubsub_request, path="/")
 
     with pytest.raises(EventConversionException) as exc_info:
-        cloudevent = event_conversion.background_event_to_cloudevent(req)
+        cloud_event = event_conversion.background_event_to_cloud_event(req)
     assert "Failed to convert Pub/Sub payload to event" in exc_info.value.args[0]
 
 
@@ -449,7 +449,7 @@ def test_pubsub_emulator_request_with_invalid_message(
         ),
     ],
 )
-def test_cloudevent_to_legacy_event(
+def test_cloud_event_to_legacy_event(
     create_ce_headers,
     ce_event_type,
     ce_source,
@@ -459,7 +459,7 @@ def test_cloudevent_to_legacy_event(
     headers = create_ce_headers(ce_event_type, ce_source)
     req = flask.Request.from_values(headers=headers, json={"kind": "value"})
 
-    (res_data, res_context) = event_conversion.cloudevent_to_background_event(req)
+    (res_data, res_context) = event_conversion.cloud_event_to_background_event(req)
 
     assert res_context.event_id == "my-id"
     assert res_context.timestamp == "2020-08-16T13:58:54.471765"
@@ -468,7 +468,7 @@ def test_cloudevent_to_legacy_event(
     assert res_data == {"kind": "value"}
 
 
-def test_cloudevent_to_legacy_event_with_pubsub_message_payload(
+def test_cloud_event_to_legacy_event_with_pubsub_message_payload(
     create_ce_headers,
 ):
     headers = create_ce_headers(
@@ -484,13 +484,13 @@ def test_cloudevent_to_legacy_event_with_pubsub_message_payload(
     }
     req = flask.Request.from_values(headers=headers, json=data)
 
-    (res_data, res_context) = event_conversion.cloudevent_to_background_event(req)
+    (res_data, res_context) = event_conversion.cloud_event_to_background_event(req)
 
     assert res_context.event_type == "google.pubsub.topic.publish"
     assert res_data == {"data": "fizzbuzz"}
 
 
-def test_cloudevent_to_legacy_event_with_firebase_auth_ce(
+def test_cloud_event_to_legacy_event_with_firebase_auth_ce(
     create_ce_headers,
 ):
     headers = create_ce_headers(
@@ -506,7 +506,7 @@ def test_cloudevent_to_legacy_event_with_firebase_auth_ce(
     }
     req = flask.Request.from_values(headers=headers, json=data)
 
-    (res_data, res_context) = event_conversion.cloudevent_to_background_event(req)
+    (res_data, res_context) = event_conversion.cloud_event_to_background_event(req)
 
     assert res_context.event_type == "providers/firebase.auth/eventTypes/user.create"
     assert res_data == {
@@ -518,7 +518,7 @@ def test_cloudevent_to_legacy_event_with_firebase_auth_ce(
     }
 
 
-def test_cloudevent_to_legacy_event_with_firebase_auth_ce_empty_metadata(
+def test_cloud_event_to_legacy_event_with_firebase_auth_ce_empty_metadata(
     create_ce_headers,
 ):
     headers = create_ce_headers(
@@ -528,7 +528,7 @@ def test_cloudevent_to_legacy_event_with_firebase_auth_ce_empty_metadata(
     data = {"metadata": {}, "uid": "my-id"}
     req = flask.Request.from_values(headers=headers, json=data)
 
-    (res_data, res_context) = event_conversion.cloudevent_to_background_event(req)
+    (res_data, res_context) = event_conversion.cloud_event_to_background_event(req)
 
     assert res_context.event_type == "providers/firebase.auth/eventTypes/user.create"
     assert res_data == data
@@ -555,7 +555,7 @@ def test_cloudevent_to_legacy_event_with_firebase_auth_ce_empty_metadata(
         ),
     ],
 )
-def test_cloudevent_to_legacy_event_with_invalid_event(
+def test_cloud_event_to_legacy_event_with_invalid_event(
     create_ce_headers,
     header_overrides,
     exception_message,
@@ -573,7 +573,7 @@ def test_cloudevent_to_legacy_event_with_invalid_event(
     req = flask.Request.from_values(headers=headers, json={"some": "val"})
 
     with pytest.raises(EventConversionException) as exc_info:
-        event_conversion.cloudevent_to_background_event(req)
+        event_conversion.cloud_event_to_background_event(req)
 
     assert exception_message in exc_info.value.args[0]
 

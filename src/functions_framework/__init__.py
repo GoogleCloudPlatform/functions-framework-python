@@ -56,11 +56,11 @@ class _LoggingHandler(io.TextIOWrapper):
         return self.stderr.write(json.dumps(payload) + "\n")
 
 
-def cloudevent(func):
+def cloud_event(func):
     """Decorator that registers cloudevent as user function signature type."""
     _function_registry.REGISTRY_MAP[
         func.__name__
-    ] = _function_registry.CLOUDEVENT_SIGNATURE_TYPE
+    ] = _function_registry.CLOUD_EVENT_SIGNATURE_TYPE
 
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
@@ -101,13 +101,13 @@ def _http_view_func_wrapper(function, request):
     return view_func
 
 
-def _run_cloudevent(function, request):
+def _run_cloud_event(function, request):
     data = request.get_data()
     event = from_http(request.headers, data)
     function(event)
 
 
-def _cloudevent_view_func_wrapper(function, request):
+def _cloud_event_view_func_wrapper(function, request):
     def view_func(path):
         ce_exception = None
         event = None
@@ -125,7 +125,7 @@ def _cloudevent_view_func_wrapper(function, request):
 
         # Not a CloudEvent. Try converting to a CloudEvent.
         try:
-            function(event_conversion.background_event_to_cloudevent(request))
+            function(event_conversion.background_event_to_cloud_event(request))
         except EventConversionException as e:
             flask.abort(
                 400,
@@ -144,9 +144,9 @@ def _cloudevent_view_func_wrapper(function, request):
 
 def _event_view_func_wrapper(function, request):
     def view_func(path):
-        if event_conversion.is_convertable_cloudevent(request):
+        if event_conversion.is_convertable_cloud_event(request):
             # Convert this CloudEvent to the equivalent background event data and context.
-            data, context = event_conversion.cloudevent_to_background_event(request)
+            data, context = event_conversion.cloud_event_to_background_event(request)
             function(data, context)
         elif is_binary(request.headers):
             # Support CloudEvents in binary content mode, with data being the
@@ -202,7 +202,7 @@ def _configure_app(app, function, signature_type):
         # Add a dummy endpoint for GET /
         app.url_map.add(werkzeug.routing.Rule("/", endpoint="get", methods=["GET"]))
         app.view_functions["get"] = lambda: ""
-    elif signature_type == _function_registry.CLOUDEVENT_SIGNATURE_TYPE:
+    elif signature_type == _function_registry.CLOUD_EVENT_SIGNATURE_TYPE:
         app.url_map.add(
             werkzeug.routing.Rule(
                 "/", defaults={"path": ""}, endpoint=signature_type, methods=["POST"]
@@ -214,7 +214,7 @@ def _configure_app(app, function, signature_type):
             )
         )
 
-        app.view_functions[signature_type] = _cloudevent_view_func_wrapper(
+        app.view_functions[signature_type] = _cloud_event_view_func_wrapper(
             function, flask.request
         )
     else:
