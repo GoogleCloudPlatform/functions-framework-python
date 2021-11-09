@@ -358,7 +358,7 @@ See the [running example](examples/cloud_run_event).
 
 ## Enable CloudEvents
 
-The Functions framework can also unmarshall incoming [CloudEvents](http://cloudevents.io) payloads to the `cloud_event` object. This will be passed as a [cloud_event](https://github.com/cloudevents/sdk-python) to your function when it receives a request.  Note that your function must use the `cloud_events`-style function signature:
+The Functions framework can also unmarshall incoming [CloudEvents](http://cloudevents.io) payloads to the `cloud_event` object. This will be passed as a [CloudEvent](https://github.com/cloudevents/sdk-python) to your function when it receives a request.  Note that your function must use the `CloudEvents`-style function signature:
 
 ```python
 def hello(cloud_event):
