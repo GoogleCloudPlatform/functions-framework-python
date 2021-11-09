@@ -35,7 +35,7 @@ All without needing to worry about writing an HTTP server or complicated request
 
 *   Spin up a local development server for quick testing
 *   Invoke a function in response to a request
-*   Automatically unmarshal events conforming to the [CloudEvents](https://cloud_events.io/) spec
+*   Automatically unmarshal events conforming to the [CloudEvents](https://cloudevents.io/) spec
 *   Portable between serverless platforms
 
 ## Installation

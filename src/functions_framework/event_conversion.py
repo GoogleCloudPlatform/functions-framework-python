@@ -154,7 +154,7 @@ def background_event_to_cloud_event(request) -> CloudEvent:
 
     # Handle Firebase DB events.
     if service == _FIREBASE_DB_CE_SERVICE:
-        # The CE source of firebasedatabase cloud_events includes location information
+        # The CE source of firebasedatabase CloudEvents includes location information
         # that is inferred from the 'domain' field of legacy events.
         if "domain" not in event_data:
             raise EventConversionException(
