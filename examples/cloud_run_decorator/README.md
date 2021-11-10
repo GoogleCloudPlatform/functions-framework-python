@@ -1,7 +1,7 @@
 ## How to run this locally
 
 This guide shows how to run `hello_http` target locally.
-To test with `hello_cloudevent`, change the target accordingly in Dockerfile.
+To test with `hello_cloud_event`, change the target accordingly in Dockerfile.
 
 Build the Docker image:
 

@@ -23,7 +23,7 @@ from functions_framework.background_event import BackgroundEvent
 from functions_framework.exceptions import EventConversionException
 from google.cloud.functions.context import Context
 
-_CLOUDEVENT_SPEC_VERSION = "1.0"
+_CLOUD_EVENT_SPEC_VERSION = "1.0"
 
 # Maps background/legacy event types to their equivalent CloudEvent types.
 # For more info on event mappings see
@@ -114,7 +114,7 @@ _FIREBASE_AUTH_METADATA_FIELDS_CE_TO_BACKGROUND = {
 }
 
 
-def background_event_to_cloudevent(request) -> CloudEvent:
+def background_event_to_cloud_event(request) -> CloudEvent:
     """Converts a background event represented by the given HTTP request into a CloudEvent."""
     event_data = marshal_background_event_data(request)
     if not event_data:
@@ -154,7 +154,7 @@ def background_event_to_cloudevent(request) -> CloudEvent:
 
     # Handle Firebase DB events.
     if service == _FIREBASE_DB_CE_SERVICE:
-        # The CE source of firebasedatabase cloudevents includes location information
+        # The CE source of firebasedatabase CloudEvents includes location information
         # that is inferred from the 'domain' field of legacy events.
         if "domain" not in event_data:
             raise EventConversionException(
@@ -172,7 +172,7 @@ def background_event_to_cloudevent(request) -> CloudEvent:
     metadata = {
         "id": context.event_id,
         "time": context.timestamp,
-        "specversion": _CLOUDEVENT_SPEC_VERSION,
+        "specversion": _CLOUD_EVENT_SPEC_VERSION,
         "datacontenttype": "application/json",
         "type": new_type,
         "source": source,
@@ -184,7 +184,7 @@ def background_event_to_cloudevent(request) -> CloudEvent:
     return CloudEvent(metadata, data)
 
 
-def is_convertable_cloudevent(request) -> bool:
+def is_convertable_cloud_event(request) -> bool:
     """Is the given request a known CloudEvent that can be converted to background event."""
     if is_binary(request.headers):
         event_type = request.headers.get("ce-type")
@@ -207,7 +207,7 @@ def _split_ce_source(source) -> Tuple[str, str]:
     return match.group(1), match.group(2)
 
 
-def cloudevent_to_background_event(request) -> Tuple[Any, Context]:
+def cloud_event_to_background_event(request) -> Tuple[Any, Context]:
     """Converts a background event represented by the given HTTP request into a CloudEvent."""
     try:
         event = from_http(request.headers, request.get_data())

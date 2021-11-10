@@ -36,12 +36,12 @@ def data_payload():
 
 
 @pytest.fixture
-def cloudevent_1_0():
+def cloud_event_1_0():
     attributes = {
         "specversion": "1.0",
         "id": "my-id",
         "source": "from-galaxy-far-far-away",
-        "type": "cloudevent.greet.you",
+        "type": "cloud_event.greet.you",
         "time": "2020-08-16T13:58:54.471765",
     }
     data = {"name": "john"}
@@ -49,11 +49,11 @@ def cloudevent_1_0():
 
 
 @pytest.fixture
-def cloudevent_0_3():
+def cloud_event_0_3():
     attributes = {
         "id": "my-id",
         "source": "from-galaxy-far-far-away",
-        "type": "cloudevent.greet.you",
+        "type": "cloud_event.greet.you",
         "specversion": "0.3",
         "time": "2020-08-16T13:58:54.471765",
     }
@@ -66,7 +66,7 @@ def create_headers_binary():
     return lambda specversion: {
         "ce-id": "my-id",
         "ce-source": "from-galaxy-far-far-away",
-        "ce-type": "cloudevent.greet.you",
+        "ce-type": "cloud_event.greet.you",
         "ce-specversion": specversion,
         "time": "2020-08-16T13:58:54.471765",
     }
@@ -77,7 +77,7 @@ def create_structured_data():
     return lambda specversion: {
         "id": "my-id",
         "source": "from-galaxy-far-far-away",
-        "type": "cloudevent.greet.you",
+        "type": "cloud_event.greet.you",
         "specversion": specversion,
         "time": "2020-08-16T13:58:54.471765",
     }
@@ -91,51 +91,51 @@ def background_event():
 
 @pytest.fixture
 def client():
-    source = TEST_FUNCTIONS_DIR / "cloudevents" / "main.py"
+    source = TEST_FUNCTIONS_DIR / "cloud_events" / "main.py"
     target = "function"
     return create_app(target, source, "cloudevent").test_client()
 
 
 @pytest.fixture
 def empty_client():
-    source = TEST_FUNCTIONS_DIR / "cloudevents" / "empty_data.py"
+    source = TEST_FUNCTIONS_DIR / "cloud_events" / "empty_data.py"
     target = "function"
     return create_app(target, source, "cloudevent").test_client()
 
 
 @pytest.fixture
 def converted_background_event_client():
-    source = TEST_FUNCTIONS_DIR / "cloudevents" / "converted_background_event.py"
+    source = TEST_FUNCTIONS_DIR / "cloud_events" / "converted_background_event.py"
     target = "function"
     return create_app(target, source, "cloudevent").test_client()
 
 
-def test_event(client, cloudevent_1_0):
-    headers, data = to_structured(cloudevent_1_0)
+def test_event(client, cloud_event_1_0):
+    headers, data = to_structured(cloud_event_1_0)
     resp = client.post("/", headers=headers, data=data)
 
     assert resp.status_code == 200
     assert resp.data == b"OK"
 
 
-def test_binary_event(client, cloudevent_1_0):
-    headers, data = to_binary(cloudevent_1_0)
+def test_binary_event(client, cloud_event_1_0):
+    headers, data = to_binary(cloud_event_1_0)
     resp = client.post("/", headers=headers, data=data)
 
     assert resp.status_code == 200
     assert resp.data == b"OK"
 
 
-def test_event_0_3(client, cloudevent_0_3):
-    headers, data = to_structured(cloudevent_0_3)
+def test_event_0_3(client, cloud_event_0_3):
+    headers, data = to_structured(cloud_event_0_3)
     resp = client.post("/", headers=headers, data=data)
 
     assert resp.status_code == 200
     assert resp.data == b"OK"
 
 
-def test_binary_event_0_3(client, cloudevent_0_3):
-    headers, data = to_binary(cloudevent_0_3)
+def test_binary_event_0_3(client, cloud_event_0_3):
+    headers, data = to_binary(cloud_event_0_3)
     resp = client.post("/", headers=headers, data=data)
 
     assert resp.status_code == 200
@@ -143,7 +143,7 @@ def test_binary_event_0_3(client, cloudevent_0_3):
 
 
 @pytest.mark.parametrize("specversion", ["0.3", "1.0"])
-def test_cloudevent_missing_required_binary_fields(
+def test_cloud_event_missing_required_binary_fields(
     client, specversion, create_headers_binary, data_payload
 ):
     headers = create_headers_binary(specversion)
@@ -160,7 +160,7 @@ def test_cloudevent_missing_required_binary_fields(
 
 
 @pytest.mark.parametrize("specversion", ["0.3", "1.0"])
-def test_cloudevent_missing_required_structured_fields(
+def test_cloud_event_missing_required_structured_fields(
     client, specversion, create_structured_data
 ):
     headers = {"Content-Type": "application/cloudevents+json"}
@@ -186,7 +186,7 @@ def test_invalid_fields_binary(client, create_headers_binary, data_payload):
     assert "InvalidRequiredFields" in resp.data.decode()
 
 
-def test_unparsable_cloudevent(client):
+def test_unparsable_cloud_event(client):
     resp = client.post("/", headers={}, data="")
 
     assert resp.status_code == 400

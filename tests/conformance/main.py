@@ -33,8 +33,8 @@ def write_legacy_event(data, context):
     )
 
 
-def write_cloud_event(cloudevent):
-    _write_output(to_json(cloudevent).decode())
+def write_cloud_event(cloud_event):
+    _write_output(to_json(cloud_event).decode())
 
 
 @functions_framework.http
@@ -43,6 +43,6 @@ def write_http_declarative(request):
     return "OK", 200
 
 
-@functions_framework.cloudevent
-def write_cloudevent_declarative(cloudevent):
-    _write_output(to_json(cloudevent).decode())
+@functions_framework.cloud_event
+def write_cloud_event_declarative(cloud_event):
+    _write_output(to_json(cloud_event).decode())

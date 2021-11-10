@@ -16,5 +16,5 @@
 # (https://github.com/cloudevents/sdk-python)
 
 
-def hello(cloudevent):
-    print(f"Received event with ID: {cloudevent['id']} and data {cloudevent.data}")
+def hello(cloud_event):
+    print(f"Received event with ID: {cloud_event['id']} and data {cloud_event.data}")

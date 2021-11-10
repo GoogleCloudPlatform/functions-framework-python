@@ -16,24 +16,24 @@
 import flask
 
 
-def function(cloudevent):
+def function(cloud_event):
     """Test Event function that checks to see if a valid CloudEvent was sent.
 
     The function returns 200 if it received the expected event, otherwise 500.
 
     Args:
-        cloudevent: A CloudEvent as defined by https://github.com/cloudevents/sdk-python.
+        cloud_event: A CloudEvent as defined by https://github.com/cloudevents/sdk-python.
 
     Returns:
         HTTP status code indicating whether valid event was sent or not.
 
     """
     valid_event = (
-        cloudevent["id"] == "my-id"
-        and cloudevent.data == {"name": "john"}
-        and cloudevent["source"] == "from-galaxy-far-far-away"
-        and cloudevent["type"] == "cloudevent.greet.you"
-        and cloudevent["time"] == "2020-08-16T13:58:54.471765"
+        cloud_event["id"] == "my-id"
+        and cloud_event.data == {"name": "john"}
+        and cloud_event["source"] == "from-galaxy-far-far-away"
+        and cloud_event["type"] == "cloud_event.greet.you"
+        and cloud_event["time"] == "2020-08-16T13:58:54.471765"
     )
 
     if not valid_event:
