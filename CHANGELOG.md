@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.0] - 2021-11-10
+### Fixed
+- refactor: change declarative function signature from `cloudevent` to `cloud_event` ([#167])
+
 ## [2.4.0-beta.2] - 2021-11-01
 ### Fixed
 - fix: remove debug statements
@@ -125,7 +129,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Initial release
 
-[Unreleased]: https://github.com/GoogleCloudPlatform/functions-framework-python/compare/v2.4.0-beta.2...HEAD
+[Unreleased]: https://github.com/GoogleCloudPlatform/functions-framework-python/compare/v3.0.0...HEAD
+[3.0.0]: https://github.com/GoogleCloudPlatform/functions-framework-python/releases/tag/v3.0.0
 [2.4.0-beta.2]: https://github.com/GoogleCloudPlatform/functions-framework-python/releases/tag/v2.4.0-beta.2
 [2.4.0-beta.1]: https://github.com/GoogleCloudPlatform/functions-framework-python/releases/tag/v2.4.0-beta.1
 [2.3.0]: https://github.com/GoogleCloudPlatform/functions-framework-python/releases/tag/v2.3.0
@@ -150,6 +155,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [1.0.1]: https://github.com/GoogleCloudPlatform/functions-framework-python/releases/tag/v1.0.1
 [1.0.0]: https://github.com/GoogleCloudPlatform/functions-framework-python/releases/tag/v1.0.0
 
+[#167]: https://github.com/GoogleCloudPlatform/functions-framework-python/pull/167
 [#160]: https://github.com/GoogleCloudPlatform/functions-framework-python/pull/160
 [#154]: https://github.com/GoogleCloudPlatform/functions-framework-python/pull/154
 [#152]: https://github.com/GoogleCloudPlatform/functions-framework-python/pull/152
