@@ -60,7 +60,7 @@ def cloud_event(func):
     """Decorator that registers cloudevent as user function signature type."""
     _function_registry.REGISTRY_MAP[
         func.__name__
-    ] = _function_registry.CLOUD_EVENT_SIGNATURE_TYPE
+    ] = _function_registry.CLOUDEVENT_SIGNATURE_TYPE
 
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
@@ -202,7 +202,7 @@ def _configure_app(app, function, signature_type):
         # Add a dummy endpoint for GET /
         app.url_map.add(werkzeug.routing.Rule("/", endpoint="get", methods=["GET"]))
         app.view_functions["get"] = lambda: ""
-    elif signature_type == _function_registry.CLOUD_EVENT_SIGNATURE_TYPE:
+    elif signature_type == _function_registry.CLOUDEVENT_SIGNATURE_TYPE:
         app.url_map.add(
             werkzeug.routing.Rule(
                 "/", defaults={"path": ""}, endpoint=signature_type, methods=["POST"]
