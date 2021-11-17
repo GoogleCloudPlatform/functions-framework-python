@@ -62,7 +62,9 @@ def load_function_module(source):
     directory, filename = os.path.split(realpath)
     name, extension = os.path.splitext(filename)
     # 2. Create a new module
-    spec = importlib.util.spec_from_file_location(name, realpath)
+    spec = importlib.util.spec_from_file_location(
+        name, realpath, submodule_search_locations=[directory]
+    )
     source_module = importlib.util.module_from_spec(spec)
     # 3. Add the directory of the source to sys.path to allow the function to
     # load modules relative to its location
