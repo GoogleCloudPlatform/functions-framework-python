@@ -113,6 +113,7 @@ functions-framework --target=hello_cloud_event
 ```
 
 In a different terminal, `curl` the Functions Framework server:
+
 ```sh
 curl -X POST localhost:8080 \
    -H "Content-Type: application/cloudevents+json" \
