@@ -49,16 +49,19 @@ pip install functions-framework
 Or, for deployment, add the Functions Framework to your `requirements.txt` file:
 
 ```
-functions-framework==2.3.0
+functions-framework==3.*
 ```
 
 ## Quickstarts
 
-### Quickstart: Hello, World on your local machine
+### Quickstart: HTTP Function (Hello World)
 
 Create an `main.py` file with the following contents:
 
 ```python
+import functions_framework
+
+@functions_framework.http
 def hello(request):
     return "Hello world!"
 ```
@@ -66,30 +69,6 @@ def hello(request):
 > Your function is passed a single parameter, `(request)`, which is a Flask [`Request`](http://flask.pocoo.org/docs/1.0/api/#flask.Request) object.
 
 Run the following command:
-
-```sh
-functions-framework --target=hello
-```
-
-Open http://localhost:8080/ in your browser and see *Hello world!*.
-
-
-### Quickstart: Set up a new project
-
-Create a `main.py` file with the following contents:
-
-```python
-def hello(request):
-    return "Hello world!"
-```
-
-Now install the Functions Framework:
-
-```sh
-pip install functions-framework
-```
-
-Use the `functions-framework` command to start the built-in local development server:
 
 ```sh
 functions-framework --target hello --debug
@@ -101,17 +80,19 @@ functions-framework --target hello --debug
  * Running on http://0.0.0.0:8080/ (Press CTRL+C to quit)
 ```
 
-(You can also use `functions-framework-python` if you potentially have multiple
+(You can also use `functions-framework-python` if you have multiple
 language frameworks installed).
 
-Send requests to this function using `curl` from another terminal window:
+Open http://localhost:8080/ in your browser and see *Hello world!*.
+
+Or send requests to this function using `curl` from another terminal window:
 
 ```sh
 curl localhost:8080
 # Output: Hello world!
 ```
 
-### Quickstart: Register your function using decorator
+### Quickstart: CloudEvent Function
 
 Create an `main.py` file with the following contents:
 
@@ -120,27 +101,37 @@ import functions_framework
 
 @functions_framework.cloud_event
 def hello_cloud_event(cloud_event):
-   return f"Received event with ID: {cloud_event['id']} and data {cloud_event.data}"
-
-@functions_framework.http
-def hello_http(request):
-   return "Hello world!"
-
+   print(f"Received event with ID: {cloud_event['id']} and data {cloud_event.data}")
 ```
 
-Run the following command to run `hello_http` target locally:
-
-```sh
-functions-framework --target=hello_http
-```
-
-Open http://localhost:8080/ in your browser and see *Hello world!*.
+> Your function is passed a single [CloudEvent](https://github.com/cloudevents/sdk-python/blob/master/cloudevents/sdk/event/v1.py) parameter.
 
 Run the following command to run `hello_cloud_event` target locally:
 
 ```sh
 functions-framework --target=hello_cloud_event
 ```
+
+In a different terminal, `curl` the Functions Framework server:
+
+```sh
+curl -X POST localhost:8080 \
+   -H "Content-Type: application/cloudevents+json" \
+   -d '{
+	"specversion" : "1.0",
+	"type" : "example.com.cloud.event",
+	"source" : "https://example.com/cloudevents/pull",
+	"subject" : "123",
+	"id" : "A234-1234-1234",
+	"time" : "2018-04-05T17:31:00Z",
+	"data" : "hello world"
+}'
+```
+
+Output from the terminal running `functions-framework`:
+```
+Received event with ID: A234-1234-1234 and data hello world
+``` 
 
 More info on sending [CloudEvents](http://cloudevents.io) payloads, see [`examples/cloud_run_cloud_events`](examples/cloud_run_cloud_events/) instruction.
 
@@ -333,7 +324,7 @@ You can configure the Functions Framework using command-line flags or environmen
 | `--debug`          | `DEBUG`                   | A flag that allows to run functions-framework to run in debug mode, including live reloading. Default: `False`                                                                                   |
 | `--dry-run`        | `DRY_RUN`                 | A flag that allows for testing the function build from the configuration without creating a server. Default: `False` |
 
-## Enable Google Cloud Functions Events
+## Enable Google Cloud Function Events
 
 The Functions Framework can unmarshall incoming
 Google Cloud Functions [event](https://cloud.google.com/functions/docs/concepts/events-triggers#events) payloads to `event` and `context` objects.
@@ -355,19 +346,6 @@ documentation on
 [background functions](https://cloud.google.com/functions/docs/writing/background#cloud_pubsub_example).
 
 See the [running example](examples/cloud_run_event).
-
-## Enable CloudEvents
-
-The Functions framework can also unmarshall incoming [CloudEvents](http://cloudevents.io) payloads to the `cloud_event` object. This will be passed as a [CloudEvent](https://github.com/cloudevents/sdk-python) to your function when it receives a request.  Note that your function must use the `CloudEvents`-style function signature:
-
-```python
-def hello(cloud_event):
-    print(f"Received event with ID: {cloud_event['id']}")
-```
-
-To enable automatic unmarshalling, set the function signature type to `cloudevent` using the `--signature-type` command-line flag or the `FUNCTION_SIGNATURE_TYPE` environment variable. By default, the HTTP signature type will be used and automatic event unmarshalling will be disabled.
-
-For more details on this signature type, check out the Google Cloud Functions documentation on [background functions](https://cloud.google.com/functions/docs/writing/background#cloud_pubsub_example).
 
 ## Advanced Examples
 
