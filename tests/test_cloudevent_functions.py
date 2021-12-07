@@ -126,6 +126,15 @@ def test_binary_event(client, cloudevent_1_0):
     assert resp.data == b"OK"
 
 
+def test_traceparent(client, cloudevent_1_0):
+    headers, data = to_binary(cloudevent_1_0)
+    resp = client.post("/", headers=headers, data=data)
+    # TODO
+
+    assert resp.status_code == 200
+    assert resp.data == b"OK"
+
+
 def test_event_0_3(client, cloudevent_0_3):
     headers, data = to_structured(cloudevent_0_3)
     resp = client.post("/", headers=headers, data=data)

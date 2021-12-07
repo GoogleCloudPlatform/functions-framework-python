@@ -605,12 +605,3 @@ def tests_cloud_to_background_event_client_invalid_source(
 
     assert resp.status_code == 500
 
-
-def test_traceparent_header():
-    source = TEST_FUNCTIONS_DIR / "extension_traceparent" / "main.py"
-    target = "function"
-
-    client = create_app(target, source).test_client()
-    resp = client.get("/")
-
-    assert resp.status_code == 200
