@@ -113,7 +113,7 @@ def _cloudevent_view_func_wrapper(function, request):
         event = None
         try:
             event = from_http(request.headers, request.get_data())
-            if request.headers['traceparent']:
+            if 'traceparent' in request:
                 event.traceparent = request.headers['traceparent']
         except (
             cloud_exceptions.MissingRequiredFields,
