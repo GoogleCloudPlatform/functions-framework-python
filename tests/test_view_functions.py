@@ -85,10 +85,7 @@ def test_run_cloudevent():
 
 
 def test_cloudevent_view_func_wrapper():
-    headers = {
-        "Content-Type": "application/cloudevents+json",
-        "traceparent": "asdf",
-    }
+    headers = {"Content-Type": "application/cloudevents+json"}
 
     data = json.dumps(
         {
@@ -103,8 +100,6 @@ def test_cloudevent_view_func_wrapper():
 
     request = pretend.stub(headers=headers, get_data=lambda: data)
     event = from_http(request.headers, request.get_data())
-
-    assert event["traceparent"] == "asdf"
 
     function = pretend.call_recorder(lambda cloudevent: cloudevent)
 
