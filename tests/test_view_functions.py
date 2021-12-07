@@ -85,7 +85,10 @@ def test_run_cloudevent():
 
 
 def test_cloudevent_view_func_wrapper():
-    headers = {"Content-Type": "application/cloudevents+json"}
+    headers = {
+        "Content-Type": "application/cloudevents+json",
+        "traceparent": "asdf"
+    }
     data = json.dumps(
         {
             "source": "from-galaxy-far-far-away",
