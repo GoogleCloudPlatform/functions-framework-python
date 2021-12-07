@@ -104,7 +104,7 @@ def test_cloudevent_view_func_wrapper():
     request = pretend.stub(headers=headers, get_data=lambda: data)
     event = from_http(request.headers, request.get_data())
 
-    assert event.traceparent == "asdf"
+    assert event["traceparent"] == "asdf"
 
     function = pretend.call_recorder(lambda cloudevent: cloudevent)
 
