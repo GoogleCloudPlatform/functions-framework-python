@@ -23,6 +23,7 @@ class GunicornApplication(gunicorn.app.base.BaseApplication):
             "threads": 8,
             "timeout": 0,
             "loglevel": "error",
+            "limit_request_line": 0,
         }
         self.options.update(options)
         self.app = app
