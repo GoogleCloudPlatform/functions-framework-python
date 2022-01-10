@@ -33,11 +33,15 @@ from functions_framework._http import create_server
 @click.option("--port", envvar="PORT", type=click.INT, default=8080)
 @click.option("--debug", envvar="DEBUG", is_flag=True)
 @click.option("--dry-run", envvar="DRY_RUN", is_flag=True)
-def _cli(target, source, signature_type, host, port, debug, dry_run):
+@click.option("--options", "-o", envvar="OPTIONS", multiple=True)
+def _cli(target, source, signature_type, host, port, debug, dry_run, options):
     app = create_app(target, source, signature_type)
     if dry_run:
         click.echo("Function: {}".format(target))
         click.echo("URL: http://{}:{}/".format(host, port))
         click.echo("Dry run successful, shutting down.")
     else:
-        create_server(app, debug).run(host, port)
+        server_options = {
+            option.split(":")[0]: option.split(":")[1] for option in options
+        }
+        create_server(app, debug, **server_options).run(host, port)
