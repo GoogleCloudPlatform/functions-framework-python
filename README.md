@@ -323,6 +323,7 @@ You can configure the Functions Framework using command-line flags or environmen
 | `--source`         | `FUNCTION_SOURCE`         | The path to the file containing your function. Default: `main.py` (in the current working directory)                                                                                             |
 | `--debug`          | `DEBUG`                   | A flag that allows to run functions-framework to run in debug mode, including live reloading. Default: `False`                                                                                   |
 | `--dry-run`        | `DRY_RUN`                 | A flag that allows for testing the function build from the configuration without creating a server. Default: `False` |
+| `--options`        | `OPTIONS`                 | Pass in options to be used to override defaults in the HTTP Server. Options should be in the format `"KEY:VALUE"`. For example `--options="workers:3" --options="thread:9"` will set the default workers to 3 and threads to 9. If using the Environment variable, then make sure multiple options are seprated by a whitespace. Default: `{}` |
 
 ## Enable Google Cloud Function Events
 
