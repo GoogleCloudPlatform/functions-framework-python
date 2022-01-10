@@ -99,6 +99,12 @@ def test_cli_no_arguments():
             [pretend.call("foo", None, "http")],
             [pretend.call("0.0.0.0", 8080)],
         ),
+        (
+            ["--target", "foo", "--option", "workers:2", "--option", "threads:2"],
+            {},
+            [pretend.call("foo", None, "http")],
+            [pretend.call("0.0.0.0", 8080, {"workers": 2, "threads": 2})],
+        ),
     ],
 )
 def test_cli(monkeypatch, args, env, create_app_calls, run_calls):

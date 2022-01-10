@@ -33,7 +33,7 @@ from functions_framework._http import create_server
 @click.option("--port", envvar="PORT", type=click.INT, default=8080)
 @click.option("--debug", envvar="DEBUG", is_flag=True)
 @click.option("--dry-run", envvar="DRY_RUN", is_flag=True)
-@click.option("--options", "-o", envvar="OPTIONS", multiple=True)
+@click.option("--options", "-o", envvar="OPTIONS", multiple=True, default=[])
 def _cli(target, source, signature_type, host, port, debug, dry_run, options):
     app = create_app(target, source, signature_type)
     if dry_run:
