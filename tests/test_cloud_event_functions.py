@@ -190,7 +190,7 @@ def test_unparsable_cloud_event(client):
     resp = client.post("/", headers={}, data="")
 
     assert resp.status_code == 400
-    assert "MissingRequiredFields" in resp.data.decode()
+    assert "Bad Request" in resp.data.decode()
 
 
 @pytest.mark.parametrize("specversion", ["0.3", "1.0"])

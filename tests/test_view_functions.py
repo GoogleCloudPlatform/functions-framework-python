@@ -14,6 +14,8 @@
 import json
 
 import pretend
+import pytest
+import werkzeug
 
 from cloudevents.http import from_http
 
@@ -61,6 +63,20 @@ def test_event_view_func_wrapper(monkeypatch):
             resource="some-resource",
         )
     ]
+
+
+def test_event_view_func_wrapper_bad_request(monkeypatch):
+    request = pretend.stub(headers={}, get_json=lambda: None)
+
+    context_stub = pretend.stub()
+    context_class = pretend.call_recorder(lambda *a, **kw: context_stub)
+    monkeypatch.setattr(functions_framework, "Context", context_class)
+    function = pretend.call_recorder(lambda data, context: "Hello")
+
+    view_func = functions_framework._event_view_func_wrapper(function, request)
+
+    with pytest.raises(werkzeug.exceptions.BadRequest):
+        view_func("/some/path")
 
 
 def test_run_cloud_event():
