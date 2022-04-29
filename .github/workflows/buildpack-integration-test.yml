@@ -1,0 +1,52 @@
+# Validates Functions Framework with GCF buildpacks.
+name: Buildpack Integration Test
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+jobs:
+  python37:
+    uses: GoogleCloudPlatform/functions-framework-conformance/.github/workflows/buildpack-integration-test.yml@v1.4.1
+    with:
+      http-builder-source: 'tests/conformance'
+      http-builder-target: 'write_http_declarative'
+      cloudevent-builder-source: 'tests/conformance'
+      cloudevent-builder-target: 'write_cloud_event_declarative'
+      prerun: 'tests/conformance/prerun.sh ${{ github.sha }}'
+      builder-runtime: 'python37'
+      # Latest uploaded tag from us.gcr.io/fn-img/buildpacks/python37/builder
+      builder-tag: 'python37_20220426_3_7_12_RC00'
+  python38:
+    uses: GoogleCloudPlatform/functions-framework-conformance/.github/workflows/buildpack-integration-test.yml@v1.4.1
+    with:
+      http-builder-source: 'tests/conformance'
+      http-builder-target: 'write_http_declarative'
+      cloudevent-builder-source: 'tests/conformance'
+      cloudevent-builder-target: 'write_cloud_event_declarative'
+      prerun: 'tests/conformance/prerun.sh ${{ github.sha }}'
+      builder-runtime: 'python38'
+      # Latest uploaded tag from us.gcr.io/fn-img/buildpacks/python38/builder
+      builder-tag: 'python38_20220426_3_8_12_RC00'
+  python39:
+    uses: GoogleCloudPlatform/functions-framework-conformance/.github/workflows/buildpack-integration-test.yml@v1.4.1
+    with:
+      http-builder-source: 'tests/conformance'
+      http-builder-target: 'write_http_declarative'
+      cloudevent-builder-source: 'tests/conformance'
+      cloudevent-builder-target: 'write_cloud_event_declarative'
+      prerun: 'tests/conformance/prerun.sh ${{ github.sha }}'
+      builder-runtime: 'python39'
+      # Latest uploaded tag from us.gcr.io/fn-img/buildpacks/python39/builder
+      builder-tag: 'python39_20220426_3_9_10_RC00'
+  python310:
+    uses: GoogleCloudPlatform/functions-framework-conformance/.github/workflows/buildpack-integration-test.yml@v1.4.1
+    with:
+      http-builder-source: 'tests/conformance'
+      http-builder-target: 'write_http_declarative'
+      cloudevent-builder-source: 'tests/conformance'
+      cloudevent-builder-target: 'write_cloud_event_declarative'
+      prerun: 'tests/conformance/prerun.sh ${{ github.sha }}'
+      builder-runtime: 'python310'
+      # Latest uploaded tag from us.gcr.io/fn-img/buildpacks/python310/builder
+      builder-tag: 'python310_20220320_3_10_2_RC00'
