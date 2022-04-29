@@ -15,6 +15,7 @@ import json
 import pathlib
 
 import flask
+import pretend
 import pytest
 
 from cloudevents.http import from_json, to_binary
@@ -257,6 +258,13 @@ def test_firebase_db_event_to_cloud_event_missing_domain(
     assert (
         "Invalid FirebaseDB event payload: missing 'domain'" in exc_info.value.args[0]
     )
+
+
+def test_marshal_background_event_data_bad_request():
+    req = pretend.stub(headers={}, get_json=lambda: None)
+
+    with pytest.raises(EventConversionException):
+        event_conversion.background_event_to_cloud_event(req)
 
 
 @pytest.mark.parametrize(
