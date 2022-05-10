@@ -95,6 +95,7 @@ def setup_logging():
 
 
 def _http_view_func_wrapper(function, request):
+    @functools.wraps(function)
     def view_func(path):
         return function(request._get_current_object())
 

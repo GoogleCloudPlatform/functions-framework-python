@@ -33,6 +33,17 @@ def test_http_view_func_wrapper():
     assert function.calls == [pretend.call(request_object)]
 
 
+def test_http_view_func_wrapper_attribute_copied():
+    def function(_):
+        pass
+
+    function.attribute = "foo"
+    view_func = functions_framework._http_view_func_wrapper(function, pretend.stub())
+
+    assert view_func.__name__ == "function"
+    assert view_func.attribute == "foo"
+
+
 def test_event_view_func_wrapper(monkeypatch):
     data = pretend.stub()
     json = {
