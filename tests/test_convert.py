@@ -373,7 +373,7 @@ def test_marshal_background_event_data_without_topic_in_path(
 
 
 def test_marshal_background_event_data_without_topic_in_path_no_attr(
-    raw_pubsub_request_noattributes, marshalled_pubsub_request
+    raw_pubsub_request_noattributes, marshalled_pubsub_request_noattr
 ):
     req = flask.Request.from_values(
         json=raw_pubsub_request_noattributes, path="/myfunc/"
@@ -381,13 +381,13 @@ def test_marshal_background_event_data_without_topic_in_path_no_attr(
     payload = event_conversion.marshal_background_event_data(req)
 
     # Remove timestamps as they get generates on the fly
-    del marshalled_pubsub_request["context"]["timestamp"]
+    del marshalled_pubsub_request_noattr["context"]["timestamp"]
     del payload["context"]["timestamp"]
 
     # Resource name is set to empty string when it cannot be parsed from the request path
-    marshalled_pubsub_request["context"]["resource"]["name"] = ""
+    marshalled_pubsub_request_noattr["context"]["resource"]["name"] = ""
 
-    assert payload == marshalled_pubsub_request
+    assert payload == marshalled_pubsub_request_noattr
 
 
 def test_marshal_background_event_data_with_topic_path(
