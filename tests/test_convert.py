@@ -101,12 +101,41 @@ def raw_pubsub_request():
 
 
 @pytest.fixture
+def raw_pubsub_request_noattributes():
+    return {
+        "subscription": "projects/sample-project/subscriptions/gcf-test-sub",
+        "message": {"data": "eyJmb28iOiJiYXIifQ==", "messageId": "1215011316659232"},
+    }
+
+
+@pytest.fixture
 def marshalled_pubsub_request():
     return {
         "data": {
             "@type": "type.googleapis.com/google.pubsub.v1.PubsubMessage",
             "data": "eyJmb28iOiJiYXIifQ==",
             "attributes": {"test": "123"},
+        },
+        "context": {
+            "eventId": "1215011316659232",
+            "eventType": "google.pubsub.topic.publish",
+            "resource": {
+                "name": "projects/sample-project/topics/gcf-test",
+                "service": "pubsub.googleapis.com",
+                "type": "type.googleapis.com/google.pubsub.v1.PubsubMessage",
+            },
+            "timestamp": "2021-04-17T07:21:18.249Z",
+        },
+    }
+
+
+@pytest.fixture
+def marshalled_pubsub_request_noattr():
+    return {
+        "data": {
+            "@type": "type.googleapis.com/google.pubsub.v1.PubsubMessage",
+            "data": "eyJmb28iOiJiYXIifQ==",
+            "attributes": {},
         },
         "context": {
             "eventId": "1215011316659232",
@@ -341,6 +370,24 @@ def test_marshal_background_event_data_without_topic_in_path(
     marshalled_pubsub_request["context"]["resource"]["name"] = ""
 
     assert payload == marshalled_pubsub_request
+
+
+def test_marshal_background_event_data_without_topic_in_path_no_attr(
+    raw_pubsub_request_noattributes, marshalled_pubsub_request_noattr
+):
+    req = flask.Request.from_values(
+        json=raw_pubsub_request_noattributes, path="/myfunc/"
+    )
+    payload = event_conversion.marshal_background_event_data(req)
+
+    # Remove timestamps as they get generates on the fly
+    del marshalled_pubsub_request_noattr["context"]["timestamp"]
+    del payload["context"]["timestamp"]
+
+    # Resource name is set to empty string when it cannot be parsed from the request path
+    marshalled_pubsub_request_noattr["context"]["resource"]["name"] = ""
+
+    assert payload == marshalled_pubsub_request_noattr
 
 
 def test_marshal_background_event_data_with_topic_path(
