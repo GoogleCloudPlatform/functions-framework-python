@@ -317,7 +317,7 @@ def marshal_background_event_data(request):
             "data": {
                 "@type": _PUBSUB_MESSAGE_TYPE,
                 "data": request_data["message"]["data"],
-                "attributes": request_data["message"]["attributes"],
+                "attributes": request_data["message"].get("attributes", {}),
             },
         }
     except (AttributeError, KeyError, TypeError):
