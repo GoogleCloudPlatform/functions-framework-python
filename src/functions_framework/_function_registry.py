@@ -44,7 +44,7 @@ def get_user_function(source, source_module, target):
             if isinstance(getattr(source_module, attr), types.FunctionType)
         )
         raise MissingTargetException(
-            "File {source} is expected to contain a function named '{target}' ".format(
+            "File {source} is expected to contain a function named '{target}'. Found: {non_target_functions} instead".format(
                 source=source, target=target, non_target_functions=non_target_functions
             )
         )
