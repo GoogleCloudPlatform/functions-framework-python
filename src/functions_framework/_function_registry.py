@@ -39,7 +39,7 @@ def get_user_function(source, source_module, target):
     # Extract the target function from the source file
     if not hasattr(source_module, target):
         raise MissingTargetException(
-            "File {source} is expected to contain a function named {target}".format(
+            "File {source} is expected to contain a function named '{target}' ".format(
                 source=source, target=target
             )
         )
@@ -47,7 +47,7 @@ def get_user_function(source, source_module, target):
     # Check that it is a function
     if not isinstance(function, types.FunctionType):
         raise InvalidTargetTypeException(
-            "The function defined in file {source} as {target} needs to be of "
+            "The function defined in file {source} as '{target}' needs to be of "
             "type function. Got: invalid type {target_type}".format(
                 source=source, target=target, target_type=type(function)
             )
