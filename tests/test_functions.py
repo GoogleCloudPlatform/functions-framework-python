@@ -275,7 +275,7 @@ def test_invalid_function_definition_multiple_entry_points():
         create_app(target, source, "event")
 
     assert re.match(
-        "File .* is expected to contain a function named 'function'", str(excinfo.value)
+        "File .* is expected to contain a function named 'function' \(found: 'fun', 'myFunctionBar', 'myFunctionFoo' instead\)", str(excinfo.value)
     )
 
 
@@ -287,7 +287,7 @@ def test_invalid_function_definition_multiple_entry_points_invalid_function():
         create_app(target, source, "event")
 
     assert re.match(
-        "File .* is expected to contain a function named 'invalidFunction'",
+        "File .* is expected to contain a function named 'invalidFunction' \(found: 'fun', 'myFunctionBar', 'myFunctionFoo' instead\)",
         str(excinfo.value),
     )
 
