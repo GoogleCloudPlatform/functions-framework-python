@@ -38,16 +38,21 @@ def get_user_function(source, source_module, target):
     """Returns user function, raises exception for invalid function."""
     # Extract the target function from the source file
     if not hasattr(source_module, target):
+        non_target_functions = ", ".join(
+            "'{attr}'".format(attr=attr)
+            for attr in dir(source_module)
+            if isinstance(getattr(source_module, attr), types.FunctionType)
+        )
         raise MissingTargetException(
-            "File {source} is expected to contain a function named {target}".format(
-                source=source, target=target
+            "File {source} is expected to contain a function named '{target}'. Found: {non_target_functions} instead".format(
+                source=source, target=target, non_target_functions=non_target_functions
             )
         )
     function = getattr(source_module, target)
     # Check that it is a function
     if not isinstance(function, types.FunctionType):
         raise InvalidTargetTypeException(
-            "The function defined in file {source} as {target} needs to be of "
+            "The function defined in file {source} as '{target}' needs to be of "
             "type function. Got: invalid type {target_type}".format(
                 source=source, target=target, target_type=type(function)
             )
