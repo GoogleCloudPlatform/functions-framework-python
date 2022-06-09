@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.0](https://github.com/GoogleCloudPlatform/functions-framework-python/compare/v3.0.0...v3.1.0) (2022-06-09)
+
+
+### Features
+
+* Add more details to MissingTargetException error ([#189](https://github.com/GoogleCloudPlatform/functions-framework-python/issues/189)) ([b7055ed](https://github.com/GoogleCloudPlatform/functions-framework-python/commit/b7055ed838523cda71bf71bc0149f33271e60ebc))
+* allow for watchdog>=2.0.0 ([#186](https://github.com/GoogleCloudPlatform/functions-framework-python/issues/186)) ([b4ed666](https://github.com/GoogleCloudPlatform/functions-framework-python/commit/b4ed66673b3dd762c371f755c493a381c8241b50))
+
+
+### Bug Fixes
+
+* Add functools.wraps decorator ([#179](https://github.com/GoogleCloudPlatform/functions-framework-python/issues/179)) ([f2285f9](https://github.com/GoogleCloudPlatform/functions-framework-python/commit/f2285f96072d7ab8f00ada0d5f8c075e2b4ad364))
+* Change gunicorn request line limit to unlimited ([#173](https://github.com/GoogleCloudPlatform/functions-framework-python/issues/173)) ([6f4a360](https://github.com/GoogleCloudPlatform/functions-framework-python/commit/6f4a3608634debe0833d0ef5cd769050b5fecb01))
+* for issue [#170](https://github.com/GoogleCloudPlatform/functions-framework-python/issues/170) gracefully handle pubsub messages without attributes in them ([#187](https://github.com/GoogleCloudPlatform/functions-framework-python/issues/187)) ([a820fd4](https://github.com/GoogleCloudPlatform/functions-framework-python/commit/a820fd4cdb4bef6cffe0ef68a2d03af922f13d7e))
+* Support relative imports for submodules ([#169](https://github.com/GoogleCloudPlatform/functions-framework-python/issues/169)) ([9046388](https://github.com/GoogleCloudPlatform/functions-framework-python/commit/9046388fe8c32e897b83315863ee57ccf7d0e8df))
+
+
+### Documentation
+
+* update README to use declarative function signatures ([#171](https://github.com/GoogleCloudPlatform/functions-framework-python/issues/171)) ([efb0e84](https://github.com/GoogleCloudPlatform/functions-framework-python/commit/efb0e84d3f8ada6ac305b216baa6632570c38495))
+
 ## [Unreleased]
 
 ## [3.0.0] - 2021-11-10
