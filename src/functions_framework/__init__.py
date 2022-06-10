@@ -21,7 +21,6 @@ import pathlib
 import sys
 from typing import Any, Callable
 
-
 import cloudevents.exceptions as cloud_exceptions
 import flask
 import werkzeug
