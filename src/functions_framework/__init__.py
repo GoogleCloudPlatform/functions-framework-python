@@ -20,6 +20,8 @@ import os.path
 import pathlib
 import sys
 
+from typing import Any, Callable
+
 import cloudevents.exceptions as cloud_exceptions
 import flask
 import werkzeug
@@ -34,7 +36,6 @@ from functions_framework.exceptions import (
     MissingSourceException,
 )
 from google.cloud.functions.context import Context
-from typing import Any, Callable
 
 MAX_CONTENT_LENGTH = 10 * 1024 * 1024
 
