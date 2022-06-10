@@ -15,6 +15,7 @@ import importlib.util
 import os
 import sys
 import types
+from typing import Dict
 
 from functions_framework.exceptions import (
     InvalidConfigurationException,
@@ -31,7 +32,7 @@ BACKGROUNDEVENT_SIGNATURE_TYPE = "event"
 
 # REGISTRY_MAP stores the registered functions.
 # Keys are user function names, values are user function signature types.
-REGISTRY_MAP = {}
+REGISTRY_MAP: Dict[str, str] = {}
 
 
 def get_user_function(source, source_module, target):
@@ -108,8 +109,8 @@ def get_func_signature_type(func_name: str, signature_type: str) -> str:
         3. environment variable FUNCTION_SIGNATURE_TYPE
     If none of the above is set, signature type defaults to be "http".
     """
-    registered_type = REGISTRY_MAP[func_name] if func_name in REGISTRY_MAP else ""
-    sig_type = (
+    registered_type: str = REGISTRY_MAP[func_name] if func_name in REGISTRY_MAP else ""
+    sig_type: str = (
         registered_type
         or signature_type
         or os.environ.get(FUNCTION_SIGNATURE_TYPE, HTTP_SIGNATURE_TYPE)

@@ -19,6 +19,8 @@ import logging
 import os.path
 import pathlib
 import sys
+from typing import Any, Callable
+
 
 import cloudevents.exceptions as cloud_exceptions
 import flask
@@ -56,7 +58,7 @@ class _LoggingHandler(io.TextIOWrapper):
         return self.stderr.write(json.dumps(payload) + "\n")
 
 
-def cloud_event(func):
+def cloud_event(func: Any) -> Callable[[Any, Any], Any]:
     """Decorator that registers cloudevent as user function signature type."""
     _function_registry.REGISTRY_MAP[
         func.__name__
@@ -69,7 +71,7 @@ def cloud_event(func):
     return wrapper
 
 
-def http(func):
+def http(func: Any) -> Callable[[Any, Any], Any]:
     """Decorator that registers http as user function signature type."""
     _function_registry.REGISTRY_MAP[
         func.__name__
@@ -176,7 +178,7 @@ def _event_view_func_wrapper(function, request):
     return view_func
 
 
-def _configure_app(app, function, signature_type):
+def _configure_app(app: Any, function: Any, signature_type: str) -> None:
     # Mount the function at the root. Support GCF's default path behavior
     # Modify the url_map and view_functions directly here instead of using
     # add_url_rule in order to create endpoints that route all methods
