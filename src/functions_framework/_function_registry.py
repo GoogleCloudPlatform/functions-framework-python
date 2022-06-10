@@ -15,13 +15,13 @@ import importlib.util
 import os
 import sys
 import types
-from typing import Dict
 
 from functions_framework.exceptions import (
     InvalidConfigurationException,
     InvalidTargetTypeException,
     MissingTargetException,
 )
+from typing import Dict
 
 DEFAULT_SOURCE = os.path.realpath("./main.py")
 
