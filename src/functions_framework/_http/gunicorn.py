@@ -13,14 +13,14 @@
 # limitations under the License.
 
 import gunicorn.app.base
-
+import os
 
 class GunicornApplication(gunicorn.app.base.BaseApplication):
     def __init__(self, app, host, port, debug, **options):
         self.options = {
             "bind": "%s:%s" % (host, port),
-            "workers": 1,
-            "threads": 8,
+            "workers": os.environ.get('web_concurrency_workers'),
+            "threads": os.environ.get('web_concurrency_threads'),
             "timeout": 0,
             "loglevel": "error",
             "limit_request_line": 0,
