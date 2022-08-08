@@ -19,8 +19,8 @@ class GunicornApplication(gunicorn.app.base.BaseApplication):
     def __init__(self, app, host, port, debug, **options):
         self.options = {
             "bind": "%s:%s" % (host, port),
-            "workers": os.environ.get('web_concurrency_workers'),
-            "threads": os.environ.get('web_concurrency_threads'),
+            "workers": 1,
+            "threads": 1000,
             "timeout": 0,
             "loglevel": "error",
             "limit_request_line": 0,
