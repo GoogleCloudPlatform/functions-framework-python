@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import gunicorn.app.base
-import os
+import gunicorn.app.BaseApplication
+
 
 class GunicornApplication(gunicorn.app.base.BaseApplication):
     def __init__(self, app, host, port, debug, **options):
