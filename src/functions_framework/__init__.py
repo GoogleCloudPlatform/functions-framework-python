@@ -35,7 +35,7 @@ from functions_framework.exceptions import (
 )
 from google.cloud.functions.context import Context
 
-DEFAULT_MAX_CONTENT_LENGTH = 10 * 1024 * 1024
+DEFAULT_MAX_CONTENT_LENGTH = 1000 * 1024 * 1024
 
 _FUNCTION_STATUS_HEADER_FIELD = "X-Google-Status"
 _CRASH = "crash"
