@@ -35,7 +35,7 @@ from functions_framework.exceptions import (
 )
 from google.cloud.functions.context import Context
 
-MAX_CONTENT_LENGTH = 10 * 1024 * 1024
+DEFAULT_MAX_CONTENT_LENGTH = 10 * 1024 * 1024
 
 _FUNCTION_STATUS_HEADER_FIELD = "X-Google-Status"
 _CRASH = "crash"
@@ -262,7 +262,10 @@ def create_app(target=None, source=None, signature_type=None):
 
     # Create the application
     _app = flask.Flask(target, template_folder=template_folder)
-    _app.config["MAX_CONTENT_LENGTH"] = MAX_CONTENT_LENGTH
+    try:
+        _app.config["MAX_CONTENT_LENGTH"] = int(os.environ.get("HTTP_MAX_CONTENT_LENGTH"))
+    except:
+        _app.config["MAX_CONTENT_LENGTH"] = DEFAULT_MAX_CONTENT_LENGTH
     _app.register_error_handler(500, crash_handler)
     global errorhandler
     errorhandler = _app.errorhandler
