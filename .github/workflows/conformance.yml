@@ -75,7 +75,7 @@ jobs:
         functionType: 'http'
         useBuildpacks: false
         validateConcurrency: true
-        cmd: "'functions-framework --source tests/conformance/main.py --target write_http_declarative'"
+        cmd: "'functions-framework --source tests/conformance/main.py --target write_http_declarative_concurrent'"
 
     - name: Run CloudEvents concurrency tests
       uses: GoogleCloudPlatform/functions-framework-conformance/action@v1.6.0
@@ -84,4 +84,4 @@ jobs:
         functionType: 'cloudevent'
         useBuildpacks: false
         validateConcurrency: true
-        cmd: "'functions-framework --source tests/conformance/main.py --target write_cloud_event_declarative'"
+        cmd: "'functions-framework --source tests/conformance/main.py --target write_cloud_event_declarative_concurrent'"
