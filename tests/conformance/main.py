@@ -1,4 +1,5 @@
 import json
+import time
 
 from cloudevents.http import to_json
 
@@ -46,3 +47,9 @@ def write_http_declarative(request):
 @functions_framework.cloud_event
 def write_cloud_event_declarative(cloud_event):
     _write_output(to_json(cloud_event).decode())
+
+
+@functions_framework.http
+def write_http_declarative_concurrent(request):
+    time.sleep(1)
+    return "OK", 200
