@@ -53,9 +53,3 @@ def write_cloud_event_declarative(cloud_event):
 def write_http_declarative_concurrent(request):
     time.sleep(1)
     return "OK", 200
-
-
-@functions_framework.cloud_event
-def write_cloud_event_declarative_concurrent(cloud_event):
-    time.sleep(1)
-    return "OK", 200
