@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.0](https://github.com/GoogleCloudPlatform/functions-framework-python/compare/v3.1.0...v3.2.0) (2022-08-11)
+
+
+### Features
+
+* Scale gunicorn server to serve 1000 concurrent requests ([#195](https://github.com/GoogleCloudPlatform/functions-framework-python/issues/195)) ([91e2efa](https://github.com/GoogleCloudPlatform/functions-framework-python/commit/91e2efa9356b120a07906023119219d99a6a0791))
+
 ## [3.1.0](https://github.com/GoogleCloudPlatform/functions-framework-python/compare/v3.0.0...v3.1.0) (2022-06-09)
 
 
