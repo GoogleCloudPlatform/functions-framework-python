@@ -263,7 +263,9 @@ def create_app(target=None, source=None, signature_type=None):
     # Create the application
     _app = flask.Flask(target, template_folder=template_folder)
     try:
-        _app.config["MAX_CONTENT_LENGTH"] = int(os.environ.get("HTTP_MAX_CONTENT_LENGTH"))
+        _app.config["MAX_CONTENT_LENGTH"] = int(
+            os.environ.get("HTTP_MAX_CONTENT_LENGTH")
+        )
     except:
         _app.config["MAX_CONTENT_LENGTH"] = DEFAULT_MAX_CONTENT_LENGTH
     _app.register_error_handler(500, crash_handler)
