@@ -19,6 +19,7 @@ import logging
 import os.path
 import pathlib
 import sys
+from typing import Type
 
 import cloudevents.exceptions as cloud_exceptions
 import flask
@@ -33,7 +34,12 @@ from functions_framework.exceptions import (
     FunctionsFrameworkException,
     MissingSourceException,
 )
+from functions_framework.firstparty_event import FirstPartyEvent
 from google.cloud.functions.context import Context
+import sys
+    # caution: path[0] is reserved for script path (or '' in REPL)
+sys.path.insert(1, '/usr/local/google/home/pratikshakap/code/sample/BigQuery/')
+
 
 MAX_CONTENT_LENGTH = 10 * 1024 * 1024
 
@@ -55,13 +61,38 @@ class _LoggingHandler(io.TextIOWrapper):
         payload = dict(severity=self.level, message=out.rstrip("\n"))
         return self.stderr.write(json.dumps(payload) + "\n")
 
-
 def cloud_event(func):
+    print("cloud_event(func)")
     """Decorator that registers cloudevent as user function signature type."""
     _function_registry.REGISTRY_MAP[
         func.__name__
     ] = _function_registry.CLOUDEVENT_SIGNATURE_TYPE
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        return func(*args, **kwargs)
 
+    return wrapper
+
+def input_type(googleType:Type):
+    def decorator(func):
+        _function_registry.REGISTRY_MAP[
+        func.__name__
+        ] = _function_registry.FIRSTPARTY_SIGNATURE_TYPE
+        _function_registry.INPUT_MAP[
+        func.__name__
+        ] = googleType
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
+
+def first_party(func):
+    print("first_party(func)")
+    """Decorator that registers cloudevent as user function signature type."""
+    _function_registry.REGISTRY_MAP[
+        func.__name__
+    ] = _function_registry.FIRSTPARTY_SIGNATURE_TYPE
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         return func(*args, **kwargs)
@@ -70,6 +101,7 @@ def cloud_event(func):
 
 
 def http(func):
+    print("http(func)")
     """Decorator that registers http as user function signature type."""
     _function_registry.REGISTRY_MAP[
         func.__name__
@@ -95,6 +127,7 @@ def setup_logging():
 
 
 def _http_view_func_wrapper(function, request):
+    print("_http_view_func_wrapper")
     @functools.wraps(function)
     def view_func(path):
         return function(request._get_current_object())
@@ -103,12 +136,30 @@ def _http_view_func_wrapper(function, request):
 
 
 def _run_cloud_event(function, request):
+    print("_run_cloud_event")
     data = request.get_data()
     event = from_http(request.headers, data)
     function(event)
 
+def _custom_event_func_wrapper(function, request,t:Type):
+    print("_custom_event_func_wrapper")
+    def view_func(path):
+        ce_exception = None
+        #event = from_http(request.headers, request.get_data())
+        event_data = request.get_json()
+        event_object = FirstPartyEvent(event_data)
+        data = event_object.data
+        #context = Context(**event_object.context)
+        print(t)
+        
+        bqr= t(**data)
+        return function(bqr)
+        return "OK"
+
+    return view_func
 
 def _cloud_event_view_func_wrapper(function, request):
+    print("_cloud_event_view_func_wrapper")
     def view_func(path):
         ce_exception = None
         event = None
@@ -144,6 +195,7 @@ def _cloud_event_view_func_wrapper(function, request):
 
 
 def _event_view_func_wrapper(function, request):
+    print("_event_view_func_wrapper")
     def view_func(path):
         if event_conversion.is_convertable_cloud_event(request):
             # Convert this CloudEvent to the equivalent background event data and context.
@@ -176,7 +228,8 @@ def _event_view_func_wrapper(function, request):
     return view_func
 
 
-def _configure_app(app, function, signature_type):
+def _configure_app(app, function, signature_type, inputType):
+    print("_configure_app")
     # Mount the function at the root. Support GCF's default path behavior
     # Modify the url_map and view_functions directly here instead of using
     # add_url_rule in order to create endpoints that route all methods
@@ -218,6 +271,20 @@ def _configure_app(app, function, signature_type):
         app.view_functions[signature_type] = _cloud_event_view_func_wrapper(
             function, flask.request
         )
+    elif signature_type == _function_registry.FIRSTPARTY_SIGNATURE_TYPE:
+        app.url_map.add(
+            werkzeug.routing.Rule(
+                "/", defaults={"path": ""}, endpoint=signature_type, methods=["POST"]
+            )
+        )
+        app.url_map.add(
+            werkzeug.routing.Rule(
+                "/<path:path>", endpoint=signature_type, methods=["POST"]
+            )
+        )
+        app.view_functions[signature_type] = _custom_event_func_wrapper(
+            function, flask.request, inputType
+        )
     else:
         raise FunctionsFrameworkException(
             "Invalid signature type: {signature_type}".format(
@@ -227,6 +294,7 @@ def _configure_app(app, function, signature_type):
 
 
 def read_request(response):
+    print("read_request")
     """
     Force the framework to read the entire request before responding, to avoid
     connection errors when returning prematurely.
@@ -244,6 +312,7 @@ def crash_handler(e):
 
 
 def create_app(target=None, source=None, signature_type=None):
+    print("create_app")
     target = _function_registry.get_function_target(target)
     source = _function_registry.get_function_source(source)
 
@@ -291,8 +360,9 @@ def create_app(target=None, source=None, signature_type=None):
     # Get the configured function signature type
     signature_type = _function_registry.get_func_signature_type(target, signature_type)
     function = _function_registry.get_user_function(source, source_module, target)
+    inputType = _function_registry.get_func_input_type(target)
 
-    _configure_app(_app, function, signature_type)
+    _configure_app(_app, function, signature_type,inputType)
 
     return _app
 

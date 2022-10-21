@@ -115,6 +115,7 @@ _FIREBASE_AUTH_METADATA_FIELDS_CE_TO_BACKGROUND = {
 
 
 def background_event_to_cloud_event(request) -> CloudEvent:
+    print("background_event_to_cloud_event")
     """Converts a background event represented by the given HTTP request into a CloudEvent."""
     event_data = marshal_background_event_data(request)
     if not event_data:
@@ -185,6 +186,7 @@ def background_event_to_cloud_event(request) -> CloudEvent:
 
 
 def is_convertable_cloud_event(request) -> bool:
+    print("is_convertable_cloud_event")
     """Is the given request a known CloudEvent that can be converted to background event."""
     if is_binary(request.headers):
         event_type = request.headers.get("ce-type")
@@ -208,6 +210,7 @@ def _split_ce_source(source) -> Tuple[str, str]:
 
 
 def cloud_event_to_background_event(request) -> Tuple[Any, Context]:
+    print("cloud_event_to_background_event")
     """Converts a background event represented by the given HTTP request into a CloudEvent."""
     try:
         event = from_http(request.headers, request.get_data())
@@ -294,6 +297,7 @@ def _split_resource(context: Context) -> Tuple[str, str, str]:
 
 
 def marshal_background_event_data(request):
+    print("marshal_background_event_data")
     """Marshal the request body of a raw Pub/Sub HTTP request into the schema that is expected of
     a background event"""
     try:
