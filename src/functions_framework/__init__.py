@@ -152,9 +152,10 @@ def _custom_event_func_wrapper(function, request,t:Type):
         #context = Context(**event_object.context)
         print(t)
         
-        bqr= t(**data)
-        return function(bqr)
-        return "OK"
+        bqr= t.from_dict(data)
+        response = function(bqr)
+        return json.dumps(response.to_dict())
+        #return "OK"
 
     return view_func
 
@@ -226,7 +227,7 @@ def _event_view_func_wrapper(function, request):
         return "OK"
 
     return view_func
-
+    
 
 def _configure_app(app, function, signature_type, inputType):
     print("_configure_app")
