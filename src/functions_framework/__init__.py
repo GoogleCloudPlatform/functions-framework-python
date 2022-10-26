@@ -62,7 +62,6 @@ class _LoggingHandler(io.TextIOWrapper):
         return self.stderr.write(json.dumps(payload) + "\n")
 
 def cloud_event(func):
-    print("cloud_event(func)")
     """Decorator that registers cloudevent as user function signature type."""
     _function_registry.REGISTRY_MAP[
         func.__name__
@@ -88,7 +87,6 @@ def input_type(googleType:Type):
     return decorator
 
 def first_party(func):
-    print("first_party(func)")
     """Decorator that registers cloudevent as user function signature type."""
     _function_registry.REGISTRY_MAP[
         func.__name__
@@ -101,7 +99,6 @@ def first_party(func):
 
 
 def http(func):
-    print("http(func)")
     """Decorator that registers http as user function signature type."""
     _function_registry.REGISTRY_MAP[
         func.__name__
@@ -127,7 +124,6 @@ def setup_logging():
 
 
 def _http_view_func_wrapper(function, request):
-    print("_http_view_func_wrapper")
     @functools.wraps(function)
     def view_func(path):
         return function(request._get_current_object())
@@ -136,20 +132,17 @@ def _http_view_func_wrapper(function, request):
 
 
 def _run_cloud_event(function, request):
-    print("_run_cloud_event")
     data = request.get_data()
     event = from_http(request.headers, data)
     function(event)
 
 def _custom_event_func_wrapper(function, request,t:Type):
-    print("_custom_event_func_wrapper")
     def view_func(path):
         try:
             event_data = request.get_json()
             event_object = FirstPartyEvent(event_data)
             data = event_object.data
             #context = Context(**event_object.context)
-            print(t)
             
             bqr= t.from_dict(data)
             response = function(bqr)
@@ -161,7 +154,6 @@ def _custom_event_func_wrapper(function, request,t:Type):
     return view_func
 
 def _cloud_event_view_func_wrapper(function, request):
-    print("_cloud_event_view_func_wrapper")
     def view_func(path):
         ce_exception = None
         event = None
@@ -197,7 +189,6 @@ def _cloud_event_view_func_wrapper(function, request):
 
 
 def _event_view_func_wrapper(function, request):
-    print("_event_view_func_wrapper")
     def view_func(path):
         if event_conversion.is_convertable_cloud_event(request):
             # Convert this CloudEvent to the equivalent background event data and context.
@@ -231,7 +222,6 @@ def _event_view_func_wrapper(function, request):
     
 
 def _configure_app(app, function, signature_type, inputType):
-    print("_configure_app")
     # Mount the function at the root. Support GCF's default path behavior
     # Modify the url_map and view_functions directly here instead of using
     # add_url_rule in order to create endpoints that route all methods
@@ -296,7 +286,6 @@ def _configure_app(app, function, signature_type, inputType):
 
 
 def read_request(response):
-    print("read_request")
     """
     Force the framework to read the entire request before responding, to avoid
     connection errors when returning prematurely.
@@ -314,7 +303,6 @@ def crash_handler(e):
 
 
 def create_app(target=None, source=None, signature_type=None):
-    print("create_app")
     target = _function_registry.get_function_target(target)
     source = _function_registry.get_function_source(source)
 
