@@ -144,17 +144,18 @@ def _run_cloud_event(function, request):
 def _custom_event_func_wrapper(function, request,t:Type):
     print("_custom_event_func_wrapper")
     def view_func(path):
-        ce_exception = None
-        #event = from_http(request.headers, request.get_data())
-        event_data = request.get_json()
-        event_object = FirstPartyEvent(event_data)
-        data = event_object.data
-        #context = Context(**event_object.context)
-        print(t)
-        
-        bqr= t.from_dict(data)
-        response = function(bqr)
-        return json.dumps(response.to_dict())
+        try:
+            event_data = request.get_json()
+            event_object = FirstPartyEvent(event_data)
+            data = event_object.data
+            #context = Context(**event_object.context)
+            print(t)
+            
+            bqr= t.from_dict(data)
+            response = function(bqr)
+            return json.dumps(response.to_dict())
+        except Exception as e:
+            return json.dumps(e.to_dict()), e.error_code
         #return "OK"
 
     return view_func
