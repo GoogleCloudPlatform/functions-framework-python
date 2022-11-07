@@ -33,8 +33,6 @@ jobs:
       cloudevent-builder-target: 'write_cloud_event_declarative'
       prerun: 'tests/conformance/prerun.sh ${{ github.sha }}'
       builder-runtime: 'python39'
-      # Latest uploaded tag from us.gcr.io/fn-img/buildpacks/python39/builder
-      builder-tag: 'python39_20220426_3_9_10_RC00'
   python310:
     uses: GoogleCloudPlatform/functions-framework-conformance/.github/workflows/buildpack-integration-test.yml@v1.8.0
     with:
