@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.1](https://github.com/GoogleCloudPlatform/functions-framework-python/compare/v3.2.0...v3.2.1) (2022-11-09)
+
+
+### Bug Fixes
+
+* Remove the 10MB limit ([#205](https://github.com/GoogleCloudPlatform/functions-framework-python/issues/205)) ([34b8083](https://github.com/GoogleCloudPlatform/functions-framework-python/commit/34b8083c53d88d378718916cc2c20de7665150d4))
+
 ## [3.2.0](https://github.com/GoogleCloudPlatform/functions-framework-python/compare/v3.1.0...v3.2.0) (2022-08-11)
 
 
