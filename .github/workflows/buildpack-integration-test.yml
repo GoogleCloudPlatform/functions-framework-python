@@ -15,6 +15,7 @@ jobs:
       cloudevent-builder-target: 'write_cloud_event_declarative'
       prerun: 'tests/conformance/prerun.sh ${{ github.sha }}'
       builder-runtime: 'python37'
+      start-delay: 5
   python38:
     uses: GoogleCloudPlatform/functions-framework-conformance/.github/workflows/buildpack-integration-test.yml@v1.8.0
     with:
@@ -24,6 +25,7 @@ jobs:
       cloudevent-builder-target: 'write_cloud_event_declarative'
       prerun: 'tests/conformance/prerun.sh ${{ github.sha }}'
       builder-runtime: 'python38'
+      start-delay: 5
   python39:
     uses: GoogleCloudPlatform/functions-framework-conformance/.github/workflows/buildpack-integration-test.yml@v1.8.0
     with:
@@ -33,6 +35,7 @@ jobs:
       cloudevent-builder-target: 'write_cloud_event_declarative'
       prerun: 'tests/conformance/prerun.sh ${{ github.sha }}'
       builder-runtime: 'python39'
+      start-delay: 5
   python310:
     uses: GoogleCloudPlatform/functions-framework-conformance/.github/workflows/buildpack-integration-test.yml@v1.8.0
     with:
@@ -42,3 +45,4 @@ jobs:
       cloudevent-builder-target: 'write_cloud_event_declarative'
       prerun: 'tests/conformance/prerun.sh ${{ github.sha }}'
       builder-runtime: 'python310'
+      start-delay: 5
