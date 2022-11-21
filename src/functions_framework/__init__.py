@@ -46,7 +46,7 @@ import os
     # caution: path[0] is reserved for script path (or '' in REPL)
 sys.path.insert(1, '/usr/local/google/home/pratikshakap/code/sample/BigQueryFolder/')
 #sys.path.insert(2, '..')
-import BigQuery
+
 #import BigQueryFolder
 
 MAX_CONTENT_LENGTH = 10 * 1024 * 1024
@@ -80,47 +80,35 @@ def cloud_event(func):
 
     return wrapper
 
-def input_type(googleType):
-    print(googleType)
+def typed(googleType):
     # no parameter to the decorator
     if isinstance(googleType, types.FunctionType):
         func = googleType
-        sig= signature(func)
+        sig = signature(func)
         _function_registry.INPUT_MAP[
         func.__name__
         ] = list(sig.parameters.values())[0].annotation
         _function_registry.REGISTRY_MAP[
         func.__name__
-        ] = _function_registry.FIRSTPARTY_SIGNATURE_TYPE
+        ] = _function_registry.TYPED_SIGNATURE_TYPE
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             return func(*args, **kwargs)
         return wrapper
     # type parameter provided to the decorator
     else:       
-        def decorator(func):
+        def func_decorator(func):
             _function_registry.INPUT_MAP[
             func.__name__
             ] = googleType
             _function_registry.REGISTRY_MAP[
             func.__name__
-            ] = _function_registry.FIRSTPARTY_SIGNATURE_TYPE  
+            ] = _function_registry.TYPED_SIGNATURE_TYPE  
             @functools.wraps(func)
             def wrapper(*args, **kwargs):
                 return func(*args, **kwargs)
             return wrapper
-        return decorator
-
-def first_party(func):
-    """Decorator that registers cloudevent as user function signature type."""
-    _function_registry.REGISTRY_MAP[
-        func.__name__
-    ] = _function_registry.FIRSTPARTY_SIGNATURE_TYPE
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        return func(*args, **kwargs)
-
-    return wrapper
+        return func_decorator
 
 
 def http(func):
@@ -161,24 +149,19 @@ def _run_cloud_event(function, request):
     event = from_http(request.headers, data)
     function(event)
 
-def _custom_event_func_wrapper(function, request,t:Type):
+def _custom_event_func_wrapper(function, request,inputType:Type):
     def view_func(path):
-        try:
-            print(request.headers)
-            print(request)
-            event_data = request.get_json()
-            print(event_data)
-            event_object = FirstPartyEvent(event_data)
-            data = event_object.data
-            #context = Context(**event_object.context)
-            print(type(t))
-            bqr= t.from_dict(data)
-            response = function(bqr)
-            print(type(response))
-            return json.dumps(response.to_dict())
-        except Exception as e:
-            return json.dumps(e.to_dict()), e.error_code
-        #return "OK"
+        data = request.get_json()
+        if not (hasattr(inputType, 'from_dict') and callable(getattr(inputType, 'from_dict'))):
+            raise MissingSourceException( # pass the correct exception
+            "ABORTTTTTTT"
+        )
+        input = inputType.from_dict(data)
+        response = function(input)
+        print(response.__class__.__module__)
+        if response.__class__.__module__== "builtins":
+            return response
+        return json.dumps(response.to_dict())
 
     return view_func
 
@@ -292,7 +275,8 @@ def _configure_app(app, function, signature_type, inputType):
         app.view_functions[signature_type] = _cloud_event_view_func_wrapper(
             function, flask.request
         )
-    elif signature_type == _function_registry.FIRSTPARTY_SIGNATURE_TYPE:
+    elif signature_type == _function_registry.TYPED_SIGNATURE_TYPE:
+        #validitycheck()
         app.url_map.add(
             werkzeug.routing.Rule(
                 "/", defaults={"path": ""}, endpoint=signature_type, methods=["POST"]

@@ -30,7 +30,7 @@ FUNCTION_SIGNATURE_TYPE = "FUNCTION_SIGNATURE_TYPE"
 HTTP_SIGNATURE_TYPE = "http"
 CLOUDEVENT_SIGNATURE_TYPE = "cloudevent"
 BACKGROUNDEVENT_SIGNATURE_TYPE = "event"
-FIRSTPARTY_SIGNATURE_TYPE = "firstparty"
+TYPED_SIGNATURE_TYPE = "typed"
 
 # REGISTRY_MAP stores the registered functions.
 # Keys are user function names, values are user function signature types.
@@ -126,5 +126,5 @@ def get_func_signature_type(func_name: str, signature_type: str) -> str:
     return sig_type
 
 def get_func_input_type(func_name: str) -> Type:
-    registered_type = INPUT_MAP[func_name] if func_name in REGISTRY_MAP else ""
+    registered_type = INPUT_MAP[func_name] if func_name in INPUT_MAP else ""
     return registered_type
