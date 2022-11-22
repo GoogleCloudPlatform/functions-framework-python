@@ -35,3 +35,12 @@ class MissingTargetException(FunctionsFrameworkException):
 
 class EventConversionException(FunctionsFrameworkException):
     pass
+
+class MissingTypeException(FunctionsFrameworkException):
+    pass
+
+class TypeMismatchException(FunctionsFrameworkException):
+    pass
+
+class MissingMethodException(FunctionsFrameworkException):
+    pass

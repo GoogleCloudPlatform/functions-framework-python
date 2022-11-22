@@ -30,14 +30,13 @@ import werkzeug
 
 from cloudevents.http import from_http, is_binary
 
-from functions_framework import _function_registry, event_conversion
+from functions_framework import _function_registry, event_conversion, typed_event
 from functions_framework.background_event import BackgroundEvent
 from functions_framework.exceptions import (
     EventConversionException,
     FunctionsFrameworkException,
     MissingSourceException,
 )
-from functions_framework.firstparty_event import FirstPartyEvent
 from google.cloud.functions.context import Context
 import sys
 import os
@@ -77,6 +76,25 @@ def cloud_event(func):
         return func(*args, **kwargs)
 
     return wrapper
+
+def typednew(googleType):
+    # no parameter to the decorator
+    if isinstance(googleType, types.FunctionType):
+        func=googleType
+        typed_event.register_typed_event("", func)
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            return func(*args, **kwargs)
+        return wrapper
+    # type parameter provided to the decorator
+    else:       
+        def func_decorator(func):
+            typed_event.register_typed_event(googleType, func)
+            @functools.wraps(func)
+            def wrapper(*args, **kwargs):
+                return func(*args, **kwargs)
+            return wrapper
+        return func_decorator
 
 def typed(googleType):
     # no parameter to the decorator
@@ -147,18 +165,15 @@ def _run_cloud_event(function, request):
     event = from_http(request.headers, data)
     function(event)
 
-def _custom_event_func_wrapper(function, request,inputType:Type):
+def _typed_event_func_wrapper(function, request,inputType:Type):
     def view_func(path):
         data = request.get_json()
-        if not (hasattr(inputType, 'from_dict') and callable(getattr(inputType, 'from_dict'))):
-            raise MissingSourceException( # pass the correct exception
-            "ABORTTTTTTT"
-        )
         input = inputType.from_dict(data)
         response = function(input)
         print(response.__class__.__module__)
         if response.__class__.__module__== "builtins":
             return response
+        typed_event.validate_return_type(response)
         return json.dumps(response.to_dict())
 
     return view_func
@@ -274,7 +289,7 @@ def _configure_app(app, function, signature_type, inputType):
             function, flask.request
         )
     elif signature_type == _function_registry.TYPED_SIGNATURE_TYPE:
-        #validitycheck()
+        #validity_check()
         app.url_map.add(
             werkzeug.routing.Rule(
                 "/", defaults={"path": ""}, endpoint=signature_type, methods=["POST"]
@@ -285,7 +300,7 @@ def _configure_app(app, function, signature_type, inputType):
                 "/<path:path>", endpoint=signature_type, methods=["POST"]
             )
         )
-        app.view_functions[signature_type] = _custom_event_func_wrapper(
+        app.view_functions[signature_type] = _typed_event_func_wrapper(
             function, flask.request, inputType
         )
     else:
@@ -365,7 +380,6 @@ def create_app(target=None, source=None, signature_type=None):
     _configure_app(_app, function, signature_type,inputType)
 
     return _app
-
 
 class LazyWSGIApp:
     """
