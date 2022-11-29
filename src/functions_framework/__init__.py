@@ -77,7 +77,7 @@ def cloud_event(func):
 
     return wrapper
 
-def typednew(googleType):
+def typed(googleType):
     # no parameter to the decorator
     if isinstance(googleType, types.FunctionType):
         func=googleType
@@ -90,36 +90,6 @@ def typednew(googleType):
     else:       
         def func_decorator(func):
             typed_event.register_typed_event(googleType, func)
-            @functools.wraps(func)
-            def wrapper(*args, **kwargs):
-                return func(*args, **kwargs)
-            return wrapper
-        return func_decorator
-
-def typed(googleType):
-    # no parameter to the decorator
-    if isinstance(googleType, types.FunctionType):
-        func = googleType
-        sig = signature(func)
-        _function_registry.INPUT_MAP[
-        func.__name__
-        ] = list(sig.parameters.values())[0].annotation
-        _function_registry.REGISTRY_MAP[
-        func.__name__
-        ] = _function_registry.TYPED_SIGNATURE_TYPE
-        @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            return func(*args, **kwargs)
-        return wrapper
-    # type parameter provided to the decorator
-    else:       
-        def func_decorator(func):
-            _function_registry.INPUT_MAP[
-            func.__name__
-            ] = googleType
-            _function_registry.REGISTRY_MAP[
-            func.__name__
-            ] = _function_registry.TYPED_SIGNATURE_TYPE  
             @functools.wraps(func)
             def wrapper(*args, **kwargs):
                 return func(*args, **kwargs)
@@ -170,11 +140,12 @@ def _typed_event_func_wrapper(function, request,inputType:Type):
         data = request.get_json()
         input = inputType.from_dict(data)
         response = function(input)
-        print(response.__class__.__module__)
+        if response is None:
+            return "OK"
         if response.__class__.__module__== "builtins":
             return response
         typed_event.validate_return_type(response)
-        return json.dumps(response.to_dict())
+        return response.to_dict()
 
     return view_func
 

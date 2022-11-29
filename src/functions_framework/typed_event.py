@@ -31,6 +31,24 @@ class TypedEvent(object):
 def register_typed_event(decorator_type, func):
     sig = signature(func)
     annotation_type = list(sig.parameters.values())[0].annotation
+    
+    type_validity_check(decorator_type, annotation_type)
+    if(decorator_type == ""):
+        decorator_type = annotation_type
+    
+    _function_registry.INPUT_MAP[
+    func.__name__
+    ] = decorator_type
+    _function_registry.REGISTRY_MAP[
+    func.__name__
+    ] = _function_registry.TYPED_SIGNATURE_TYPE
+
+def validate_return_type(response):
+    if not (hasattr(response, 'to_dict') and callable(getattr(response, 'to_dict'))):
+        raise MissingMethodException("The type {response} does not have the required method called "
+        " 'to_dict'.".format(response=response))
+
+def type_validity_check(decorator_type, annotation_type):
     if(decorator_type == "" and annotation_type is inspect._empty):
         raise MissingTypeException("The function defined does not contain Type of the input object.")
 
@@ -46,17 +64,3 @@ def register_typed_event(decorator_type, func):
     if not (hasattr(decorator_type, 'from_dict') and callable(getattr(decorator_type, 'from_dict'))):
         raise MissingMethodException("The type {decorator_type} does not have the required method called "
         " 'from_dict'.".format(decorator_type=decorator_type))
-    
-    _function_registry.INPUT_MAP[
-    func.__name__
-    ] = decorator_type
-    _function_registry.REGISTRY_MAP[
-    func.__name__
-    ] = _function_registry.TYPED_SIGNATURE_TYPE
-
-    print(f"#### {decorator_type=} &&& {annotation_type=}")
-
-def validate_return_type(response):
-    if not (hasattr(response, 'to_dict') and callable(getattr(response, 'to_dict'))):
-        raise MissingMethodException("The type {response} does not have the required method called "
-        " 'to_dict'.".format(response=response))
