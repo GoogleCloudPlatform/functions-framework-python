@@ -13,15 +13,16 @@
 # limitations under the License.
 
 
-from inspect import signature
 import inspect
 
+from inspect import signature
+
+from functions_framework import _function_registry
 from functions_framework.exceptions import (
     MissingMethodException,
     MissingTypeException,
     TypeMismatchException,
 )
-from functions_framework import _function_registry
 
 
 class TypedEvent(object):

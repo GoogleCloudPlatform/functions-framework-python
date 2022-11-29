@@ -13,11 +13,11 @@
 # limitations under the License.
 
 """Function used to test handling functions using typed decorators."""
+from typing import Any, TypeVar
+
 import flask
 
 import functions_framework
-
-from typing import Any, TypeVar
 
 T = TypeVar("T")
 

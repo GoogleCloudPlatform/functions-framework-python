@@ -15,7 +15,6 @@ import pathlib
 
 import pytest
 
-
 from functions_framework import create_app
 from functions_framework.exceptions import MissingMethodException, MissingTypeException
 

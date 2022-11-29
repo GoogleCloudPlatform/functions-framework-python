@@ -13,9 +13,10 @@
 # limitations under the License.
 import importlib.util
 import os
-from re import T
 import sys
 import types
+
+from re import T
 from typing import Type
 
 from functions_framework.exceptions import (

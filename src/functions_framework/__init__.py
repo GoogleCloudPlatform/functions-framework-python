@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import functools
-from inspect import signature
 import inspect
 import io
 import json
@@ -22,6 +21,8 @@ import os.path
 import pathlib
 import sys
 import types
+
+from inspect import signature
 from typing import Type
 
 import cloudevents.exceptions as cloud_exceptions
