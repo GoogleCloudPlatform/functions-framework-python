@@ -21,17 +21,21 @@ from typing import Any, TypeVar, Type, cast
 
 T = TypeVar("T")
 
+
 def from_str(x: Any) -> str:
     assert isinstance(x, str)
     return x
+
 
 def from_int(x: Any) -> int:
     assert isinstance(x, int) and not isinstance(x, bool)
     return x
 
+
 def to_class(c: Type[T], x: Any) -> dict:
     assert isinstance(x, c)
     return cast(Any, x).to_dict()
+
 
 class TestType:
     name: str
@@ -42,7 +46,7 @@ class TestType:
         self.age = age
 
     @staticmethod
-    def from_dict(obj: dict) -> 'TestType':
+    def from_dict(obj: dict) -> "TestType":
         name = from_str(obj.get("name"))
         age = from_int(obj.get("age"))
         return TestType(name, age)
@@ -54,15 +58,9 @@ class TestType:
         return result
 
 
-
-
 @functions_framework.typednew(TestType)
-def function_typed(testType:TestType):
-    valid_event =(
-        testType.name == "john"
-        and testType.age == 10
-    )
+def function_typed(testType: TestType):
+    valid_event = testType.name == "john" and testType.age == 10
     if not valid_event:
         flask.abort(500)
     return testType
-

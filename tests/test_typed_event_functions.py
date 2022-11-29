@@ -34,16 +34,18 @@ def typed_decorator_client():
     target = "function_typed"
     return create_app(target, source).test_client()
 
+
 @pytest.fixture
 def typed_decorator_missing_todict():
     source = TEST_FUNCTIONS_DIR / "typed_events" / "missing_to_dict.py"
     target = "function_typed_missing_to_dict"
     return create_app(target, source).test_client()
 
+
 def test_typed_decorator(typed_decorator_client):
-    resp = typed_decorator_client.post("/", json={"name": "john" , "age": 10})
+    resp = typed_decorator_client.post("/", json={"name": "john", "age": 10})
     assert resp.status_code == 200
-    assert resp.data == b"{\"age\":10,\"name\":\"john\"}\n"
+    assert resp.data == b'{"age":10,"name":"john"}\n'
 
 
 def test_missing_from_dict_typed_decorator():
@@ -59,6 +61,7 @@ def test_missing_type_information_typed_decorator():
     with pytest.raises(MissingTypeException):
         create_app(target, source).test_client()
 
+
 def test_missing_to_dict_typed_decorator(typed_decorator_missing_todict):
-    resp = typed_decorator_missing_todict.post("/", json={"name": "john" , "age": 10})
+    resp = typed_decorator_missing_todict.post("/", json={"name": "john", "age": 10})
     assert resp.status_code == 500

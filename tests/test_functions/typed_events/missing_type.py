@@ -17,12 +17,10 @@ import flask
 
 import functions_framework
 
+
 @functions_framework.typednew
 def function_typed_missing_type_information(testType):
-    valid_event =(
-        testType.name == "john"
-        and testType.age == 10
-    )
+    valid_event = testType.name == "john" and testType.age == 10
     if not valid_event:
         flask.abort(500)
     return testType

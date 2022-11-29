@@ -13,20 +13,23 @@
 # limitations under the License.
 
 """Function used to test handling functions using typed decorators."""
+from typing import Any, TypeVar
 import flask
 
 import functions_framework
 
-from typing import Any, TypeVar
-
 T = TypeVar("T")
+
 
 def from_str(x: Any) -> str:
     assert isinstance(x, str)
     return x
 
+
 def from_int(x: Any) -> int:
     assert isinstance(x, int) and not isinstance(x, bool)
+    return x
+
 
 class TestTypeMissingFromDict:
     name: str
@@ -42,12 +45,10 @@ class TestTypeMissingFromDict:
         result["age"] = from_int(self.age)
         return result
 
-@functions_framework.typednew(TestTypeMissingFromDict)
-def function_typed_missing_from_dict(testType:TestTypeMissingFromDict):
-    valid_event =(
-        testType.name == "john"
-        and testType.age == 10
-    )
+
+@functions_framework.typed(TestTypeMissingFromDict)
+def function_typed_missing_from_dict(test_type: TestTypeMissingFromDict):
+    valid_event = test_type.name == "john" and test_type.age == 10
     if not valid_event:
         flask.abort(500)
-    return testType
+    return test_type

@@ -35,7 +35,7 @@ TYPED_SIGNATURE_TYPE = "typed"
 # REGISTRY_MAP stores the registered functions.
 # Keys are user function names, values are user function signature types.
 REGISTRY_MAP = {}
-INPUT_MAP ={}
+INPUT_MAP = {}
 
 
 def get_user_function(source, source_module, target):
@@ -124,6 +124,7 @@ def get_func_signature_type(func_name: str, signature_type: str) -> str:
     if os.environ.get("ENTRY_POINT"):
         os.environ["FUNCTION_TRIGGER_TYPE"] = sig_type
     return sig_type
+
 
 def get_func_input_type(func_name: str) -> Type:
     registered_type = INPUT_MAP[func_name] if func_name in INPUT_MAP else ""

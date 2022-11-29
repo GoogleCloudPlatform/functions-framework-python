@@ -21,13 +21,16 @@ from typing import Any, TypeVar
 
 T = TypeVar("T")
 
+
 def from_str(x: Any) -> str:
     assert isinstance(x, str)
     return x
 
+
 def from_int(x: Any) -> int:
     assert isinstance(x, int) and not isinstance(x, bool)
-    
+    return x
+
 
 class TestTypeMissingToDict:
     name: str
@@ -38,18 +41,15 @@ class TestTypeMissingToDict:
         self.age = age
 
     @staticmethod
-    def from_dict(obj: dict) -> 'TestTypeMissingToDict':
+    def from_dict(obj: dict) -> "TestTypeMissingToDict":
         name = from_str(obj.get("name"))
         age = from_int(obj.get("age"))
         return TestTypeMissingToDict(name, age)
 
 
-@functions_framework.typednew(TestTypeMissingToDict)
-def function_typed_missing_to_dict(testType:TestTypeMissingToDict):
-    valid_event =(
-        testType.name == "john"
-        and testType.age == 10
-    )
+@functions_framework.typed(TestTypeMissingToDict)
+def function_typed_missing_to_dict(testType: TestTypeMissingToDict):
+    valid_event = testType.name == "john" and testType.age == 10
     if not valid_event:
         flask.abort(500)
     return testType

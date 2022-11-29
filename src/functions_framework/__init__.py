@@ -38,15 +38,6 @@ from functions_framework.exceptions import (
     MissingSourceException,
 )
 from google.cloud.functions.context import Context
-import sys
-import os
-
-#sys.path.insert(1, os.path.abspath('../../../sample/python/BigQueryFolder/'))
-    # caution: path[0] is reserved for script path (or '' in REPL)
-sys.path.insert(1, '/usr/local/google/home/pratikshakap/code/sample/BigQueryFolder/')
-#sys.path.insert(2, '..')
-
-#import BigQueryFolder
 
 _FUNCTION_STATUS_HEADER_FIELD = "X-Google-Status"
 _CRASH = "crash"
@@ -66,34 +57,43 @@ class _LoggingHandler(io.TextIOWrapper):
         payload = dict(severity=self.level, message=out.rstrip("\n"))
         return self.stderr.write(json.dumps(payload) + "\n")
 
+
 def cloud_event(func):
     """Decorator that registers cloudevent as user function signature type."""
     _function_registry.REGISTRY_MAP[
         func.__name__
     ] = _function_registry.CLOUDEVENT_SIGNATURE_TYPE
+
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         return func(*args, **kwargs)
 
     return wrapper
 
+
 def typed(googleType):
     # no parameter to the decorator
     if isinstance(googleType, types.FunctionType):
-        func=googleType
+        func = googleType
         typed_event.register_typed_event("", func)
+
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             return func(*args, **kwargs)
+
         return wrapper
     # type parameter provided to the decorator
-    else:       
+    else:
+
         def func_decorator(func):
             typed_event.register_typed_event(googleType, func)
+
             @functools.wraps(func)
             def wrapper(*args, **kwargs):
                 return func(*args, **kwargs)
+
             return wrapper
+
         return func_decorator
 
 
@@ -135,19 +135,21 @@ def _run_cloud_event(function, request):
     event = from_http(request.headers, data)
     function(event)
 
-def _typed_event_func_wrapper(function, request,inputType:Type):
+
+def _typed_event_func_wrapper(function, request, inputType: Type):
     def view_func(path):
         data = request.get_json()
         input = inputType.from_dict(data)
         response = function(input)
         if response is None:
             return "OK"
-        if response.__class__.__module__== "builtins":
+        if response.__class__.__module__ == "builtins":
             return response
         typed_event.validate_return_type(response)
         return response.to_dict()
 
     return view_func
+
 
 def _cloud_event_view_func_wrapper(function, request):
     def view_func(path):
@@ -215,7 +217,7 @@ def _event_view_func_wrapper(function, request):
         return "OK"
 
     return view_func
-    
+
 
 def _configure_app(app, function, signature_type, inputType):
     # Mount the function at the root. Support GCF's default path behavior
@@ -260,7 +262,7 @@ def _configure_app(app, function, signature_type, inputType):
             function, flask.request
         )
     elif signature_type == _function_registry.TYPED_SIGNATURE_TYPE:
-        #validity_check()
+        # validity_check()
         app.url_map.add(
             werkzeug.routing.Rule(
                 "/", defaults={"path": ""}, endpoint=signature_type, methods=["POST"]
@@ -348,9 +350,10 @@ def create_app(target=None, source=None, signature_type=None):
     function = _function_registry.get_user_function(source, source_module, target)
     inputType = _function_registry.get_func_input_type(target)
 
-    _configure_app(_app, function, signature_type,inputType)
+    _configure_app(_app, function, signature_type, inputType)
 
     return _app
+
 
 class LazyWSGIApp:
     """

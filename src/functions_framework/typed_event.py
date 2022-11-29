@@ -16,8 +16,13 @@
 from inspect import signature
 import inspect
 
-from functions_framework.exceptions import MissingMethodException, MissingTypeException, TypeMismatchException
+from functions_framework.exceptions import (
+    MissingMethodException,
+    MissingTypeException,
+    TypeMismatchException,
+)
 from functions_framework import _function_registry
+
 
 class TypedEvent(object):
 
@@ -28,39 +33,55 @@ class TypedEvent(object):
     ):
         self.data = data
 
+
 def register_typed_event(decorator_type, func):
     sig = signature(func)
     annotation_type = list(sig.parameters.values())[0].annotation
-    
+
     type_validity_check(decorator_type, annotation_type)
-    if(decorator_type == ""):
+    if decorator_type == "":
         decorator_type = annotation_type
-    
-    _function_registry.INPUT_MAP[
-    func.__name__
-    ] = decorator_type
+
+    _function_registry.INPUT_MAP[func.__name__] = decorator_type
     _function_registry.REGISTRY_MAP[
-    func.__name__
+        func.__name__
     ] = _function_registry.TYPED_SIGNATURE_TYPE
 
+
 def validate_return_type(response):
-    if not (hasattr(response, 'to_dict') and callable(getattr(response, 'to_dict'))):
-        raise MissingMethodException("The type {response} does not have the required method called "
-        " 'to_dict'.".format(response=response))
+    if not (hasattr(response, "to_dict") and callable(getattr(response, "to_dict"))):
+        raise MissingMethodException(
+            "The type {response} does not have the required method called "
+            " 'to_dict'.".format(response=response)
+        )
+
 
 def type_validity_check(decorator_type, annotation_type):
-    if(decorator_type == "" and annotation_type is inspect._empty):
-        raise MissingTypeException("The function defined does not contain Type of the input object.")
+    if decorator_type == "" and annotation_type is inspect._empty:
+        raise MissingTypeException(
+            "The function defined does not contain Type of the input object."
+        )
 
-    if(decorator_type != "" and annotation_type is not inspect._empty and decorator_type != annotation_type):
-        raise TypeMismatchException("The object type provided via 'typed' {decorator_type}"
-        "is different from the one in the function annotation {annotation_type}.".format(
-            decorator_type=decorator_type, annotation_type=annotation_type
-        ))
+    if (
+        decorator_type != ""
+        and annotation_type is not inspect._empty
+        and decorator_type != annotation_type
+    ):
+        raise TypeMismatchException(
+            "The object type provided via 'typed' {decorator_type}"
+            "is different from the one in the function annotation {annotation_type}.".format(
+                decorator_type=decorator_type, annotation_type=annotation_type
+            )
+        )
 
-    if(decorator_type == ""):
+    if decorator_type == "":
         decorator_type = annotation_type
-        
-    if not (hasattr(decorator_type, 'from_dict') and callable(getattr(decorator_type, 'from_dict'))):
-        raise MissingMethodException("The type {decorator_type} does not have the required method called "
-        " 'from_dict'.".format(decorator_type=decorator_type))
+
+    if not (
+        hasattr(decorator_type, "from_dict")
+        and callable(getattr(decorator_type, "from_dict"))
+    ):
+        raise MissingMethodException(
+            "The type {decorator_type} does not have the required method called "
+            " 'from_dict'.".format(decorator_type=decorator_type)
+        )
