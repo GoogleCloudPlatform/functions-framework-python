@@ -16,7 +16,6 @@ import pathlib
 import pytest
 
 from functions_framework import create_app
-from functions_framework.exceptions import MissingMethodException, MissingTypeException
 
 TEST_FUNCTIONS_DIR = pathlib.Path(__file__).resolve().parent / "test_functions"
 
@@ -44,20 +43,20 @@ def typed_decorator_missing_todict():
 def test_typed_decorator(typed_decorator_client):
     resp = typed_decorator_client.post("/", json={"name": "john", "age": 10})
     assert resp.status_code == 200
-    assert resp.data == b'{"age":10,"name":"john"}\n'
+    assert resp.data == b'{"name": "john", "age": 10}'
 
 
 def test_missing_from_dict_typed_decorator():
     source = TEST_FUNCTIONS_DIR / "typed_events" / "missing_from_dict.py"
     target = "function_typed_missing_from_dict"
-    with pytest.raises(MissingMethodException) as excinfo:
+    with pytest.raises(AttributeError) as excinfo:
         create_app(target, source).test_client()
 
 
 def test_missing_type_information_typed_decorator():
     source = TEST_FUNCTIONS_DIR / "typed_events" / "missing_type.py"
     target = "function_typed_missing_type_information"
-    with pytest.raises(MissingTypeException):
+    with pytest.raises(TypeError):
         create_app(target, source).test_client()
 
 

@@ -18,7 +18,7 @@ import flask
 import functions_framework
 
 
-@functions_framework.typednew
+@functions_framework.typed
 def function_typed_missing_type_information(testType):
     valid_event = testType.name == "john" and testType.age == 10
     if not valid_event:

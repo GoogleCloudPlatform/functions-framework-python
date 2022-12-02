@@ -37,6 +37,7 @@ TYPED_SIGNATURE_TYPE = "typed"
 # Keys are user function names, values are user function signature types.
 REGISTRY_MAP = {}
 INPUT_MAP = {}
+CONTEXT_MAP = {}
 
 
 def get_user_function(source, source_module, target):

@@ -147,7 +147,7 @@ def _typed_event_func_wrapper(function, request, inputType: Type):
         if response.__class__.__module__ == "builtins":
             return response
         typed_event.validate_return_type(response)
-        return response.to_dict()
+        return json.dumps(response.to_dict())
 
     return view_func
 

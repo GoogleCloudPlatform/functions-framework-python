@@ -58,7 +58,7 @@ class TestType:
         return result
 
 
-@functions_framework.typednew(TestType)
+@functions_framework.typed(TestType)
 def function_typed(testType: TestType):
     valid_event = testType.name == "john" and testType.age == 10
     if not valid_event:

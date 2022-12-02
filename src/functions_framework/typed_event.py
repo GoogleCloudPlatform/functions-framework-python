@@ -18,11 +18,6 @@ import inspect
 from inspect import signature
 
 from functions_framework import _function_registry
-from functions_framework.exceptions import (
-    MissingMethodException,
-    MissingTypeException,
-    TypeMismatchException,
-)
 
 
 class TypedEvent(object):
@@ -33,6 +28,24 @@ class TypedEvent(object):
         data,
     ):
         self.data = data
+
+
+def register_typed_event2(decorator_type, contextSet, func):
+    print("######")
+    print(decorator_type)
+    print(contextSet)
+    sig = signature(func)
+    annotation_type = list(sig.parameters.values())[0].annotation
+    print(annotation_type)
+    type_validity_check(decorator_type, annotation_type)
+    if decorator_type == "":
+        decorator_type = annotation_type
+
+    _function_registry.INPUT_MAP[func.__name__] = decorator_type
+    _function_registry.REGISTRY_MAP[
+        func.__name__
+    ] = _function_registry.TYPED_SIGNATURE_TYPE
+    _function_registry.CONTEXT_MAP[func.__name__] = contextSet
 
 
 def register_typed_event(decorator_type, func):
@@ -51,7 +64,7 @@ def register_typed_event(decorator_type, func):
 
 def validate_return_type(response):
     if not (hasattr(response, "to_dict") and callable(getattr(response, "to_dict"))):
-        raise MissingMethodException(
+        raise AttributeError(
             "The type {response} does not have the required method called "
             " 'to_dict'.".format(response=response)
         )
@@ -59,7 +72,7 @@ def validate_return_type(response):
 
 def type_validity_check(decorator_type, annotation_type):
     if decorator_type == "" and annotation_type is inspect._empty:
-        raise MissingTypeException(
+        raise TypeError(
             "The function defined does not contain Type of the input object."
         )
 
@@ -68,7 +81,7 @@ def type_validity_check(decorator_type, annotation_type):
         and annotation_type is not inspect._empty
         and decorator_type != annotation_type
     ):
-        raise TypeMismatchException(
+        raise TypeError(
             "The object type provided via 'typed' {decorator_type}"
             "is different from the one in the function annotation {annotation_type}.".format(
                 decorator_type=decorator_type, annotation_type=annotation_type
@@ -82,7 +95,7 @@ def type_validity_check(decorator_type, annotation_type):
         hasattr(decorator_type, "from_dict")
         and callable(getattr(decorator_type, "from_dict"))
     ):
-        raise MissingMethodException(
+        raise AttributeError(
             "The type {decorator_type} does not have the required method called "
             " 'from_dict'.".format(decorator_type=decorator_type)
         )
