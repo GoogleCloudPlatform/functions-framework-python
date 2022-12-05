@@ -20,34 +20,6 @@ from inspect import signature
 from functions_framework import _function_registry
 
 
-class TypedEvent(object):
-
-    # Supports v1beta1, v1beta2, and v1 event formats.
-    def __init__(
-        self,
-        data,
-    ):
-        self.data = data
-
-
-def register_typed_event2(decorator_type, contextSet, func):
-    print("######")
-    print(decorator_type)
-    print(contextSet)
-    sig = signature(func)
-    annotation_type = list(sig.parameters.values())[0].annotation
-    print(annotation_type)
-    type_validity_check(decorator_type, annotation_type)
-    if decorator_type == "":
-        decorator_type = annotation_type
-
-    _function_registry.INPUT_MAP[func.__name__] = decorator_type
-    _function_registry.REGISTRY_MAP[
-        func.__name__
-    ] = _function_registry.TYPED_SIGNATURE_TYPE
-    _function_registry.CONTEXT_MAP[func.__name__] = contextSet
-
-
 def register_typed_event(decorator_type, func):
     sig = signature(func)
     annotation_type = list(sig.parameters.values())[0].annotation

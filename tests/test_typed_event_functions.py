@@ -27,9 +27,9 @@ except:
 
 
 @pytest.fixture
-def typed_decorator_client():
+def typed_decorator_client(function_name):
     source = TEST_FUNCTIONS_DIR / "typed_events" / "typed_event.py"
-    target = "function_typed"
+    target = function_name
     return create_app(target, source).test_client()
 
 
@@ -40,16 +40,45 @@ def typed_decorator_missing_todict():
     return create_app(target, source).test_client()
 
 
+@pytest.mark.parametrize("function_name", ["function_typed"])
 def test_typed_decorator(typed_decorator_client):
     resp = typed_decorator_client.post("/", json={"name": "john", "age": 10})
     assert resp.status_code == 200
     assert resp.data == b'{"name": "john", "age": 10}'
 
 
+@pytest.mark.parametrize("function_name", ["function_typed_reflect"])
+def test_typed_reflect_decorator(typed_decorator_client):
+    resp = typed_decorator_client.post("/", json={"name": "jane", "age": 20})
+    assert resp.status_code == 200
+    assert resp.data == b'{"name": "jane", "age": 20}'
+
+
+@pytest.mark.parametrize("function_name", ["function_typed_noreturn"])
+def test_typed_noreturn(typed_decorator_client):
+    resp = typed_decorator_client.post("/", json={"name": "jane", "age": 20})
+    assert resp.status_code == 200
+    assert resp.data == b"OK"
+
+
+@pytest.mark.parametrize("function_name", ["function_typed_string_return"])
+def test_typed_string_return(typed_decorator_client):
+    resp = typed_decorator_client.post("/", json={"name": "jane", "age": 20})
+    assert resp.status_code == 200
+    assert resp.data == b"Hello jane"
+
+
 def test_missing_from_dict_typed_decorator():
     source = TEST_FUNCTIONS_DIR / "typed_events" / "missing_from_dict.py"
     target = "function_typed_missing_from_dict"
     with pytest.raises(AttributeError) as excinfo:
+        create_app(target, source).test_client()
+
+
+def test_mismatch_types_typed_decorator():
+    source = TEST_FUNCTIONS_DIR / "typed_events" / "mismatch_types.py"
+    target = "function_typed_mismatch_types"
+    with pytest.raises(TypeError) as excinfo:
         create_app(target, source).test_client()
 
 

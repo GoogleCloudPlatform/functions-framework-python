@@ -64,3 +64,26 @@ def function_typed(testType: TestType):
     if not valid_event:
         flask.abort(500)
     return testType
+
+
+@functions_framework.typed
+def function_typed_reflect(testType: TestType):
+    valid_event = testType.name == "jane" and testType.age == 20
+    if not valid_event:
+        flask.abort(500)
+    return testType
+
+
+@functions_framework.typed
+def function_typed_noreturn(testType: TestType):
+    valid_event = testType.name == "jane" and testType.age == 20
+    if not valid_event:
+        flask.abort(500)
+
+
+@functions_framework.typed
+def function_typed_string_return(testType: TestType):
+    valid_event = testType.name == "jane" and testType.age == 20
+    if not valid_event:
+        flask.abort(500)
+    return "Hello " + testType.name
