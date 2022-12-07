@@ -31,7 +31,7 @@ import werkzeug
 
 from cloudevents.http import from_http, is_binary
 
-from functions_framework import _function_registry, event_conversion, typed_event
+from functions_framework import _function_registry, _typed_event, event_conversion
 from functions_framework.background_event import BackgroundEvent
 from functions_framework.exceptions import (
     EventConversionException,
@@ -76,7 +76,7 @@ def typed(googleType):
     # no parameter to the decorator
     if isinstance(googleType, types.FunctionType):
         func = googleType
-        typed_event.register_typed_event("", func)
+        _typed_event.register_typed_event("", func)
 
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
@@ -87,7 +87,7 @@ def typed(googleType):
     else:
 
         def func_decorator(func):
-            typed_event.register_typed_event(googleType, func)
+            _typed_event.register_typed_event(googleType, func)
 
             @functools.wraps(func)
             def wrapper(*args, **kwargs):
@@ -139,15 +139,20 @@ def _run_cloud_event(function, request):
 
 def _typed_event_func_wrapper(function, request, inputType: Type):
     def view_func(path):
-        data = request.get_json()
-        input = inputType.from_dict(data)
-        response = function(input)
-        if response is None:
-            return "OK"
-        if response.__class__.__module__ == "builtins":
-            return response
-        typed_event.validate_return_type(response)
-        return json.dumps(response.to_dict())
+        try:
+            data = request.get_json()
+            input = inputType.from_dict(data)
+            response = function(input)
+            if response is None:
+                return "", 200
+            if response.__class__.__module__ == "builtins":
+                return response
+            _typed_event.validate_return_type(response)
+            return json.dumps(response.to_dict())
+        except Exception as e:
+            raise FunctionsFrameworkException(
+                "Function execution failed with the error"
+            ) from e
 
     return view_func
 
@@ -220,7 +225,7 @@ def _event_view_func_wrapper(function, request):
     return view_func
 
 
-def _configure_app(app, function, signature_type, inputType):
+def _configure_app(app, function, signature_type):
     # Mount the function at the root. Support GCF's default path behavior
     # Modify the url_map and view_functions directly here instead of using
     # add_url_rule in order to create endpoints that route all methods
@@ -274,8 +279,9 @@ def _configure_app(app, function, signature_type, inputType):
                 "/<path:path>", endpoint=signature_type, methods=["POST"]
             )
         )
+        input_type = _function_registry.get_func_input_type(function.__name__)
         app.view_functions[signature_type] = _typed_event_func_wrapper(
-            function, flask.request, inputType
+            function, flask.request, input_type
         )
     else:
         raise FunctionsFrameworkException(
@@ -349,9 +355,8 @@ def create_app(target=None, source=None, signature_type=None):
     # Get the configured function signature type
     signature_type = _function_registry.get_func_signature_type(target, signature_type)
     function = _function_registry.get_user_function(source, source_module, target)
-    inputType = _function_registry.get_func_input_type(target)
 
-    _configure_app(_app, function, signature_type, inputType)
+    _configure_app(_app, function, signature_type)
 
     return _app
 

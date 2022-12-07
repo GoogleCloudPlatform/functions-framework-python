@@ -1,4 +1,4 @@
-# Copyright 2021 Google LLC
+# Copyright 2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@ import pathlib
 import pytest
 
 from functions_framework import create_app
+from functions_framework.exceptions import FunctionsFrameworkException
 
 TEST_FUNCTIONS_DIR = pathlib.Path(__file__).resolve().parent / "test_functions"
 
@@ -58,7 +59,7 @@ def test_typed_reflect_decorator(typed_decorator_client):
 def test_typed_noreturn(typed_decorator_client):
     resp = typed_decorator_client.post("/", json={"name": "jane", "age": 20})
     assert resp.status_code == 200
-    assert resp.data == b"OK"
+    assert resp.data == b""
 
 
 @pytest.mark.parametrize("function_name", ["function_typed_string_return"])
@@ -71,23 +72,28 @@ def test_typed_string_return(typed_decorator_client):
 def test_missing_from_dict_typed_decorator():
     source = TEST_FUNCTIONS_DIR / "typed_events" / "missing_from_dict.py"
     target = "function_typed_missing_from_dict"
-    with pytest.raises(AttributeError) as excinfo:
+    with pytest.raises(FunctionsFrameworkException) as excinfo:
         create_app(target, source).test_client()
 
 
 def test_mismatch_types_typed_decorator():
     source = TEST_FUNCTIONS_DIR / "typed_events" / "mismatch_types.py"
     target = "function_typed_mismatch_types"
-    with pytest.raises(TypeError) as excinfo:
+    with pytest.raises(FunctionsFrameworkException) as excinfo:
         create_app(target, source).test_client()
 
 
 def test_missing_type_information_typed_decorator():
     source = TEST_FUNCTIONS_DIR / "typed_events" / "missing_type.py"
     target = "function_typed_missing_type_information"
-    with pytest.raises(TypeError):
+    with pytest.raises(FunctionsFrameworkException):
         create_app(target, source).test_client()
 
+def test_missing_parameter_typed_decorator():
+    source = TEST_FUNCTIONS_DIR / "typed_events" / "missing_parameter.py"
+    target = "function_typed_missing_parameter"
+    with pytest.raises(FunctionsFrameworkException):
+        create_app(target, source).test_client()
 
 def test_missing_to_dict_typed_decorator(typed_decorator_missing_todict):
     resp = typed_decorator_missing_todict.post("/", json={"name": "john", "age": 10})

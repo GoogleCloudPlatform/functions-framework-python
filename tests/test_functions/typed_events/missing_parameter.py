@@ -13,31 +13,11 @@
 # limitations under the License.
 
 """Function used to test handling functions using typed decorators."""
-
 import flask
 
 import functions_framework
 
 
-class TestType1:
-    name: str
-    age: int
-
-    def __init__(self, name: str, age: int) -> None:
-        self.name = name
-        self.age = age
-
-
-class TestType2:
-    name: str
-
-    def __init__(self, name: str) -> None:
-        self.name = name
-
-
-@functions_framework.typed(TestType2)
-def function_typed_mismatch_types(test_type: TestType1):
-    valid_event = test_type.name == "john" and test_type.age == 10
-    if not valid_event:
-        flask.abort(500)
-    return test_type
+@functions_framework.typed
+def function_typed_missing_type_information():
+    print("hello")
