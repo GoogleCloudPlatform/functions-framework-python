@@ -58,6 +58,42 @@ class TestType:
         return result
 
 
+class SampleType:
+    country: str
+    population: int
+
+    def __init__(self, country: str, population: int) -> None:
+        self.country = country
+        self.population = population
+
+    @staticmethod
+    def from_dict(obj: dict) -> "SampleType":
+        country = from_str(obj.get("country"))
+        population = from_int(obj.get("population"))
+        return SampleType(country, population)
+
+    def to_dict(self) -> dict:
+        result: dict = {}
+        result["country"] = from_str(self.country)
+        result["population"] = from_int(self.population)
+        return result
+
+
+class FaultyType:
+    country: str
+    population: int
+
+    def __init__(self, country: str, population: int) -> None:
+        self.country = country
+        self.population = population
+
+    @staticmethod
+    def from_dict(obj: dict) -> "SampleType":
+        country = from_str(obj.get("country"))
+        population = from_int(obj.get("population"))
+        return SampleType(country, population / 0)
+
+
 @functions_framework.typed(TestType)
 def function_typed(testType: TestType):
     valid_event = testType.name == "john" and testType.age == 10
@@ -87,3 +123,19 @@ def function_typed_string_return(testType: TestType):
     if not valid_event:
         raise Exception("Received invalid input")
     return "Hello " + testType.name
+
+
+@functions_framework.typed(TestType)
+def function_typed_different_types(testType: TestType) -> SampleType:
+    valid_event = testType.name == "jane" and testType.age == 20
+    if not valid_event:
+        raise Exception("Received invalid input")
+    sampleType = SampleType("Monaco", 40000)
+    return sampleType
+
+
+@functions_framework.typed
+def function_typed_faulty_from_dict(input: FaultyType):
+    valid_event = input.country == "Monaco" and input.population == 40000
+    if not valid_event:
+        raise Exception("Received invalid input")

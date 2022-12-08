@@ -35,7 +35,7 @@ def typed_decorator_client(function_name):
 
 
 @pytest.fixture
-def typed_decorator_missing_todict():
+def typed_decorator_missing_to_dict():
     source = TEST_FUNCTIONS_DIR / "typed_events" / "missing_to_dict.py"
     target = "function_typed_missing_to_dict"
     return create_app(target, source).test_client()
@@ -48,11 +48,32 @@ def test_typed_decorator(typed_decorator_client):
     assert resp.data == b'{"name": "john", "age": 10}'
 
 
+@pytest.mark.parametrize("function_name", ["function_typed"])
+def test_typed_malformed_json(typed_decorator_client):
+    resp = typed_decorator_client.post("/", data="abc", content_type="application/json")
+    assert resp.status_code == 500
+
+
+@pytest.mark.parametrize("function_name", ["function_typed_faulty_from_dict"])
+def test_typed_faulty_from_dict(typed_decorator_client):
+    resp = typed_decorator_client.post(
+        "/", json={"country": "Monaco", "population": 40000}
+    )
+    assert resp.status_code == 500
+
+
 @pytest.mark.parametrize("function_name", ["function_typed_reflect"])
 def test_typed_reflect_decorator(typed_decorator_client):
     resp = typed_decorator_client.post("/", json={"name": "jane", "age": 20})
     assert resp.status_code == 200
     assert resp.data == b'{"name": "jane", "age": 20}'
+
+
+@pytest.mark.parametrize("function_name", ["function_typed_different_types"])
+def test_typed_different_types(typed_decorator_client):
+    resp = typed_decorator_client.post("/", json={"name": "jane", "age": 20})
+    assert resp.status_code == 200
+    assert resp.data == b'{"country": "Monaco", "population": 40000}'
 
 
 @pytest.mark.parametrize("function_name", ["function_typed_no_return"])
@@ -97,6 +118,6 @@ def test_missing_parameter_typed_decorator():
         create_app(target, source).test_client()
 
 
-def test_missing_to_dict_typed_decorator(typed_decorator_missing_todict):
-    resp = typed_decorator_missing_todict.post("/", json={"name": "john", "age": 10})
+def test_missing_to_dict_typed_decorator(typed_decorator_missing_to_dict):
+    resp = typed_decorator_missing_to_dict.post("/", json={"name": "john", "age": 10})
     assert resp.status_code == 500
