@@ -34,17 +34,17 @@ def register_typed_event(decorator_type, func):
         sig = signature(func)
         annotation_type = list(sig.parameters.values())[0].annotation
         input_type = _select_input_type(decorator_type, annotation_type)
-        _type_validity_check(input_type)
+        _validate_input_type(input_type)
     except IndexError:
         raise FunctionsFrameworkException(
             "Function signature is missing an input parameter."
-            "The function should be defined as def your_fn(in: input_type)"
+            "The function should be defined as 'def your_fn(in: inputType)'"
         )
     except Exception as e:
         raise FunctionsFrameworkException(
             "Functions using the @typed decorator must provide "
-            "the type of the input parameter by specifying @typed(input_type) and/or using python "
-            "type annotations def your_fn(in: input_type)."
+            "the type of the input parameter by specifying @typed(inputType) and/or using python "
+            "type annotations 'def your_fn(in: inputType)'"
         )
 
     _function_registry.INPUT_TYPE_MAP[func.__name__] = input_type
@@ -54,7 +54,9 @@ def register_typed_event(decorator_type, func):
 
 
 """ Checks whether the response type of the typed function has a to_dict method"""
-def validate_return_type(response):
+
+
+def _validate_return_type(response):
     if not (hasattr(response, "to_dict") and callable(getattr(response, "to_dict"))):
         raise AttributeError(
             "The type {response} does not have the required method called "
@@ -65,6 +67,8 @@ def validate_return_type(response):
 """Selects the input type for the typed function provided through the @typed(input_type)
 decorator or through the parameter annotation in the user function
 """
+
+
 def _select_input_type(decorator_type, annotation_type):
     if decorator_type == "" and annotation_type is inspect._empty:
         raise TypeError(
@@ -77,8 +81,8 @@ def _select_input_type(decorator_type, annotation_type):
         and decorator_type != annotation_type
     ):
         raise TypeError(
-            "The object type provided via 'typed' {decorator_type}"
-            "is different from the one in the function annotation {annotation_type}.".format(
+            "The object type provided via 'typed' decorator: '{decorator_type}'"
+            "is different than the one specified by the function parameter's type annotation : '{annotation_type}'.".format(
                 decorator_type=decorator_type, annotation_type=annotation_type
             )
         )
@@ -89,7 +93,9 @@ def _select_input_type(decorator_type, annotation_type):
 
 
 """Checks for the from_dict method implementation in the input type class"""
-def _type_validity_check(input_type):
+
+
+def _validate_input_type(input_type):
     if not (
         hasattr(input_type, "from_dict") and callable(getattr(input_type, "from_dict"))
     ):

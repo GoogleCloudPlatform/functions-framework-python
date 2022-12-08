@@ -39,5 +39,5 @@ class TestType2:
 def function_typed_mismatch_types(test_type: TestType1):
     valid_event = test_type.name == "john" and test_type.age == 10
     if not valid_event:
-        flask.abort(500)
+        raise Exception("Received invalid input")
     return test_type

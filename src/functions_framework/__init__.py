@@ -72,30 +72,22 @@ def cloud_event(func):
     return wrapper
 
 
-def typed(googleType):
-    # no parameter to the decorator
-    if isinstance(googleType, types.FunctionType):
-        func = googleType
-        _typed_event.register_typed_event("", func)
+def typed(*args):
+    def _typed(func):
+        _typed_event.register_typed_event(google_type, func)
 
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             return func(*args, **kwargs)
 
         return wrapper
-    # type parameter provided to the decorator
+
+    if len(args) == 1 and isinstance(args[0], types.FunctionType):
+        google_type = ""
+        return _typed(args[0])
     else:
-
-        def func_decorator(func):
-            _typed_event.register_typed_event(googleType, func)
-
-            @functools.wraps(func)
-            def wrapper(*args, **kwargs):
-                return func(*args, **kwargs)
-
-            return wrapper
-
-        return func_decorator
+        google_type = args[0]
+        return _typed
 
 
 def http(func):
@@ -147,7 +139,7 @@ def _typed_event_func_wrapper(function, request, inputType: Type):
                 return "", 200
             if response.__class__.__module__ == "builtins":
                 return response
-            _typed_event.validate_return_type(response)
+            _typed_event._validate_return_type(response)
             return json.dumps(response.to_dict())
         except Exception as e:
             raise FunctionsFrameworkException(
@@ -268,7 +260,6 @@ def _configure_app(app, function, signature_type):
             function, flask.request
         )
     elif signature_type == _function_registry.TYPED_SIGNATURE_TYPE:
-        # validity_check()
         app.url_map.add(
             werkzeug.routing.Rule(
                 "/", defaults={"path": ""}, endpoint=signature_type, methods=["POST"]

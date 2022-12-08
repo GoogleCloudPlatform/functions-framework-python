@@ -62,7 +62,7 @@ class TestType:
 def function_typed(testType: TestType):
     valid_event = testType.name == "john" and testType.age == 10
     if not valid_event:
-        flask.abort(500)
+        raise Exception("Received invalid input")
     return testType
 
 
@@ -70,20 +70,20 @@ def function_typed(testType: TestType):
 def function_typed_reflect(testType: TestType):
     valid_event = testType.name == "jane" and testType.age == 20
     if not valid_event:
-        flask.abort(500)
+        raise Exception("Received invalid input")
     return testType
 
 
 @functions_framework.typed
-def function_typed_noreturn(testType: TestType):
+def function_typed_no_return(testType: TestType):
     valid_event = testType.name == "jane" and testType.age == 20
     if not valid_event:
-        flask.abort(500)
+        raise Exception("Received invalid input")
 
 
 @functions_framework.typed
 def function_typed_string_return(testType: TestType):
     valid_event = testType.name == "jane" and testType.age == 20
     if not valid_event:
-        flask.abort(500)
+        raise Exception("Received invalid input")
     return "Hello " + testType.name

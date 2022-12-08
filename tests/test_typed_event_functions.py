@@ -55,8 +55,8 @@ def test_typed_reflect_decorator(typed_decorator_client):
     assert resp.data == b'{"name": "jane", "age": 20}'
 
 
-@pytest.mark.parametrize("function_name", ["function_typed_noreturn"])
-def test_typed_noreturn(typed_decorator_client):
+@pytest.mark.parametrize("function_name", ["function_typed_no_return"])
+def test_typed_no_return(typed_decorator_client):
     resp = typed_decorator_client.post("/", json={"name": "jane", "age": 20})
     assert resp.status_code == 200
     assert resp.data == b""
@@ -89,11 +89,13 @@ def test_missing_type_information_typed_decorator():
     with pytest.raises(FunctionsFrameworkException):
         create_app(target, source).test_client()
 
+
 def test_missing_parameter_typed_decorator():
     source = TEST_FUNCTIONS_DIR / "typed_events" / "missing_parameter.py"
     target = "function_typed_missing_parameter"
     with pytest.raises(FunctionsFrameworkException):
         create_app(target, source).test_client()
+
 
 def test_missing_to_dict_typed_decorator(typed_decorator_missing_todict):
     resp = typed_decorator_missing_todict.post("/", json={"name": "john", "age": 10})
