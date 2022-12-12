@@ -16,6 +16,9 @@ import os
 import sys
 import types
 
+from re import T
+from typing import Type
+
 from functions_framework.exceptions import (
     InvalidConfigurationException,
     InvalidTargetTypeException,
@@ -28,10 +31,15 @@ FUNCTION_SIGNATURE_TYPE = "FUNCTION_SIGNATURE_TYPE"
 HTTP_SIGNATURE_TYPE = "http"
 CLOUDEVENT_SIGNATURE_TYPE = "cloudevent"
 BACKGROUNDEVENT_SIGNATURE_TYPE = "event"
+TYPED_SIGNATURE_TYPE = "typed"
 
 # REGISTRY_MAP stores the registered functions.
 # Keys are user function names, values are user function signature types.
 REGISTRY_MAP = {}
+
+# INPUT_TYPE_MAP stores the input type of the typed functions.
+# Keys are the user function name, values are the type of the function input
+INPUT_TYPE_MAP = {}
 
 
 def get_user_function(source, source_module, target):
@@ -120,3 +128,8 @@ def get_func_signature_type(func_name: str, signature_type: str) -> str:
     if os.environ.get("ENTRY_POINT"):
         os.environ["FUNCTION_TRIGGER_TYPE"] = sig_type
     return sig_type
+
+
+def get_func_input_type(func_name: str) -> Type:
+    registered_type = INPUT_TYPE_MAP[func_name] if func_name in INPUT_TYPE_MAP else ""
+    return registered_type

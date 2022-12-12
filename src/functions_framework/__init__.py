@@ -13,12 +13,17 @@
 # limitations under the License.
 
 import functools
+import inspect
 import io
 import json
 import logging
 import os.path
 import pathlib
 import sys
+import types
+
+from inspect import signature
+from typing import Type
 
 import cloudevents.exceptions as cloud_exceptions
 import flask
@@ -26,7 +31,7 @@ import werkzeug
 
 from cloudevents.http import from_http, is_binary
 
-from functions_framework import _function_registry, event_conversion
+from functions_framework import _function_registry, _typed_event, event_conversion
 from functions_framework.background_event import BackgroundEvent
 from functions_framework.exceptions import (
     EventConversionException,
@@ -67,6 +72,33 @@ def cloud_event(func):
     return wrapper
 
 
+def typed(*args):
+    def _typed(func):
+        _typed_event.register_typed_event(input_type, func)
+
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            return func(*args, **kwargs)
+
+        return wrapper
+
+    # no input type provided as a parameter, we need to use reflection
+    # e.g function declaration:
+    # @typed
+    # def myfunc(x:input_type)
+    if len(args) == 1 and isinstance(args[0], types.FunctionType):
+        input_type = None
+        return _typed(args[0])
+
+    # input type provided as a parameter to the decorator
+    # e.g. function declaration
+    # @typed(input_type)
+    # def myfunc(x)
+    else:
+        input_type = args[0]
+        return _typed
+
+
 def http(func):
     """Decorator that registers http as user function signature type."""
     _function_registry.REGISTRY_MAP[
@@ -104,6 +136,26 @@ def _run_cloud_event(function, request):
     data = request.get_data()
     event = from_http(request.headers, data)
     function(event)
+
+
+def _typed_event_func_wrapper(function, request, inputType: Type):
+    def view_func(path):
+        try:
+            data = request.get_json()
+            input = inputType.from_dict(data)
+            response = function(input)
+            if response is None:
+                return "", 200
+            if response.__class__.__module__ == "builtins":
+                return response
+            _typed_event._validate_return_type(response)
+            return json.dumps(response.to_dict())
+        except Exception as e:
+            raise FunctionsFrameworkException(
+                "Function execution failed with the error"
+            ) from e
+
+    return view_func
 
 
 def _cloud_event_view_func_wrapper(function, request):
@@ -215,6 +267,21 @@ def _configure_app(app, function, signature_type):
 
         app.view_functions[signature_type] = _cloud_event_view_func_wrapper(
             function, flask.request
+        )
+    elif signature_type == _function_registry.TYPED_SIGNATURE_TYPE:
+        app.url_map.add(
+            werkzeug.routing.Rule(
+                "/", defaults={"path": ""}, endpoint=signature_type, methods=["POST"]
+            )
+        )
+        app.url_map.add(
+            werkzeug.routing.Rule(
+                "/<path:path>", endpoint=signature_type, methods=["POST"]
+            )
+        )
+        input_type = _function_registry.get_func_input_type(function.__name__)
+        app.view_functions[signature_type] = _typed_event_func_wrapper(
+            function, flask.request, input_type
         )
     else:
         raise FunctionsFrameworkException(
