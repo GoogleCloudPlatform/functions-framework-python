@@ -74,7 +74,7 @@ def cloud_event(func):
 
 def typed(*args):
     def _typed(func):
-        _typed_event.register_typed_event(google_type, func)
+        _typed_event.register_typed_event(input_type, func)
 
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
@@ -82,11 +82,20 @@ def typed(*args):
 
         return wrapper
 
+    # no input type provided as a parameter, we need to use reflection
+    # e.g function declaration:
+    # @typed
+    # def myfunc(x:input_type)
     if len(args) == 1 and isinstance(args[0], types.FunctionType):
-        google_type = ""
+        input_type = None
         return _typed(args[0])
+
+    # input type provided as a parameter to the decorator
+    # e.g. function declaration
+    # @typed(input_type)
+    # def myfunc(x)
     else:
-        google_type = args[0]
+        input_type = args[0]
         return _typed
 
 

@@ -70,13 +70,13 @@ decorator or through the parameter annotation in the user function
 
 
 def _select_input_type(decorator_type, annotation_type):
-    if decorator_type == "" and annotation_type is inspect._empty:
+    if decorator_type == None and annotation_type is inspect._empty:
         raise TypeError(
             "The function defined does not contain Type of the input object."
         )
 
     if (
-        decorator_type != ""
+        decorator_type != None
         and annotation_type is not inspect._empty
         and decorator_type != annotation_type
     ):
@@ -87,7 +87,7 @@ def _select_input_type(decorator_type, annotation_type):
             )
         )
 
-    if decorator_type == "":
+    if decorator_type == None:
         return annotation_type
     return decorator_type
 
