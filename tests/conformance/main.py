@@ -7,8 +7,9 @@ import functions_framework
 
 filename = "function_output.json"
 
+
 class ConformanceType:
-    json_request :str
+    json_request: str
 
     def __init__(self, json_request: str) -> None:
         self.json_request = json_request
@@ -63,6 +64,7 @@ def write_cloud_event_declarative(cloud_event):
 def write_http_declarative_concurrent(request):
     time.sleep(1)
     return "OK", 200
+
 
 @functions_framework.typed(ConformanceType)
 def write_typed_event_declarative(x):
