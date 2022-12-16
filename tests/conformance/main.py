@@ -8,6 +8,17 @@ import functions_framework
 filename = "function_output.json"
 
 
+class ConformanceType:
+    json_request: str
+
+    def __init__(self, json_request: str) -> None:
+        self.json_request = json_request
+
+    @staticmethod
+    def from_dict(obj: dict) -> "ConformanceType":
+        return ConformanceType(json.dumps(obj))
+
+
 def _write_output(content):
     with open(filename, "w") as f:
         f.write(content)
@@ -53,3 +64,9 @@ def write_cloud_event_declarative(cloud_event):
 def write_http_declarative_concurrent(request):
     time.sleep(1)
     return "OK", 200
+
+
+@functions_framework.typed(ConformanceType)
+def write_typed_event_declarative(x):
+    _write_output(x.json_request)
+    return "OK"
