@@ -1,5 +1,8 @@
 name: Python Unit CI
 on: [push, pull_request]
+permissions:
+  contents: read
+
 jobs:
   test:
     strategy:
@@ -8,10 +11,15 @@ jobs:
         platform: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.platform }}
     steps:
+    - name: Harden Runner
+      uses: step-security/harden-runner@18bf8ad2ca49c14cbb28b91346d626ccfb00c518 # v2.1.0
+      with:
+        egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
+
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@dc323e67f16fb5f7663d20ff7941f27f5809e9b6 # v2.6.0
     - name: Use Python ${{ matrix.python }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@75f3110429a8c05be0e1bf360334e4cced2b63fa # v2.3.3
       with:
         python-version: ${{ matrix.python }}
     - name: Install tox
