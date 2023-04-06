@@ -1,8 +1,12 @@
 name: Python Conformance CI
 on: [push, pull_request]
+
+# Declare default permissions as read only.
+permissions: read-all
+
 jobs:
   build:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         python: ['3.7', '3.8', '3.9', '3.10', '3.11']
