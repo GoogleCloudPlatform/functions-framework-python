@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:base", "group:allNonMajor", "schedule:monthly"],
+  "extends": ["group:allNonMajor", "schedule:monthly"],
   "packageRules": [
     {
       "description": "Create a PR whenever there is a new major version",
