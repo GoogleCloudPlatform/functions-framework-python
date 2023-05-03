@@ -187,7 +187,8 @@ def test_invalid_fields_binary(client, create_headers_binary, data_payload):
 
 
 def test_unparsable_cloud_event(client):
-    resp = client.post("/", headers={}, data="")
+    headers = {"Content-Type": "application/cloudevents+json"}
+    resp = client.post("/", headers=headers, data="")
 
     assert resp.status_code == 400
     assert "Bad Request" in resp.data.decode()
