@@ -251,7 +251,8 @@ def test_pubsub_payload(background_event_client, background_json):
 
 
 def test_background_function_no_data(background_event_client, background_json):
-    resp = background_event_client.post("/")
+    headers = {"Content-Type": "application/json"}
+    resp = background_event_client.post("/", headers=headers)
     assert resp.status_code == 400
 
 
