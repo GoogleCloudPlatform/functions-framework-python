@@ -294,10 +294,13 @@ def _configure_app(app, function, signature_type):
 def read_request(response):
     """
     Force the framework to read the entire request before responding, to avoid
-    connection errors when returning prematurely.
+    connection errors when returning prematurely. Skipped on streaming responses
+    as these may continue to operate on the request after they are returned.
     """
 
-    flask.request.get_data()
+    if not response.is_streamed:
+        flask.request.get_data()
+
     return response
 
 

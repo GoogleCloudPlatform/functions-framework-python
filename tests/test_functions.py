@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
+import io
 import json
 import pathlib
 import re
@@ -488,6 +488,18 @@ def test_function_returns_none():
     resp = client.get("/")
 
     assert resp.status_code == 500
+
+
+def test_function_returns_stream():
+    source = TEST_FUNCTIONS_DIR / "http_streaming" / "main.py"
+    target = "function"
+
+    client = create_app(target, source).test_client()
+    resp = client.post("/", data="1\n2\n3\n4\n")
+
+    assert resp.status_code == 200
+    assert resp.is_streamed
+    assert resp.data.decode("utf-8") == "1.0\n3.0\n6.0\n10.0\n"
 
 
 def test_legacy_function_check_env(monkeypatch):
