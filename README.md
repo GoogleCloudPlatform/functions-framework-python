@@ -59,6 +59,7 @@ functions-framework==3.*
 Create an `main.py` file with the following contents:
 
 ```python
+import flask
 import functions_framework
 
 @functions_framework.http
