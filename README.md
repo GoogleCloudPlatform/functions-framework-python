@@ -62,7 +62,7 @@ Create an `main.py` file with the following contents:
 import functions_framework
 
 @functions_framework.http
-def hello(request):
+def hello(request: flask.Request) -> flask.typing.ResponseReturnValue:
     return "Hello world!"
 ```
 
@@ -98,9 +98,10 @@ Create an `main.py` file with the following contents:
 
 ```python
 import functions_framework
+from cloudevents.http.event import CloudEvent
 
 @functions_framework.cloud_event
-def hello_cloud_event(cloud_event):
+def hello_cloud_event(cloud_event: CloudEvent) -> None:
    print(f"Received event with ID: {cloud_event['id']} and data {cloud_event.data}")
 ```
 
