@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.4.0](https://github.com/GoogleCloudPlatform/functions-framework-python/compare/v3.3.0...v3.4.0) (2023-05-24)
+
+
+### Features
+
+* configure security score card action ([#216](https://github.com/GoogleCloudPlatform/functions-framework-python/issues/216)) ([7868dc1](https://github.com/GoogleCloudPlatform/functions-framework-python/commit/7868dc110c048d3e1acf082faf36b75c3770e3f3))
+
+
+### Bug Fixes
+
+* streaming requests cannot access request data ([#245](https://github.com/GoogleCloudPlatform/functions-framework-python/issues/245)) ([c492b04](https://github.com/GoogleCloudPlatform/functions-framework-python/commit/c492b04e87a55194b7709e471b0ec3e2c630f288))
+
 ## [3.3.0](https://github.com/GoogleCloudPlatform/functions-framework-python/compare/v3.2.1...v3.3.0) (2022-12-16)
 
 
