@@ -2,7 +2,7 @@
 
 [![PyPI version](https://badge.fury.io/py/functions-framework.svg)](https://badge.fury.io/py/functions-framework)
 
-[![Python unit CI][ff_python_unit_img]][ff_python_unit_link] [![Python lint CI][ff_python_lint_img]][ff_python_lint_link] [![Python conformace CI][ff_python_conformance_img]][ff_python_conformance_link]
+[![Python unit CI][ff_python_unit_img]][ff_python_unit_link] [![Python lint CI][ff_python_lint_img]][ff_python_lint_link] [![Python conformace CI][ff_python_conformance_img]][ff_python_conformance_link] ![Security Scorecard](https://api.securityscorecards.dev/projects/github.com/GoogleCloudPlatform/functions-framework-python/badge)
 
 An open source FaaS (Function as a service) framework for writing portable
 Python functions -- brought to you by the Google Cloud Functions team.
