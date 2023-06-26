@@ -1,5 +1,9 @@
 name: Python Conformance CI
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - 'master'
+  pull_request:
 
 # Declare default permissions as read only.
 permissions: read-all
@@ -39,67 +43,61 @@ jobs:
     - name: Setup Go
       uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v4.0.1
       with:
-        go-version: '1.16'
+        go-version: '1.20'
 
     - name: Run HTTP conformance tests
-      uses: GoogleCloudPlatform/functions-framework-conformance/action@1975792fb34ebbfa058d690666186d669d3a5977 # v1.8.0
+      uses: GoogleCloudPlatform/functions-framework-conformance/action@5f2a796b58f099d749e70ecc83f531f6701c64af # v1.8.3
       with:
-        version: 'v1.6.0'
         functionType: 'http'
         useBuildpacks: false
         validateMapping: false
         cmd: "'functions-framework --source tests/conformance/main.py --target write_http --signature-type http'"
 
     - name: Run event conformance tests
-      uses: GoogleCloudPlatform/functions-framework-conformance/action@1975792fb34ebbfa058d690666186d669d3a5977 # v1.8.0
+      uses: GoogleCloudPlatform/functions-framework-conformance/action@5f2a796b58f099d749e70ecc83f531f6701c64af # v1.8.3
       with:
-        version: 'v1.6.0'
         functionType: 'legacyevent'
         useBuildpacks: false
         validateMapping: true
         cmd: "'functions-framework --source tests/conformance/main.py --target write_legacy_event --signature-type event'"
 
     - name: Run CloudEvents conformance tests
-      uses: GoogleCloudPlatform/functions-framework-conformance/action@1975792fb34ebbfa058d690666186d669d3a5977 # v1.8.0
+      uses: GoogleCloudPlatform/functions-framework-conformance/action@5f2a796b58f099d749e70ecc83f531f6701c64af # v1.8.3
       with:
-        version: 'v1.6.0'
         functionType: 'cloudevent'
         useBuildpacks: false
         validateMapping: true
         cmd: "'functions-framework --source tests/conformance/main.py --target write_cloud_event --signature-type cloudevent'"
 
     - name: Run HTTP conformance tests declarative
-      uses: GoogleCloudPlatform/functions-framework-conformance/action@1975792fb34ebbfa058d690666186d669d3a5977 # v1.8.0
+      uses: GoogleCloudPlatform/functions-framework-conformance/action@5f2a796b58f099d749e70ecc83f531f6701c64af # v1.8.3
       with:
-        version: 'v1.6.0'
         functionType: 'http'
         useBuildpacks: false
         validateMapping: false
         cmd: "'functions-framework --source tests/conformance/main.py --target write_http_declarative'"
 
     - name: Run CloudEvents conformance tests declarative
-      uses: GoogleCloudPlatform/functions-framework-conformance/action@1975792fb34ebbfa058d690666186d669d3a5977 # v1.8.0
+      uses: GoogleCloudPlatform/functions-framework-conformance/action@5f2a796b58f099d749e70ecc83f531f6701c64af # v1.8.3
       with:
-        version: 'v1.6.0'
         functionType: 'cloudevent'
         useBuildpacks: false
         validateMapping: true
         cmd: "'functions-framework --source tests/conformance/main.py --target write_cloud_event_declarative'"
 
     - name: Run HTTP concurrency tests declarative
-      uses: GoogleCloudPlatform/functions-framework-conformance/action@1975792fb34ebbfa058d690666186d669d3a5977 # v1.8.0
+      uses: GoogleCloudPlatform/functions-framework-conformance/action@5f2a796b58f099d749e70ecc83f531f6701c64af # v1.8.3
       with:
-        version: 'v1.6.0'
         functionType: 'http'
         useBuildpacks: false
         validateConcurrency: true
         cmd: "'functions-framework --source tests/conformance/main.py --target write_http_declarative_concurrent'"
 
     - name: Run Typed tests declarative
-      uses: GoogleCloudPlatform/functions-framework-conformance/action@1975792fb34ebbfa058d690666186d669d3a5977 # v1.8.0
+      uses: GoogleCloudPlatform/functions-framework-conformance/action@5f2a796b58f099d749e70ecc83f531f6701c64af # v1.8.3
       with:
-        version: 'v1.6.0'
         functionType: 'http'
+        declarativeType: 'typed'
         useBuildpacks: false
         validateMapping: false
-        cmd: "'functions-framework --source tests/conformance/main.py --target write_typed_event_declarative'"
+        cmd: "'functions-framework --source tests/conformance/main.py --target typed_conformance_test'"
