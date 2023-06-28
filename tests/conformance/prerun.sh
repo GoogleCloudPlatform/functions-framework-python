@@ -7,15 +7,14 @@
 set -e
 
 FRAMEWORK_VERSION=$1
-if [ -z "${FRAMEWORK_VERSION}" ]
-    then
-        echo "Functions Framework version required as first parameter"
-        exit 1
+if [ -z "${FRAMEWORK_VERSION}" ]; then
+    echo "Functions Framework version required as first parameter"
+    exit 1
 fi
 
 SCRIPT_DIR=$(realpath $(dirname $0))
 
 cd $SCRIPT_DIR
 
-echo "git+https://github.com/GoogleCloudPlatform/functions-framework-python@$FRAMEWORK_VERSION#egg=functions-framework" > requirements.txt
+echo "git+https://github.com/GoogleCloudPlatform/functions-framework-python@$FRAMEWORK_VERSION#egg=functions-framework" >requirements.txt
 cat requirements.txt
