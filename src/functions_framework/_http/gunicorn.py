@@ -20,7 +20,7 @@ class GunicornApplication(gunicorn.app.base.BaseApplication):
         self.options = {
             "bind": "%s:%s" % (host, port),
             "workers": 1,
-            "threads": 1024,
+            "threads": 64,
             "timeout": 0,
             "loglevel": "error",
             "limit_request_line": 0,
