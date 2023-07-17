@@ -2,8 +2,7 @@ name: Python Unit CI
 on: 
   push:
     branches:
-      - master
-  pull_request:
+aste  pull_request:
 permissions:
   contents: read
 
