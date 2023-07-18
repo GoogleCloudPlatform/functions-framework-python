@@ -3,7 +3,7 @@ name: Buildpack Integration Test
 on:
   push:
     branches:
-      - master
+      - main
   pull_request:
   workflow_dispatch:
   # Runs every day on 12:00 AM PST
@@ -15,7 +15,7 @@ permissions: read-all
 
 jobs:
   python37:
-    uses: GoogleCloudPlatform/functions-framework-conformance/.github/workflows/buildpack-integration-test.yml@v1.8.4
+    uses: GoogleCloudPlatform/functions-framework-conformance/.github/workflows/buildpack-integration-test.yml@main
     with:
       http-builder-source: 'tests/conformance'
       http-builder-target: 'write_http_declarative'
@@ -26,7 +26,7 @@ jobs:
       builder-runtime-version: '3.7'
       start-delay: 5
   python38:
-    uses: GoogleCloudPlatform/functions-framework-conformance/.github/workflows/buildpack-integration-test.yml@v1.8.4
+    uses: GoogleCloudPlatform/functions-framework-conformance/.github/workflows/buildpack-integration-test.yml@main
     with:
       http-builder-source: 'tests/conformance'
       http-builder-target: 'write_http_declarative'
@@ -37,7 +37,7 @@ jobs:
       builder-runtime-version: '3.8'
       start-delay: 5
   python39:
-    uses: GoogleCloudPlatform/functions-framework-conformance/.github/workflows/buildpack-integration-test.yml@v1.8.4
+    uses: GoogleCloudPlatform/functions-framework-conformance/.github/workflows/buildpack-integration-test.yml@main
     with:
       http-builder-source: 'tests/conformance'
       http-builder-target: 'write_http_declarative'
@@ -48,7 +48,7 @@ jobs:
       builder-runtime-version: '3.9'
       start-delay: 5
   python310:
-    uses: GoogleCloudPlatform/functions-framework-conformance/.github/workflows/buildpack-integration-test.yml@v1.8.4
+    uses: GoogleCloudPlatform/functions-framework-conformance/.github/workflows/buildpack-integration-test.yml@main
     with:
       http-builder-source: 'tests/conformance'
       http-builder-target: 'write_http_declarative'
