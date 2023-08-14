@@ -2,7 +2,7 @@
 
 [![PyPI version](https://badge.fury.io/py/functions-framework.svg)](https://badge.fury.io/py/functions-framework)
 
-[![Python unit CI][ff_python_unit_img]][ff_python_unit_link] [![Python lint CI][ff_python_lint_img]][ff_python_lint_link] [![Python conformace CI][ff_python_conformance_img]][ff_python_conformance_link]
+[![Python unit CI][ff_python_unit_img]][ff_python_unit_link] [![Python lint CI][ff_python_lint_img]][ff_python_lint_link] [![Python conformace CI][ff_python_conformance_img]][ff_python_conformance_link] ![Security Scorecard](https://api.securityscorecards.dev/projects/github.com/GoogleCloudPlatform/functions-framework-python/badge)
 
 An open source FaaS (Function as a service) framework for writing portable
 Python functions -- brought to you by the Google Cloud Functions team.
@@ -106,7 +106,7 @@ def hello_cloud_event(cloud_event: CloudEvent) -> None:
    print(f"Received event with ID: {cloud_event['id']} and data {cloud_event.data}")
 ```
 
-> Your function is passed a single [CloudEvent](https://github.com/cloudevents/sdk-python/blob/master/cloudevents/sdk/event/v1.py) parameter.
+> Your function is passed a single [CloudEvent](https://github.com/cloudevents/sdk-python/blob/main/cloudevents/sdk/event/v1.py) parameter.
 
 Run the following command to run `hello_cloud_event` target locally:
 
@@ -304,7 +304,7 @@ After you've written your function, you can simply deploy it from your local mac
 
 ### Cloud Run/Cloud Run on GKE
 
-Once you've written your function and added the Functions Framework to your `requirements.txt` file, all that's left is to create a container image. [Check out the Cloud Run quickstart](https://cloud.google.com/run/docs/quickstarts/build-and-deploy) for Python to create a container image and deploy it to Cloud Run. You'll write a `Dockerfile` when you build your container. This `Dockerfile` allows you to specify exactly what goes into your container (including custom binaries, a specific operating system, and more). [Here is an example `Dockerfile` that calls Functions Framework.](https://github.com/GoogleCloudPlatform/functions-framework-python/blob/master/examples/cloud_run_http)
+Once you've written your function and added the Functions Framework to your `requirements.txt` file, all that's left is to create a container image. [Check out the Cloud Run quickstart](https://cloud.google.com/run/docs/quickstarts/build-and-deploy) for Python to create a container image and deploy it to Cloud Run. You'll write a `Dockerfile` when you build your container. This `Dockerfile` allows you to specify exactly what goes into your container (including custom binaries, a specific operating system, and more). [Here is an example `Dockerfile` that calls Functions Framework.](https://github.com/GoogleCloudPlatform/functions-framework-python/blob/main/examples/cloud_run_http)
 
 If you want even more control over the environment, you can [deploy your container image to Cloud Run on GKE](https://cloud.google.com/run/docs/quickstarts/prebuilt-deploy-gke). With Cloud Run on GKE, you can run your function on a GKE cluster, which gives you additional control over the environment (including use of GPU-based instances, longer timeouts and more).
 

@@ -3,15 +3,19 @@ name: Buildpack Integration Test
 on:
   push:
     branches:
-      - master
+      - main
+  pull_request:
   workflow_dispatch:
+  # Runs every day on 12:00 AM PST
+  schedule:
+    - cron: "0 0 * * *"
 
 # Declare default permissions as read only.
 permissions: read-all
 
 jobs:
   python37:
-    uses: GoogleCloudPlatform/functions-framework-conformance/.github/workflows/buildpack-integration-test.yml@v1.8.0
+    uses: GoogleCloudPlatform/functions-framework-conformance/.github/workflows/buildpack-integration-test.yml@main
     with:
       http-builder-source: 'tests/conformance'
       http-builder-target: 'write_http_declarative'
@@ -19,9 +23,10 @@ jobs:
       cloudevent-builder-target: 'write_cloud_event_declarative'
       prerun: 'tests/conformance/prerun.sh ${{ github.sha }}'
       builder-runtime: 'python37'
+      builder-runtime-version: '3.7'
       start-delay: 5
   python38:
-    uses: GoogleCloudPlatform/functions-framework-conformance/.github/workflows/buildpack-integration-test.yml@v1.8.0
+    uses: GoogleCloudPlatform/functions-framework-conformance/.github/workflows/buildpack-integration-test.yml@main
     with:
       http-builder-source: 'tests/conformance'
       http-builder-target: 'write_http_declarative'
@@ -29,9 +34,10 @@ jobs:
       cloudevent-builder-target: 'write_cloud_event_declarative'
       prerun: 'tests/conformance/prerun.sh ${{ github.sha }}'
       builder-runtime: 'python38'
+      builder-runtime-version: '3.8'
       start-delay: 5
   python39:
-    uses: GoogleCloudPlatform/functions-framework-conformance/.github/workflows/buildpack-integration-test.yml@v1.8.0
+    uses: GoogleCloudPlatform/functions-framework-conformance/.github/workflows/buildpack-integration-test.yml@main
     with:
       http-builder-source: 'tests/conformance'
       http-builder-target: 'write_http_declarative'
@@ -39,9 +45,10 @@ jobs:
       cloudevent-builder-target: 'write_cloud_event_declarative'
       prerun: 'tests/conformance/prerun.sh ${{ github.sha }}'
       builder-runtime: 'python39'
+      builder-runtime-version: '3.9'
       start-delay: 5
   python310:
-    uses: GoogleCloudPlatform/functions-framework-conformance/.github/workflows/buildpack-integration-test.yml@v1.8.0
+    uses: GoogleCloudPlatform/functions-framework-conformance/.github/workflows/buildpack-integration-test.yml@main
     with:
       http-builder-source: 'tests/conformance'
       http-builder-target: 'write_http_declarative'
@@ -49,4 +56,5 @@ jobs:
       cloudevent-builder-target: 'write_cloud_event_declarative'
       prerun: 'tests/conformance/prerun.sh ${{ github.sha }}'
       builder-runtime: 'python310'
+      builder-runtime-version: '3.10'
       start-delay: 5

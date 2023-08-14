@@ -8,15 +8,18 @@ import functions_framework
 filename = "function_output.json"
 
 
-class ConformanceType:
-    json_request: str
+class RawJson:
+    data: dict
 
-    def __init__(self, json_request: str) -> None:
-        self.json_request = json_request
+    def __init__(self, data):
+        self.data = data
 
     @staticmethod
-    def from_dict(obj: dict) -> "ConformanceType":
-        return ConformanceType(json.dumps(obj))
+    def from_dict(obj: dict) -> "RawJson":
+        return RawJson(obj)
+
+    def to_dict(self) -> dict:
+        return self.data
 
 
 def _write_output(content):
@@ -66,7 +69,6 @@ def write_http_declarative_concurrent(request):
     return "OK", 200
 
 
-@functions_framework.typed(ConformanceType)
-def write_typed_event_declarative(x):
-    _write_output(x.json_request)
-    return "OK"
+@functions_framework.typed(RawJson)
+def typed_conformance_test(x):
+    return RawJson({"payload": x.data})

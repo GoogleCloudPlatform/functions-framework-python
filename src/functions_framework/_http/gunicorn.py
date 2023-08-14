@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
 import gunicorn.app.base
 
 
@@ -20,7 +22,7 @@ class GunicornApplication(gunicorn.app.base.BaseApplication):
         self.options = {
             "bind": "%s:%s" % (host, port),
             "workers": 1,
-            "threads": 1024,
+            "threads": (os.cpu_count() or 1) * 4,
             "timeout": 0,
             "loglevel": "error",
             "limit_request_line": 0,

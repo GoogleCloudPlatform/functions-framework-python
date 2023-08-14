@@ -27,7 +27,7 @@ _CLOUD_EVENT_SPEC_VERSION = "1.0"
 
 # Maps background/legacy event types to their equivalent CloudEvent types.
 # For more info on event mappings see
-# https://github.com/GoogleCloudPlatform/functions-framework-conformance/blob/master/docs/mapping.md
+# https://github.com/GoogleCloudPlatform/functions-framework-conformance/blob/main/docs/mapping.md
 _BACKGROUND_TO_CE_TYPE = {
     "google.pubsub.topic.publish": "google.cloud.pubsub.topic.v1.messagePublished",
     "providers/cloud.pubsub/eventTypes/topic.publish": "google.cloud.pubsub.topic.v1.messagePublished",
