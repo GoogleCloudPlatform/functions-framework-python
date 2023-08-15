@@ -49,6 +49,7 @@ _CLOUDEVENT_MIME_TYPE = "application/cloudevents+json"
 CloudEventFunction = Callable[[CloudEvent], None]
 HTTPFunction = Callable[[flask.Request], flask.typing.ResponseReturnValue]
 
+
 class _LoggingHandler(io.TextIOWrapper):
     """Logging replacement for stdout and stderr in GCF Python 3.7."""
 
