@@ -36,12 +36,10 @@ jobs:
             api.securityscorecards.dev:443
             auth.docker.io:443
             bestpractices.coreinfrastructure.org:443
-            fulcio.sigstore.dev:443
             github.com:443
             index.docker.io:443
             oss-fuzz-build-logs.storage.googleapis.com:443
             sigstore-tuf-root.storage.googleapis.com:443
-            rekor.sigstore.dev:443
             *.sigstore.dev:443
             
 
