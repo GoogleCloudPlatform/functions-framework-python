@@ -23,13 +23,14 @@ import sys
 import types
 
 from inspect import signature
-from typing import Type
+from typing import Callable, Type
 
 import cloudevents.exceptions as cloud_exceptions
 import flask
 import werkzeug
 
 from cloudevents.http import from_http, is_binary
+from cloudevents.http.event import CloudEvent
 
 from functions_framework import _function_registry, _typed_event, event_conversion
 from functions_framework.background_event import BackgroundEvent
@@ -45,6 +46,9 @@ _CRASH = "crash"
 
 _CLOUDEVENT_MIME_TYPE = "application/cloudevents+json"
 
+CloudEventFunction = Callable[[CloudEvent], None]
+HTTPFunction = Callable[[flask.Request], flask.typing.ResponseReturnValue]
+
 
 class _LoggingHandler(io.TextIOWrapper):
     """Logging replacement for stdout and stderr in GCF Python 3.7."""
@@ -59,7 +63,7 @@ class _LoggingHandler(io.TextIOWrapper):
         return self.stderr.write(json.dumps(payload) + "\n")
 
 
-def cloud_event(func):
+def cloud_event(func: CloudEventFunction) -> CloudEventFunction:
     """Decorator that registers cloudevent as user function signature type."""
     _function_registry.REGISTRY_MAP[
         func.__name__
@@ -99,7 +103,7 @@ def typed(*args):
         return _typed
 
 
-def http(func):
+def http(func: HTTPFunction) -> HTTPFunction:
     """Decorator that registers http as user function signature type."""
     _function_registry.REGISTRY_MAP[
         func.__name__
