@@ -28,7 +28,7 @@ jobs:
       - name: Build distributions
         run: python -m build
       - name: Publish
-        uses: pypa/gh-action-pypi-publish@54d67ed3c50a769c633f7db8063c9e634709c1b0 # main
+        uses: pypa/gh-action-pypi-publish@8cdc2ab67c943c5edf5fd9ae1995546b4b550602 # main
         with:
           user: __token__
           password: ${{ secrets.PYPI_API_TOKEN }}
