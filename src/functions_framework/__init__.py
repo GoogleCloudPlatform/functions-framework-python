@@ -359,12 +359,15 @@ def create_app(target=None, source=None, signature_type=None):
     with _app.app_context():
         try:
             spec.loader.exec_module(source_module)
-            function = _function_registry.get_user_function(source, source_module, target)
+            function = _function_registry.get_user_function(
+                source, source_module, target
+            )
         except Exception as e:
             if werkzeug.serving.is_running_from_reloader():
                 # When reloading, print out the error immediately, but raise
                 # it later so the debugger or server can handle it.
                 import traceback
+
                 traceback.print_exc()
                 err = e
 
