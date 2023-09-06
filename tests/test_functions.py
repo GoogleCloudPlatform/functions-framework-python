@@ -323,6 +323,19 @@ def test_invalid_function_definition_function_syntax_error():
     )
 
 
+def test_invalid_function_definition_function_syntax_robustness_with_debug(monkeypatch):
+    monkeypatch.setattr(
+        functions_framework.werkzeug.serving, "is_running_from_reloader", lambda: True
+    )
+    source = TEST_FUNCTIONS_DIR / "background_load_error" / "main.py"
+    target = "function"
+
+    client = create_app(target, source).test_client()
+
+    resp = client.get("/")
+    assert resp.status_code == 500
+
+
 def test_invalid_function_definition_missing_dependency():
     source = TEST_FUNCTIONS_DIR / "background_missing_dependency" / "main.py"
     target = "function"
