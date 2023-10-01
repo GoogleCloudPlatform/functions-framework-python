@@ -51,7 +51,7 @@ setup(
     package_dir={"": "src"},
     python_requires=">=3.5, <4",
     install_requires=[
-        "flask>=1.0,<3.0",
+        "flask>=3,<3.1",
         "click>=7.0,<9.0",
         "watchdog>=1.0.0",
         "gunicorn>=19.2.0; platform_system!='Windows'",
