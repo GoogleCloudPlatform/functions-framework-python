@@ -67,7 +67,7 @@ def hello(request: flask.Request) -> flask.typing.ResponseReturnValue:
     return "Hello world!"
 ```
 
-> Your function is passed a single parameter, `(request)`, which is a Flask [`Request`](http://flask.pocoo.org/docs/1.0/api/#flask.Request) object.
+> Your function is passed a single parameter, `(request)`, which is a Flask [`Request`](https://flask.palletsprojects.com/en/3.0.x/api/#flask.Request) object.
 
 Run the following command:
 
