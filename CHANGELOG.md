@@ -22,11 +22,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * Fix broken Flask Request link in README.md ([#286](https://github.com/GoogleCloudPlatform/functions-framework-python/issues/286)) ([6b9e9b5](https://github.com/GoogleCloudPlatform/functions-framework-python/commit/6b9e9b56f2f364e9a19fd434d88a0fbe22808515))
 
-## [3.4.0](https://github.com/GoogleCloudPlatform/functions-framework-python/compare/v3.3.0...v3.4.0) (2023-05-24)
-
 ### Dependencies
 
 * Include support for Flask 3
+
+## [3.4.0](https://github.com/GoogleCloudPlatform/functions-framework-python/compare/v3.3.0...v3.4.0) (2023-05-24)
+
 
 ### Features
 
