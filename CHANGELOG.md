@@ -24,6 +24,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [3.4.0](https://github.com/GoogleCloudPlatform/functions-framework-python/compare/v3.3.0...v3.4.0) (2023-05-24)
 
+### Dependencies
+
+* Include support for Flask 3
 
 ### Features
 
