@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.5.0](https://github.com/GoogleCloudPlatform/functions-framework-python/compare/v3.4.0...v3.5.0) (2023-11-28)
+
+
+### Features
+
+* initial typing of the public API ([#248](https://github.com/GoogleCloudPlatform/functions-framework-python/issues/248)) ([45aed53](https://github.com/GoogleCloudPlatform/functions-framework-python/commit/45aed538b5e39655318c7841457399fa3376ceaf))
+
+
+### Bug Fixes
+
+* don't exit on reload if there is a syntax error ([#214](https://github.com/GoogleCloudPlatform/functions-framework-python/issues/214)) ([46780da](https://github.com/GoogleCloudPlatform/functions-framework-python/commit/46780dac88c8dfe715babe89f792d08e9ca482e7))
+* reduce gunicorn concurrency to at most 4 * maximum available cor… ([#259](https://github.com/GoogleCloudPlatform/functions-framework-python/issues/259)) ([2e04cc2](https://github.com/GoogleCloudPlatform/functions-framework-python/commit/2e04cc28ae028b8facc85dbdf738e2b8076dbbf7))
+
+
+### Documentation
+
+* Fix broken Flask Request link in README.md ([#286](https://github.com/GoogleCloudPlatform/functions-framework-python/issues/286)) ([6b9e9b5](https://github.com/GoogleCloudPlatform/functions-framework-python/commit/6b9e9b56f2f364e9a19fd434d88a0fbe22808515))
+
 ## [3.4.0](https://github.com/GoogleCloudPlatform/functions-framework-python/compare/v3.3.0...v3.4.0) (2023-05-24)
 
 
