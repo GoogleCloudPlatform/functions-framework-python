@@ -44,7 +44,7 @@ Args:
 
 def register_typed_event(decorator_type, func):
     try:
-        sig = signature(func, eval_str=True)
+        sig = signature(func)
         annotation_type = list(sig.parameters.values())[0].annotation
         input_type = _select_input_type(decorator_type, annotation_type)
         _validate_input_type(input_type)
