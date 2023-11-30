@@ -12,11 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import sys
 
 import inspect
 import types
 
-from inspect import signature
+from inspect import signature as _signature
+if sys.version_info.major == 3 and sys.version_info.minor < 10:
+    signature = _signature
+else:
+    from functools import partial
+    signature = partial(_signature, eval_str=True)
+
 
 from functions_framework import _function_registry
 from functions_framework.exceptions import FunctionsFrameworkException
