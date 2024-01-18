@@ -24,7 +24,7 @@ class TestSamples:
         self.stop_all_containers(client)
 
         TAG = "cloud_run_http"
-        client.images.build(path=str(EXAMPLES_DIR / "cloud_run_http"), tag={TAG})
+        client.images.build(path=str(EXAMPLES_DIR / "cloud_run_http"), tag=TAG)
         container = client.containers.run(image=TAG, detach=True, ports={8080: 8080})
         timeout = 10
         success = False
