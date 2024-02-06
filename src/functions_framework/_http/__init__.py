@@ -31,9 +31,9 @@ class HTTPServer:
             except ImportError as e:
                 self.server_class = FlaskApplication
 
-    def run(self, host, port):
+    def run(self, workers, threads, host, port, timeout):
         http_server = self.server_class(
-            self.app, host, port, self.debug, **self.options
+            self.app, workers, threads, host, port, timeout, self.debug, **self.options
         )
         http_server.run()
 

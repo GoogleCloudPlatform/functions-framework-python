@@ -18,15 +18,17 @@ import gunicorn.app.base
 
 
 class GunicornApplication(gunicorn.app.base.BaseApplication):
-    def __init__(self, app, host, port, debug, **options):
+    def __init__(self, app, workers, threads, host, port, timeout, debug,
+        **options):
         self.options = {
             "bind": "%s:%s" % (host, port),
-            "workers": 1,
-            "threads": (os.cpu_count() or 1) * 4,
-            "timeout": 0,
+            "workers": workers,
+            "threads": threads,
+            "timeout": timeout or os.environ.get("K_TIMEOUT_SECONDS", 0),
             "loglevel": "error",
             "limit_request_line": 0,
         }
+        print(self.options)
         self.options.update(options)
         self.app = app
         super().__init__()

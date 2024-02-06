@@ -23,6 +23,9 @@ from functions_framework._http import create_server
 @click.command()
 @click.option("--target", envvar="FUNCTION_TARGET", type=click.STRING, required=True)
 @click.option("--source", envvar="FUNCTION_SOURCE", type=click.Path(), default=None)
+@click.option("--timeout", envvar="TIMEOUT_SECONDS", type=click.INT, default=None)
+@click.option("--workers", envvar="WORKERS", type=click.INT, default=1)
+@click.option("--threads", envvar="THREADS", type=click.INT, default=(os.cpu_count() or 1) * 4)
 @click.option(
     "--signature-type",
     envvar="FUNCTION_SIGNATURE_TYPE",
@@ -32,6 +35,6 @@ from functions_framework._http import create_server
 @click.option("--host", envvar="HOST", type=click.STRING, default="0.0.0.0")
 @click.option("--port", envvar="PORT", type=click.INT, default=8080)
 @click.option("--debug", envvar="DEBUG", is_flag=True)
-def _cli(target, source, signature_type, host, port, debug):
+def _cli(target, source, timeout, workers, threads, signature_type, host, port, debug):
     app = create_app(target, source, signature_type)
-    create_server(app, debug).run(host, port)
+    create_server(app, debug).run(workers, threads, host, port, timeout)
