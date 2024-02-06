@@ -23,7 +23,7 @@ from functions_framework._http import create_server
 @click.command()
 @click.option("--target", envvar="FUNCTION_TARGET", type=click.STRING, required=True)
 @click.option("--source", envvar="FUNCTION_SOURCE", type=click.Path(), default=None)
-@click.option("--timeout", envvar="TIMEOUT_SECONDS", type=click.INT, default=None)
+@click.option("--timeout", envvar="CLOUD_RUN_TIMEOUT_SECONDS", type=click.INT, default=None)
 @click.option("--workers", envvar="WORKERS", type=click.INT, default=1)
 @click.option("--threads", envvar="THREADS", type=click.INT, default=(os.cpu_count() or 1) * 4)
 @click.option(
