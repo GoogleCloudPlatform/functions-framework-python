@@ -65,9 +65,9 @@ class _LoggingHandler(io.TextIOWrapper):
 
 def cloud_event(func: CloudEventFunction) -> CloudEventFunction:
     """Decorator that registers cloudevent as user function signature type."""
-    _function_registry.REGISTRY_MAP[
-        func.__name__
-    ] = _function_registry.CLOUDEVENT_SIGNATURE_TYPE
+    _function_registry.REGISTRY_MAP[func.__name__] = (
+        _function_registry.CLOUDEVENT_SIGNATURE_TYPE
+    )
 
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
@@ -105,9 +105,9 @@ def typed(*args):
 
 def http(func: HTTPFunction) -> HTTPFunction:
     """Decorator that registers http as user function signature type."""
-    _function_registry.REGISTRY_MAP[
-        func.__name__
-    ] = _function_registry.HTTP_SIGNATURE_TYPE
+    _function_registry.REGISTRY_MAP[func.__name__] = (
+        _function_registry.HTTP_SIGNATURE_TYPE
+    )
 
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
