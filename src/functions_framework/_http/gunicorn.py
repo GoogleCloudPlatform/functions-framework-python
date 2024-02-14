@@ -21,14 +21,15 @@ class GunicornApplication(gunicorn.app.base.BaseApplication):
     def __init__(self, app, host, port, debug, **options):
         self.options = {
             "bind": "%s:%s" % (host, port),
-            "workers": 1,
-            "threads": (os.cpu_count() or 1) * 4,
-            "timeout": 0,
+            "workers": os.environ.get("WORKERS", (os.cpu_count() or 1) * 4),
+            "threads": os.environ.get("THREADS", 1),
+            "timeout": os.environ.get("CLOUD_RUN_TIMEOUT_SECONDS", 300),
             "loglevel": "error",
             "limit_request_line": 0,
         }
         self.options.update(options)
         self.app = app
+
         super().__init__()
 
     def load_config(self):

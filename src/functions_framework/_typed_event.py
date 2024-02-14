@@ -48,9 +48,9 @@ def register_typed_event(decorator_type, func):
         )
 
     _function_registry.INPUT_TYPE_MAP[func.__name__] = input_type
-    _function_registry.REGISTRY_MAP[
-        func.__name__
-    ] = _function_registry.TYPED_SIGNATURE_TYPE
+    _function_registry.REGISTRY_MAP[func.__name__] = (
+        _function_registry.TYPED_SIGNATURE_TYPE
+    )
 
 
 """ Checks whether the response type of the typed function has a to_dict method"""
