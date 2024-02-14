@@ -97,17 +97,17 @@ def test_gunicorn_application(debug):
     assert gunicorn_app.app == app
     assert gunicorn_app.options == {
         "bind": "%s:%s" % (host, port),
-        "workers": 1,
-        "threads": os.cpu_count() * 4,
-        "timeout": 0,
+        "workers": os.cpu_count() * 4,
+        "threads": 1,
+        "timeout": 300,
         "loglevel": "error",
         "limit_request_line": 0,
     }
 
     assert gunicorn_app.cfg.bind == ["1.2.3.4:1234"]
-    assert gunicorn_app.cfg.workers == 1
-    assert gunicorn_app.cfg.threads == os.cpu_count() * 4
-    assert gunicorn_app.cfg.timeout == 0
+    assert gunicorn_app.cfg.workers == os.cpu_count() * 4
+    assert gunicorn_app.cfg.threads == 1
+    assert gunicorn_app.cfg.timeout == 300
     assert gunicorn_app.load() == app
 
 
