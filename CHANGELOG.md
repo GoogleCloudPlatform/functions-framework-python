@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.0.0](https://github.com/GoogleCloudPlatform/functions-framework-python/compare/v3.5.0...v4.0.0) (2024-02-20)
+
+
+### ⚠ BREAKING CHANGES
+
+* avoid long running process when request timeout ([#309](https://github.com/GoogleCloudPlatform/functions-framework-python/issues/309))
+
+### Bug Fixes
+
+* avoid long running process when request timeout ([#309](https://github.com/GoogleCloudPlatform/functions-framework-python/issues/309)) ([3d2095c](https://github.com/GoogleCloudPlatform/functions-framework-python/commit/3d2095cd8d0814b44bc2351ea02d39febdba9314))
+
 ## [3.5.0](https://github.com/GoogleCloudPlatform/functions-framework-python/compare/v3.4.0...v3.5.0) (2023-11-28)
 
 
