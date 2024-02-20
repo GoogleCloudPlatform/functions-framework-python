@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import functools
-import inspect
 import io
 import json
 import logging
@@ -22,7 +21,6 @@ import pathlib
 import sys
 import types
 
-from inspect import signature
 from typing import Callable, Type
 
 import cloudevents.exceptions as cloud_exceptions
@@ -40,6 +38,12 @@ from functions_framework.exceptions import (
     MissingSourceException,
 )
 from google.cloud.functions.context import Context
+
+try:
+    from pydantic import BaseModel
+except ModuleNotFoundError:
+    BaseModel = types.NoneType
+
 
 _FUNCTION_STATUS_HEADER_FIELD = "X-Google-Status"
 _CRASH = "crash"
@@ -146,7 +150,10 @@ def _typed_event_func_wrapper(function, request, inputType: Type):
     def view_func(path):
         try:
             data = request.get_json()
-            input = inputType.from_dict(data)
+            if issubclass(inputType, BaseModel):
+                input = inputType(**data)
+            else:
+                input = inputType.from_dict(data)
             response = function(input)
             if response is None:
                 return "", 200
