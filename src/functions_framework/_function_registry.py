@@ -17,7 +17,7 @@ import sys
 import types
 
 from re import T
-from typing import Type
+from typing import Type, Callable
 
 from functions_framework.exceptions import (
     InvalidConfigurationException,
@@ -57,11 +57,11 @@ def get_user_function(source, source_module, target):
             )
         )
     function = getattr(source_module, target)
-    # Check that it is a function
-    if not isinstance(function, types.FunctionType):
+    # Check that it is callable.
+    if not isinstance(function, Callable):
         raise InvalidTargetTypeException(
             "The function defined in file {source} as '{target}' needs to be of "
-            "type function. Got: invalid type {target_type}".format(
+            "type Callable. Got: invalid type {target_type}".format(
                 source=source, target=target, target_type=type(function)
             )
         )
