@@ -55,7 +55,7 @@ setup(
         "watchdog>=1.0.0",
         "gunicorn>=19.2.0; platform_system!='Windows'",
         "cloudevents>=1.2.0,<2.0.0",
-        "Werkzeug>=3.0.0,<4.0.0",
+        "Werkzeug>=2.0.0,<4.0.0",
     ],
     entry_points={
         "console_scripts": [
