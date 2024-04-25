@@ -17,6 +17,8 @@ import inspect
 import io
 import json
 import logging
+import logging.config
+import os
 import os.path
 import pathlib
 import sys
@@ -32,7 +34,7 @@ import werkzeug
 from cloudevents.http import from_http, is_binary
 from cloudevents.http.event import CloudEvent
 
-from functions_framework import _function_registry, _typed_event, event_conversion
+from functions_framework import _function_registry, _typed_event, event_conversion, execution_id
 from functions_framework.background_event import BackgroundEvent
 from functions_framework.exceptions import (
     EventConversionException,
@@ -129,6 +131,7 @@ def setup_logging():
 
 
 def _http_view_func_wrapper(function, request):
+    @execution_id.set_execution_context(request, _enable_execution_id_logging())
     @functools.wraps(function)
     def view_func(path):
         return function(request._get_current_object())
@@ -143,6 +146,7 @@ def _run_cloud_event(function, request):
 
 
 def _typed_event_func_wrapper(function, request, inputType: Type):
+    @execution_id.set_execution_context(request,  _enable_execution_id_logging())
     def view_func(path):
         try:
             data = request.get_json()
@@ -163,6 +167,7 @@ def _typed_event_func_wrapper(function, request, inputType: Type):
 
 
 def _cloud_event_view_func_wrapper(function, request):
+    @execution_id.set_execution_context(request, _enable_execution_id_logging())
     def view_func(path):
         ce_exception = None
         event = None
@@ -198,6 +203,7 @@ def _cloud_event_view_func_wrapper(function, request):
 
 
 def _event_view_func_wrapper(function, request):
+    @execution_id.set_execution_context(request, _enable_execution_id_logging())
     def view_func(path):
         if event_conversion.is_convertable_cloud_event(request):
             # Convert this CloudEvent to the equivalent background event data and context.
@@ -332,6 +338,9 @@ def create_app(target=None, source=None, signature_type=None):
 
     source_module, spec = _function_registry.load_function_module(source)
 
+    if _enable_execution_id_logging():
+        _configure_app_execution_id_logging()
+
     # Create the application
     _app = flask.Flask(target, template_folder=template_folder)
     _app.register_error_handler(500, crash_handler)
@@ -355,6 +364,7 @@ def create_app(target=None, source=None, signature_type=None):
         sys.stderr = _LoggingHandler("ERROR", sys.stderr)
         setup_logging()
 
+    _app.wsgi_app = execution_id.WsgiMiddleware(_app.wsgi_app)
     # Execute the module, within the application context
     with _app.app_context():
         try:
@@ -409,6 +419,25 @@ class LazyWSGIApp:
         if not self.app:
             self.app = create_app(self.target, self.source, self.signature_type)
         return self.app(*args, **kwargs)
+
+
+def _configure_app_execution_id_logging():
+    # Logging needs to be configured before app logger is accessed
+    logging.config.dictConfig({
+        'version': 1,
+        'handlers': {'wsgi': {
+            'class': 'logging.StreamHandler',
+            'stream': 'ext://functions_framework.execution_id.logging_stream',
+        }},
+        'root': {
+            'level': 'INFO',
+            'handlers': ['wsgi']
+        }
+    })
+
+
+def _enable_execution_id_logging():
+    return os.environ.get("LOG_EXECUTION_ID")
 
 
 app = LazyWSGIApp()

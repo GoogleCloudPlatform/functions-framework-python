@@ -25,7 +25,7 @@ import functions_framework
 def test_http_view_func_wrapper():
     function = pretend.call_recorder(lambda request: "Hello")
     request_object = pretend.stub()
-    local_proxy = pretend.stub(_get_current_object=lambda: request_object)
+    local_proxy = pretend.stub(_get_current_object=lambda: request_object, headers={})
 
     view_func = functions_framework._http_view_func_wrapper(function, local_proxy)
     view_func("/some/path")
