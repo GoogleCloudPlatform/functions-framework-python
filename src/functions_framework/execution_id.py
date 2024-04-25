@@ -33,7 +33,7 @@ _TRACE_CONTEXT_REGEX_PATTERN = re.compile(
     r"^(?P<trace_id>[\w\d]+)/(?P<span_id>\d+);o=(?P<options>[01])$"
 )
 EXECUTION_ID_REQUEST_HEADER = "Function-Execution-Id"
-TRACE_CONTEXT_REQUEST_HEADER = 'X-Cloud-Trace-Context'
+TRACE_CONTEXT_REQUEST_HEADER = "X-Cloud-Trace-Context"
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +47,7 @@ class ExecutionContext:
 def _get_current_context():
     return (
         flask.g.execution_id_context
-        if flask.has_request_context() and 'execution_id_context' in flask.g
+        if flask.has_request_context() and "execution_id_context" in flask.g
         else None
     )
 
@@ -80,8 +80,12 @@ class WsgiMiddleware:
 # Sets execution id and span id for the request
 def set_execution_context(request, enable_id_logging=False):
     if enable_id_logging:
-        stdout_redirect = contextlib.redirect_stdout(LoggingHandlerAddExecutionId(sys.stdout))
-        stderr_redirect = contextlib.redirect_stderr(LoggingHandlerAddExecutionId(sys.stderr))
+        stdout_redirect = contextlib.redirect_stdout(
+            LoggingHandlerAddExecutionId(sys.stdout)
+        )
+        stderr_redirect = contextlib.redirect_stderr(
+            LoggingHandlerAddExecutionId(sys.stderr)
+        )
     else:
         stdout_redirect = contextlib.nullcontext()
         stderr_redirect = contextlib.nullcontext()
@@ -99,7 +103,9 @@ def set_execution_context(request, enable_id_logging=False):
 
             with stderr_redirect, stdout_redirect:
                 return view_function(*args, **kwargs)
+
         return wrapper
+
     return decorator
 
 
@@ -125,14 +131,14 @@ class LoggingHandlerAddExecutionId(io.TextIOWrapper):
             execution_id = current_context.execution_id
             span_id = current_context.span_id
             payload = json.loads(contents)
-            if not isinstance(
-                payload, dict
-            ):
+            if not isinstance(payload, dict):
                 payload = {"message": contents}
         except json.JSONDecodeError:
             payload = {"message": contents}
         if execution_id:
-            payload[_LOGGING_API_LABELS_FIELD] = payload.get(_LOGGING_API_LABELS_FIELD, {})
+            payload[_LOGGING_API_LABELS_FIELD] = payload.get(
+                _LOGGING_API_LABELS_FIELD, {}
+            )
             payload[_LOGGING_API_LABELS_FIELD]["execution_id"] = execution_id
         if span_id:
             payload[_LOGGING_API_SPAN_ID_FIELD] = span_id

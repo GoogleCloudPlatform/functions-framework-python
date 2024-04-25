@@ -34,7 +34,12 @@ import werkzeug
 from cloudevents.http import from_http, is_binary
 from cloudevents.http.event import CloudEvent
 
-from functions_framework import _function_registry, _typed_event, event_conversion, execution_id
+from functions_framework import (
+    _function_registry,
+    _typed_event,
+    event_conversion,
+    execution_id,
+)
 from functions_framework.background_event import BackgroundEvent
 from functions_framework.exceptions import (
     EventConversionException,
@@ -146,7 +151,7 @@ def _run_cloud_event(function, request):
 
 
 def _typed_event_func_wrapper(function, request, inputType: Type):
-    @execution_id.set_execution_context(request,  _enable_execution_id_logging())
+    @execution_id.set_execution_context(request, _enable_execution_id_logging())
     def view_func(path):
         try:
             data = request.get_json()
@@ -423,17 +428,18 @@ class LazyWSGIApp:
 
 def _configure_app_execution_id_logging():
     # Logging needs to be configured before app logger is accessed
-    logging.config.dictConfig({
-        'version': 1,
-        'handlers': {'wsgi': {
-            'class': 'logging.StreamHandler',
-            'stream': 'ext://functions_framework.execution_id.logging_stream',
-        }},
-        'root': {
-            'level': 'INFO',
-            'handlers': ['wsgi']
+    logging.config.dictConfig(
+        {
+            "version": 1,
+            "handlers": {
+                "wsgi": {
+                    "class": "logging.StreamHandler",
+                    "stream": "ext://functions_framework.execution_id.logging_stream",
+                },
+            },
+            "root": {"level": "INFO", "handlers": ["wsgi"]},
         }
-    })
+    )
 
 
 def _enable_execution_id_logging():
