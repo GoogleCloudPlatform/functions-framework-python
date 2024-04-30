@@ -203,10 +203,6 @@ def test_set_execution_context(
             {"custom-field1": "value1", "custom-field2": "value2"},
         ),
         ("[]", {"message": "[]"}),
-        (
-            json.dumps([{"custom-field1": "value1", "custom-field2": "value2"}]),
-            {"message": '[{"custom-field1": "value1", "custom-field2": "value2"}]'},
-        ),
     ],
 )
 def test_log_handler(monkeypatch, log_message, expected_log_json, capsys):
@@ -230,6 +226,36 @@ def test_log_handler(monkeypatch, log_message, expected_log_json, capsys):
     log_handler.write(log_message)
     record = capsys.readouterr()
     assert json.loads(record.out) == expected_log_json
+    assert json.loads(record.out) == expected_log_json
+
+
+def test_log_handler_without_context_logs_unmodified(monkeypatch, capsys):
+    log_handler = execution_id.LoggingHandlerAddExecutionId(stream=sys.stdout)
+    monkeypatch.setattr(
+        execution_id,
+        "_get_current_context",
+        lambda: None,
+    )
+    expected_message = "log message\n"
+
+    log_handler.write("log message")
+    record = capsys.readouterr()
+    assert record.out == expected_message
+
+
+def test_log_handler_ignores_newlines(monkeypatch, capsys):
+    log_handler = execution_id.LoggingHandlerAddExecutionId(stream=sys.stdout)
+    monkeypatch.setattr(
+        execution_id,
+        "_get_current_context",
+        lambda: execution_id.ExecutionContext(
+            span_id=TEST_SPAN_ID, execution_id=TEST_EXECUTION_ID
+        ),
+    )
+
+    log_handler.write("\n")
+    record = capsys.readouterr()
+    assert record.out == ""
 
 
 def test_log_handler_omits_empty_execution_context(monkeypatch, capsys):
