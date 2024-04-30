@@ -203,6 +203,10 @@ def test_set_execution_context(
             {"custom-field1": "value1", "custom-field2": "value2"},
         ),
         ("[]", {"message": "[]"}),
+        (
+            json.dumps([{"custom-field1": "value1", "custom-field2": "value2"}]),
+            {"message": '[{"custom-field1": "value1", "custom-field2": "value2"}]'},
+        ),
     ],
 )
 def test_log_handler(monkeypatch, log_message, expected_log_json, capsys):
