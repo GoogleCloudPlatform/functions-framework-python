@@ -38,7 +38,6 @@ def test_user_function_can_retrieve_execution_id_from_header():
             "Function-Execution-Id": TEST_EXECUTION_ID,
             "Content-Type": "application/json",
         },
-        json={"delay": 1},
     )
 
     assert resp.get_json()["execution_id"] == TEST_EXECUTION_ID
@@ -56,7 +55,6 @@ def test_uncaught_exception_in_user_function_sets_execution_id(capsys, monkeypat
             "Function-Execution-Id": TEST_EXECUTION_ID,
             "Content-Type": "application/json",
         },
-        json={"delay": "not-a-valid-int-and-will-raise-an-exception"},
     )
     assert resp.status_code == 500
     record = capsys.readouterr()
