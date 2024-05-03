@@ -116,6 +116,12 @@ def logging_stream():
 
 
 class LoggingHandlerAddExecutionId(io.TextIOWrapper):
+    def __new__(cls, stream=sys.stdout):
+        if isinstance(stream, LoggingHandlerAddExecutionId):
+            return stream
+        else:
+            return super(LoggingHandlerAddExecutionId, cls).__new__(cls)
+
     def __init__(self, stream=sys.stdout):
         io.TextIOWrapper.__init__(self, io.StringIO())
         self.stream = stream
@@ -135,6 +141,8 @@ class LoggingHandlerAddExecutionId(io.TextIOWrapper):
             if not isinstance(payload, dict):
                 payload = {"message": contents}
         except json.JSONDecodeError:
+            if len(contents) > 0 and contents[-1] == "\n":
+                contents = contents[:-1]
             payload = {"message": contents}
         if execution_id:
             payload[_LOGGING_API_LABELS_FIELD] = payload.get(
