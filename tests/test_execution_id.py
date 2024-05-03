@@ -258,6 +258,13 @@ def test_log_handler_ignores_newlines(monkeypatch, capsys):
     assert record.out == ""
 
 
+def test_log_handler_does_not_nest():
+    log_handler_1 = execution_id.LoggingHandlerAddExecutionId(stream=sys.stdout)
+    log_handler_2 = execution_id.LoggingHandlerAddExecutionId(log_handler_1)
+
+    assert log_handler_1 == log_handler_2
+
+
 def test_log_handler_omits_empty_execution_context(monkeypatch, capsys):
     log_handler = execution_id.LoggingHandlerAddExecutionId(stream=sys.stdout)
     monkeypatch.setattr(
