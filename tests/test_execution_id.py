@@ -1,4 +1,4 @@
-# Copyright 2020 Google LLC
+# Copyright 2024 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,11 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import asyncio
 import json
 import pathlib
 import re
 import sys
 
+from functools import partial
 from unittest.mock import Mock
 
 import pretend
@@ -270,3 +272,65 @@ def test_log_handler_omits_empty_execution_context(monkeypatch, capsys):
     log_handler.write("some message")
     record = capsys.readouterr()
     assert json.loads(record.out) == expected_json
+
+
+@pytest.mark.asyncio
+async def test_maintains_execution_id_for_concurrent_requests(monkeypatch, capsys):
+    monkeypatch.setenv("LOG_EXECUTION_ID", "True")
+    monkeypatch.setattr(
+        execution_id,
+        "_generate_execution_id",
+        Mock(side_effect=("test-execution-id-1", "test-execution-id-2")),
+    )
+
+    expected_logs = (
+        {
+            "message": "message1",
+            "logging.googleapis.com/labels": {"execution_id": "test-execution-id-1"},
+        },
+        {
+            "message": "message2",
+            "logging.googleapis.com/labels": {"execution_id": "test-execution-id-2"},
+        },
+        {
+            "message": "message1",
+            "logging.googleapis.com/labels": {"execution_id": "test-execution-id-1"},
+        },
+        {
+            "message": "message2",
+            "logging.googleapis.com/labels": {"execution_id": "test-execution-id-2"},
+        },
+    )
+
+    source = TEST_FUNCTIONS_DIR / "execution_id" / "main.py"
+    target = "sleep"
+    client = create_app(target, source).test_client()
+    loop = asyncio.get_event_loop()
+    response1 = loop.run_in_executor(
+        None,
+        partial(
+            client.post,
+            "/",
+            headers={
+                "Content-Type": "application/json",
+            },
+            json={"message": "message1"},
+        ),
+    )
+    response2 = loop.run_in_executor(
+        None,
+        partial(
+            client.post,
+            "/",
+            headers={
+                "Content-Type": "application/json",
+            },
+            json={"message": "message2"},
+        ),
+    )
+    await asyncio.wait((response1, response2))
+    record = capsys.readouterr()
+    logs = record.err.strip().split("\n")
+    logs_as_json = tuple(json.loads(log) for log in logs)
+
+    assert logs_as_json == expected_logs
