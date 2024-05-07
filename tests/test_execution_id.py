@@ -155,6 +155,25 @@ def test_does_not_set_execution_id_when_env_var_is_false(capsys, monkeypatch):
     assert "some-message" in record.out
 
 
+def test_does_not_set_execution_id_when_env_var_is_not_bool_like(capsys, monkeypatch):
+    monkeypatch.setenv("LOG_EXECUTION_ID", "maybe")
+    source = TEST_FUNCTIONS_DIR / "execution_id" / "main.py"
+    target = "print_message"
+    app = create_app(target, source)
+    client = app.test_client()
+    client.post(
+        "/",
+        headers={
+            "Function-Execution-Id": TEST_EXECUTION_ID,
+            "Content-Type": "application/json",
+        },
+        json={"message": "some-message"},
+    )
+    record = capsys.readouterr()
+    assert f'"execution_id": "{TEST_EXECUTION_ID}"' not in record.out
+    assert "some-message" in record.out
+
+
 def test_generate_execution_id():
     expected_matching_regex = "^[0-9a-zA-Z]{12}$"
     actual_execution_id = execution_id._generate_execution_id()
