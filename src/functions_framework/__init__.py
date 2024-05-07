@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import distutils
 import functools
 import inspect
 import io
@@ -444,13 +443,10 @@ def _configure_app_execution_id_logging():
 
 
 def _enable_execution_id_logging():
+    # Based on distutils.util.strtobool
+    truthy_values = ('y', 'yes', 't', 'true', 'on', '1')
     env_var_value = os.environ.get("LOG_EXECUTION_ID")
-    if not env_var_value:
-        return False
-    try:
-        return bool(distutils.util.strtobool(env_var_value))
-    except ValueError:
-        return False
+    return env_var_value in truthy_values
 
 
 app = LazyWSGIApp()
