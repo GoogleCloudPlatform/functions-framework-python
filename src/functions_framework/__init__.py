@@ -443,7 +443,10 @@ def _configure_app_execution_id_logging():
 
 
 def _enable_execution_id_logging():
-    return os.environ.get("LOG_EXECUTION_ID")
+    # Based on distutils.util.strtobool
+    truthy_values = ("y", "yes", "t", "true", "on", "1")
+    env_var_value = os.environ.get("LOG_EXECUTION_ID")
+    return env_var_value in truthy_values
 
 
 app = LazyWSGIApp()

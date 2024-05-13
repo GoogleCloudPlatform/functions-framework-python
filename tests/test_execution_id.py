@@ -46,7 +46,7 @@ def test_user_function_can_retrieve_execution_id_from_header():
 
 
 def test_uncaught_exception_in_user_function_sets_execution_id(capsys, monkeypatch):
-    monkeypatch.setenv("LOG_EXECUTION_ID", "True")
+    monkeypatch.setenv("LOG_EXECUTION_ID", "true")
     source = TEST_FUNCTIONS_DIR / "execution_id" / "main.py"
     target = "error"
     app = create_app(target, source)
@@ -64,7 +64,7 @@ def test_uncaught_exception_in_user_function_sets_execution_id(capsys, monkeypat
 
 
 def test_print_from_user_function_sets_execution_id(capsys, monkeypatch):
-    monkeypatch.setenv("LOG_EXECUTION_ID", "True")
+    monkeypatch.setenv("LOG_EXECUTION_ID", "true")
     source = TEST_FUNCTIONS_DIR / "execution_id" / "main.py"
     target = "print_message"
     app = create_app(target, source)
@@ -83,7 +83,7 @@ def test_print_from_user_function_sets_execution_id(capsys, monkeypatch):
 
 
 def test_log_from_user_function_sets_execution_id(capsys, monkeypatch):
-    monkeypatch.setenv("LOG_EXECUTION_ID", "True")
+    monkeypatch.setenv("LOG_EXECUTION_ID", "true")
     source = TEST_FUNCTIONS_DIR / "execution_id" / "main.py"
     target = "log_message"
     app = create_app(target, source)
@@ -119,6 +119,44 @@ def test_user_function_can_retrieve_generated_execution_id(monkeypatch):
 
 
 def test_does_not_set_execution_id_when_not_enabled(capsys):
+    source = TEST_FUNCTIONS_DIR / "execution_id" / "main.py"
+    target = "print_message"
+    app = create_app(target, source)
+    client = app.test_client()
+    client.post(
+        "/",
+        headers={
+            "Function-Execution-Id": TEST_EXECUTION_ID,
+            "Content-Type": "application/json",
+        },
+        json={"message": "some-message"},
+    )
+    record = capsys.readouterr()
+    assert f'"execution_id": "{TEST_EXECUTION_ID}"' not in record.out
+    assert "some-message" in record.out
+
+
+def test_does_not_set_execution_id_when_env_var_is_false(capsys, monkeypatch):
+    monkeypatch.setenv("LOG_EXECUTION_ID", "false")
+    source = TEST_FUNCTIONS_DIR / "execution_id" / "main.py"
+    target = "print_message"
+    app = create_app(target, source)
+    client = app.test_client()
+    client.post(
+        "/",
+        headers={
+            "Function-Execution-Id": TEST_EXECUTION_ID,
+            "Content-Type": "application/json",
+        },
+        json={"message": "some-message"},
+    )
+    record = capsys.readouterr()
+    assert f'"execution_id": "{TEST_EXECUTION_ID}"' not in record.out
+    assert "some-message" in record.out
+
+
+def test_does_not_set_execution_id_when_env_var_is_not_bool_like(capsys, monkeypatch):
+    monkeypatch.setenv("LOG_EXECUTION_ID", "maybe")
     source = TEST_FUNCTIONS_DIR / "execution_id" / "main.py"
     target = "print_message"
     app = create_app(target, source)
@@ -283,7 +321,7 @@ def test_log_handler_omits_empty_execution_context(monkeypatch, capsys):
 
 @pytest.mark.asyncio
 async def test_maintains_execution_id_for_concurrent_requests(monkeypatch, capsys):
-    monkeypatch.setenv("LOG_EXECUTION_ID", "True")
+    monkeypatch.setenv("LOG_EXECUTION_ID", "true")
     monkeypatch.setattr(
         execution_id,
         "_generate_execution_id",
