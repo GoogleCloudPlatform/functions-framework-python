@@ -105,9 +105,9 @@ def test_gunicorn_application(debug):
     }
 
     assert gunicorn_app.cfg.bind == ["1.2.3.4:1234"]
-    assert gunicorn_app.cfg.workers == os.cpu_count() * 4
-    assert gunicorn_app.cfg.threads == 1
-    assert gunicorn_app.cfg.timeout == 300
+    assert gunicorn_app.cfg.workers == 1
+    assert gunicorn_app.cfg.threads == os.cpu_count() * 4
+    assert gunicorn_app.cfg.timeout == 0
     assert gunicorn_app.load() == app
 
 
