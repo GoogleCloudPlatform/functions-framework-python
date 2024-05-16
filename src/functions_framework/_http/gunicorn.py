@@ -21,9 +21,9 @@ class GunicornApplication(gunicorn.app.base.BaseApplication):
     def __init__(self, app, host, port, debug, **options):
         self.options = {
             "bind": "%s:%s" % (host, port),
-            "workers": os.environ.get("WORKERS", (os.cpu_count() or 1) * 4),
-            "threads": os.environ.get("THREADS", 1),
-            "timeout": os.environ.get("CLOUD_RUN_TIMEOUT_SECONDS", 300),
+            "workers": os.environ.get("WORKERS", 1),
+            "threads": os.environ.get("THREADS", (os.cpu_count() or 1) * 4),
+            "timeout": os.environ.get("CLOUD_RUN_TIMEOUT_SECONDS", 0),
             "loglevel": "error",
             "limit_request_line": 0,
         }
