@@ -97,9 +97,9 @@ def test_gunicorn_application(debug):
     assert gunicorn_app.app == app
     assert gunicorn_app.options == {
         "bind": "%s:%s" % (host, port),
-        "workers": os.cpu_count() * 4,
-        "threads": 1,
-        "timeout": 300,
+        "workers": 1,
+        "threads": os.cpu_count() * 4,
+        "timeout": 0,
         "loglevel": "error",
         "limit_request_line": 0,
     }
