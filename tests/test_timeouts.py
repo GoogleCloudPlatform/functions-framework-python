@@ -163,6 +163,72 @@ def test_timeout_and_threaded_timeout_enabled_but_timeout_not_exceeded_doesnt_ki
     assert result.status_code == 200
 
 
+@pytest.mark.skipif("platform.system() == 'Windows'")
+@pytest.mark.skipif("platform.system() == 'Darwin'")
+@pytest.mark.slow_integration_test
+def test_timeout_sync_worker_kills_on_timeout(
+    monkeypatch,
+):
+    monkeypatch.setenv("CLOUD_RUN_TIMEOUT_SECONDS", "1")
+    monkeypatch.setenv("WORKERS", 2)
+    monkeypatch.setenv("THREADS", 1)
+    source = TEST_FUNCTIONS_DIR / "timeout" / "main.py"
+    target = "function"
+
+    app = create_app(target, source)
+
+    options = {}
+
+    gunicorn_app = ff_gunicorn.GunicornApplication(
+        app, TEST_HOST, TEST_PORT, False, **options
+    )
+
+    gunicorn_p = Process(target=gunicorn_app.run)
+    gunicorn_p.start()
+
+    _wait_for_listen(TEST_HOST, TEST_PORT)
+
+    result = requests.get("http://{}:{}/".format(TEST_HOST, TEST_PORT))
+
+    gunicorn_p.terminate()
+    gunicorn_p.join()
+
+    assert result.status_code == 500
+
+
+@pytest.mark.skipif("platform.system() == 'Windows'")
+@pytest.mark.skipif("platform.system() == 'Darwin'")
+@pytest.mark.slow_integration_test
+def test_timeout_sync_worker_does_not_kill_if_less_than_timeout(
+    monkeypatch,
+):
+    monkeypatch.setenv("CLOUD_RUN_TIMEOUT_SECONDS", "2")
+    monkeypatch.setenv("WORKERS", 2)
+    monkeypatch.setenv("THREADS", 1)
+    source = TEST_FUNCTIONS_DIR / "timeout" / "main.py"
+    target = "function"
+
+    app = create_app(target, source)
+
+    options = {}
+
+    gunicorn_app = ff_gunicorn.GunicornApplication(
+        app, TEST_HOST, TEST_PORT, False, **options
+    )
+
+    gunicorn_p = Process(target=gunicorn_app.run)
+    gunicorn_p.start()
+
+    _wait_for_listen(TEST_HOST, TEST_PORT)
+
+    result = requests.get("http://{}:{}/".format(TEST_HOST, TEST_PORT))
+
+    gunicorn_p.terminate()
+    gunicorn_p.join()
+
+    assert result.status_code == 200
+
+
 @pytest.mark.skip
 def _wait_for_listen(host, port, timeout=10):
     # Used in tests to make sure that the gunicorn app has booted and is
