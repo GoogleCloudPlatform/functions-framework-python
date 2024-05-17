@@ -378,5 +378,5 @@ async def test_maintains_execution_id_for_concurrent_requests(monkeypatch, capsy
     logs = record.err.strip().split("\n")
     logs_as_json = tuple(json.loads(log) for log in logs)
 
-    sort_key = lambda d: d['message']
+    sort_key = lambda d: d["message"]
     assert sorted(logs_as_json, key=sort_key) == sorted(expected_logs, key=sort_key)
