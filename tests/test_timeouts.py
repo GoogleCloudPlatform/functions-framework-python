@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import os
 import pathlib
 import pytest
 import requests
@@ -30,10 +29,14 @@ TEST_PORT = "8080"
 
 @pytest.fixture(autouse=True)
 def run_around_tests():
+    # the test samples test also listens on 8080, so let's be good stewards of
+    # the port and make sure it's free
     _wait_for_no_listen(TEST_HOST, TEST_PORT)
     yield
+    _wait_for_no_listen(TEST_HOST, TEST_PORT)
 
 
+@pytest.mark.slow_integration_test
 def test_no_timeout_allows_request_processing_to_finish():
     source = TEST_FUNCTIONS_DIR / "timeout" / "main.py"
     target = "function"
@@ -53,12 +56,13 @@ def test_no_timeout_allows_request_processing_to_finish():
 
     result = requests.get("http://{}:{}/".format(TEST_HOST, TEST_PORT))
 
-    gunicorn_p.kill()
+    gunicorn_p.terminate()
     gunicorn_p.join()
 
     assert result.status_code == 200
 
 
+@pytest.mark.slow_integration_test
 def test_timeout_but_not_threaded_timeout_enabled_does_not_kill(monkeypatch):
     monkeypatch.setenv("CLOUD_RUN_TIMEOUT_SECONDS", "1")
     monkeypatch.setenv("THREADED_TIMEOUT_ENABLED", "false")
@@ -73,10 +77,6 @@ def test_timeout_but_not_threaded_timeout_enabled_does_not_kill(monkeypatch):
         app, TEST_HOST, TEST_PORT, False, **options
     )
 
-    os.environ.clear()
-    os.environ["CLOUD_RUN_TIMEOUT_SECONDS"] = "1"
-    os.environ["THREADED_TIMEOUT_ENABLED"] = "false"
-
     gunicorn_p = Process(target=gunicorn_app.run)
     gunicorn_p.start()
 
@@ -84,12 +84,13 @@ def test_timeout_but_not_threaded_timeout_enabled_does_not_kill(monkeypatch):
 
     result = requests.get("http://{}:{}/".format(TEST_HOST, TEST_PORT))
 
-    gunicorn_p.kill()
+    gunicorn_p.terminate()
     gunicorn_p.join()
 
     assert result.status_code == 200
 
 
+@pytest.mark.slow_integration_test
 def test_timeout_and_threaded_timeout_enabled_kills(monkeypatch):
     monkeypatch.setenv("CLOUD_RUN_TIMEOUT_SECONDS", "1")
     monkeypatch.setenv("THREADED_TIMEOUT_ENABLED", "true")
@@ -111,7 +112,7 @@ def test_timeout_and_threaded_timeout_enabled_kills(monkeypatch):
 
     result = requests.get("http://{}:{}/".format(TEST_HOST, TEST_PORT))
 
-    gunicorn_p.kill()
+    gunicorn_p.terminate()
     gunicorn_p.join()
 
     # Any exception raised in execution is a 500 error. Cloud Functions 1st gen and
@@ -121,6 +122,7 @@ def test_timeout_and_threaded_timeout_enabled_kills(monkeypatch):
     assert result.status_code == 500
 
 
+@pytest.mark.slow_integration_test
 def test_timeout_and_threaded_timeout_enabled_but_timeout_not_exceeded_doesnt_kill(
     monkeypatch,
 ):
@@ -144,7 +146,7 @@ def test_timeout_and_threaded_timeout_enabled_but_timeout_not_exceeded_doesnt_ki
 
     result = requests.get("http://{}:{}/".format(TEST_HOST, TEST_PORT))
 
-    gunicorn_p.kill()
+    gunicorn_p.terminate()
     gunicorn_p.join()
 
     assert result.status_code == 200

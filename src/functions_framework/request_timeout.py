@@ -8,10 +8,9 @@ from .exceptions import RequestTimeoutException
 logger = logging.getLogger(__name__)
 
 
-class ThreadingTimeout(object):
-    def __init__(self, seconds, swallow_exc=True):
+class ThreadingTimeout(object):  # pragma: no cover
+    def __init__(self, seconds):
         self.seconds = seconds
-        self.swallow_exc = swallow_exc
         self.target_tid = threading.current_thread().ident
         self.timer = None
 

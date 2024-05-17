@@ -40,15 +40,16 @@ class GunicornApplication(gunicorn.app.base.BaseApplication):
             "limit_request_line": 0,
         }
 
-        if TIMEOUT_SECONDS > 0:
-            if threads > 1 and _is_truthy(
-                os.environ.get("THREADED_TIMEOUT_ENABLED", "False")
-            ):
-                self.options["worker_class"] = (
-                    "functions_framework._http.gunicorn.GThreadWorkerWithTimeoutSupport"
-                )
-            else:
-                self.options["timeout"] = TIMEOUT_SECONDS
+        if (
+            TIMEOUT_SECONDS > 0
+            and threads > 1
+            and _is_truthy(os.environ.get("THREADED_TIMEOUT_ENABLED", "False"))
+        ):  # pragma: no cover
+            self.options["worker_class"] = (
+                "functions_framework._http.gunicorn.GThreadWorkerWithTimeoutSupport"
+            )
+        else:
+            self.options["timeout"] = TIMEOUT_SECONDS
 
         self.options.update(options)
         self.app = app
@@ -63,11 +64,11 @@ class GunicornApplication(gunicorn.app.base.BaseApplication):
         return self.app
 
 
-class GThreadWorkerWithTimeoutSupport(ThreadWorker):
+class GThreadWorkerWithTimeoutSupport(ThreadWorker):  # pragma: no cover
     def handle_request(self, req, conn):
-        with ThreadingTimeout(TIMEOUT_SECONDS, swallow_exc=False):
+        with ThreadingTimeout(TIMEOUT_SECONDS):
             super(GThreadWorkerWithTimeoutSupport, self).handle_request(req, conn)
 
 
-def _is_truthy(s):
+def _is_truthy(s):  # pragma: no cover
     return str(s).lower() in ("yes", "y", "1", "yeah", "true", "t")
