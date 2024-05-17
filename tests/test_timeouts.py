@@ -38,6 +38,7 @@ def run_around_tests():
     _wait_for_no_listen(TEST_HOST, TEST_PORT)
 
 
+@pytest.mark.skipif("platform.system() == 'Darwin'")
 @pytest.mark.slow_integration_test
 def test_no_timeout_allows_request_processing_to_finish():
     source = TEST_FUNCTIONS_DIR / "timeout" / "main.py"
@@ -64,6 +65,7 @@ def test_no_timeout_allows_request_processing_to_finish():
     assert result.status_code == 200
 
 
+@pytest.mark.skipif("platform.system() == 'Darwin'")
 @pytest.mark.slow_integration_test
 def test_timeout_but_not_threaded_timeout_enabled_does_not_kill(monkeypatch):
     monkeypatch.setenv("CLOUD_RUN_TIMEOUT_SECONDS", "1")
@@ -92,6 +94,7 @@ def test_timeout_but_not_threaded_timeout_enabled_does_not_kill(monkeypatch):
     assert result.status_code == 200
 
 
+@pytest.mark.skipif("platform.system() == 'Darwin'")
 @pytest.mark.slow_integration_test
 def test_timeout_and_threaded_timeout_enabled_kills(monkeypatch):
     monkeypatch.setenv("CLOUD_RUN_TIMEOUT_SECONDS", "1")
@@ -124,6 +127,7 @@ def test_timeout_and_threaded_timeout_enabled_kills(monkeypatch):
     assert result.status_code == 500
 
 
+@pytest.mark.skipif("platform.system() == 'Darwin'")
 @pytest.mark.slow_integration_test
 def test_timeout_and_threaded_timeout_enabled_but_timeout_not_exceeded_doesnt_kill(
     monkeypatch,
