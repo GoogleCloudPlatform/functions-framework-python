@@ -183,7 +183,8 @@ def _wait_for_listen(host, port, timeout=10):
 
 @pytest.mark.skip
 def _wait_for_no_listen(host, port, timeout=10):
-    # Used in tests to make sure that the
+    # Used in tests to make sure that the port is actually free after
+    # the process binding to it should have been killed
     start_time = time.perf_counter()
     while True:
         try:
