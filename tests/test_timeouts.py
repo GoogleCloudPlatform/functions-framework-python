@@ -20,7 +20,8 @@ from multiprocessing import Process
 import pytest
 import requests
 
-import functions_framework._http.gunicorn
+ff_gunicorn = pytest.importorskip("functions_framework._http.gunicorn")
+
 
 from functions_framework import create_app
 
@@ -49,7 +50,7 @@ def test_no_timeout_allows_request_processing_to_finish():
 
     options = {}
 
-    gunicorn_app = functions_framework._http.gunicorn.GunicornApplication(
+    gunicorn_app = ff_gunicorn.GunicornApplication(
         app, TEST_HOST, TEST_PORT, False, **options
     )
 
@@ -79,7 +80,7 @@ def test_timeout_but_not_threaded_timeout_enabled_does_not_kill(monkeypatch):
 
     options = {}
 
-    gunicorn_app = functions_framework._http.gunicorn.GunicornApplication(
+    gunicorn_app = ff_gunicorn.GunicornApplication(
         app, TEST_HOST, TEST_PORT, False, **options
     )
 
@@ -109,7 +110,7 @@ def test_timeout_and_threaded_timeout_enabled_kills(monkeypatch):
 
     options = {}
 
-    gunicorn_app = functions_framework._http.gunicorn.GunicornApplication(
+    gunicorn_app = ff_gunicorn.GunicornApplication(
         app, TEST_HOST, TEST_PORT, False, **options
     )
 
@@ -145,7 +146,7 @@ def test_timeout_and_threaded_timeout_enabled_but_timeout_not_exceeded_doesnt_ki
 
     options = {}
 
-    gunicorn_app = functions_framework._http.gunicorn.GunicornApplication(
+    gunicorn_app = ff_gunicorn.GunicornApplication(
         app, TEST_HOST, TEST_PORT, False, **options
     )
 
