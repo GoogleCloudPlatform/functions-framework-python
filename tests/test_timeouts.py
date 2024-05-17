@@ -24,130 +24,136 @@ import functions_framework._http.gunicorn
 from functions_framework import create_app
 
 TEST_FUNCTIONS_DIR = pathlib.Path(__file__).resolve().parent / "test_functions"
+TEST_HOST = "0.0.0.0"
+TEST_PORT = "8080"
 
 
-@pytest.mark.skip
+@pytest.fixture(autouse=True)
+def run_around_tests():
+    _wait_for_no_listen(TEST_HOST, TEST_PORT)
+    yield
+
+
 def test_no_timeout_allows_request_processing_to_finish():
     source = TEST_FUNCTIONS_DIR / "timeout" / "main.py"
     target = "function"
 
     app = create_app(target, source)
 
-    host = "0.0.0.0"
-    port = "8080"
     options = {}
 
     gunicorn_app = functions_framework._http.gunicorn.GunicornApplication(
-        app, host, port, False, **options
+        app, TEST_HOST, TEST_PORT, False, **options
     )
-
-    os.environ.clear()
 
     gunicorn_p = Process(target=gunicorn_app.run)
     gunicorn_p.start()
 
-    _wait_for_port(host, port)
+    _wait_for_listen(TEST_HOST, TEST_PORT)
 
-    result = requests.get("http://{}:{}/".format(host, port))
+    result = requests.get("http://{}:{}/".format(TEST_HOST, TEST_PORT))
 
     gunicorn_p.kill()
+    gunicorn_p.join()
 
     assert result.status_code == 200
 
 
-@pytest.mark.skip
-def test_timeout_but_not_threaded_timeout_enabled_does_not_kill():
-
+def test_timeout_but_not_threaded_timeout_enabled_does_not_kill(monkeypatch):
+    monkeypatch.setenv("CLOUD_RUN_TIMEOUT_SECONDS", "1")
+    monkeypatch.setenv("THREADED_TIMEOUT_ENABLED", "false")
     source = TEST_FUNCTIONS_DIR / "timeout" / "main.py"
     target = "function"
 
     app = create_app(target, source)
 
-    host = "0.0.0.0"
-    port = "8081"
     options = {}
 
     gunicorn_app = functions_framework._http.gunicorn.GunicornApplication(
-        app, host, port, False, **options
+        app, TEST_HOST, TEST_PORT, False, **options
     )
 
     os.environ.clear()
-    os.environ['CLOUD_RUN_TIMEOUT_SECONDS'] = "1"
-    os.environ['THREADED_TIMEOUT_ENABLED'] = "false"
+    os.environ["CLOUD_RUN_TIMEOUT_SECONDS"] = "1"
+    os.environ["THREADED_TIMEOUT_ENABLED"] = "false"
 
     gunicorn_p = Process(target=gunicorn_app.run)
     gunicorn_p.start()
 
-    _wait_for_port(host, port)
+    _wait_for_listen(TEST_HOST, TEST_PORT)
 
-    result = requests.get("http://{}:{}/".format(host, port))
+    result = requests.get("http://{}:{}/".format(TEST_HOST, TEST_PORT))
 
     gunicorn_p.kill()
+    gunicorn_p.join()
 
     assert result.status_code == 200
 
 
 def test_timeout_and_threaded_timeout_enabled_kills(monkeypatch):
-    monkeypatch.setenv('CLOUD_RUN_TIMEOUT_SECONDS', 1)
-    monkeypatch.setenv('THREADED_TIMEOUT_ENABLED', "true")
+    monkeypatch.setenv("CLOUD_RUN_TIMEOUT_SECONDS", "1")
+    monkeypatch.setenv("THREADED_TIMEOUT_ENABLED", "true")
     source = TEST_FUNCTIONS_DIR / "timeout" / "main.py"
     target = "function"
 
     app = create_app(target, source)
 
-    host = "0.0.0.0"
-    port = "8082"
     options = {}
 
     gunicorn_app = functions_framework._http.gunicorn.GunicornApplication(
-        app, host, port, False, **options
+        app, TEST_HOST, TEST_PORT, False, **options
     )
 
-    gunicorn_app.run()
     gunicorn_p = Process(target=gunicorn_app.run)
     gunicorn_p.start()
 
-    _wait_for_port(host, port)
+    _wait_for_listen(TEST_HOST, TEST_PORT)
 
-    result = requests.get("http://{}:{}/".format(host, port))
+    result = requests.get("http://{}:{}/".format(TEST_HOST, TEST_PORT))
 
     gunicorn_p.kill()
+    gunicorn_p.join()
 
-    assert (
-        result.status_code == 500
-    )  # TODO: this should be 504, where do i have to translate this?
+    # Any exception raised in execution is a 500 error. Cloud Functions 1st gen and
+    # 2nd gen/Cloud Run infrastructure doing the timeout will return a 408 (gen 1)
+    # or 504 (gen 2/CR) at the infrastructure layer when request timeouts happen,
+    # and this code will only be available to the user in logs.
+    assert result.status_code == 500
 
 
-def test_timeout_and_threaded_timeout_enabled_but_timeout_not_exceeded_doesnt_kill(monkeypatch):
-    monkeypatch.setenv('CLOUD_RUN_TIMEOUT_SECONDS', "2")
-    monkeypatch.setenv('THREADED_TIMEOUT_ENABLED', "true")
+def test_timeout_and_threaded_timeout_enabled_but_timeout_not_exceeded_doesnt_kill(
+    monkeypatch,
+):
+    monkeypatch.setenv("CLOUD_RUN_TIMEOUT_SECONDS", "2")
+    monkeypatch.setenv("THREADED_TIMEOUT_ENABLED", "true")
     source = TEST_FUNCTIONS_DIR / "timeout" / "main.py"
     target = "function"
 
     app = create_app(target, source)
 
-    host = "0.0.0.0"
-    port = "8083"
     options = {}
 
     gunicorn_app = functions_framework._http.gunicorn.GunicornApplication(
-        app, host, port, False, **options
+        app, TEST_HOST, TEST_PORT, False, **options
     )
 
     gunicorn_p = Process(target=gunicorn_app.run)
     gunicorn_p.start()
 
-    _wait_for_port(host, port)
+    _wait_for_listen(TEST_HOST, TEST_PORT)
 
-    result = requests.get("http://{}:{}/".format(host, port))
+    result = requests.get("http://{}:{}/".format(TEST_HOST, TEST_PORT))
 
     gunicorn_p.kill()
+    gunicorn_p.join()
 
     assert result.status_code == 200
 
 
 @pytest.mark.skip
-def _wait_for_port(host, port, timeout=10):
+def _wait_for_listen(host, port, timeout=10):
+    # Used in tests to make sure that the gunicorn app has booted and is
+    # listening before sending a test request
     start_time = time.perf_counter()
     while True:
         try:
@@ -157,6 +163,23 @@ def _wait_for_port(host, port, timeout=10):
             time.sleep(0.01)
             if time.perf_counter() - start_time >= timeout:
                 raise TimeoutError(
-                    "Waited too long for the port {} on host {} to start accepting "
+                    "Waited too long for port {} on host {} to start accepting "
                     "connections.".format(port, host)
                 ) from ex
+
+
+@pytest.mark.skip
+def _wait_for_no_listen(host, port, timeout=10):
+    # Used in tests to make sure that the
+    start_time = time.perf_counter()
+    while True:
+        try:
+            with socket.create_connection((host, port), timeout=timeout):
+                time.sleep(0.01)
+                if time.perf_counter() - start_time >= timeout:
+                    raise TimeoutError(
+                        "Waited too long for port {} on host {} to stop accepting "
+                        "connections.".format(port, host)
+                    )
+        except OSError as ex:
+            break

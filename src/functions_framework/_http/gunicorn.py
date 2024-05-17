@@ -21,12 +21,16 @@ from ..request_timeout import ThreadingTimeout
 # global for use in our custom gthread worker; the gunicorn arbiter spawns these
 # and it's not possible to inject (and self.timeout means something different to
 # async workers!)
-TIMEOUT_SECONDS = int(os.environ.get("CLOUD_RUN_TIMEOUT_SECONDS", 0))
+# set/managed in gunicorn application init for test-friendliness
+TIMEOUT_SECONDS = None
 
 
 class GunicornApplication(gunicorn.app.base.BaseApplication):
     def __init__(self, app, host, port, debug, **options):
         threads = int(os.environ.get("THREADS", (os.cpu_count() or 1) * 4))
+
+        global TIMEOUT_SECONDS
+        TIMEOUT_SECONDS = int(os.environ.get("CLOUD_RUN_TIMEOUT_SECONDS", 0))
 
         self.options = {
             "bind": "%s:%s" % (host, port),
