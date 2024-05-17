@@ -13,9 +13,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from cloudevents.http import CloudEvent, to_structured
 import requests
 
+from cloudevents.http import CloudEvent, to_structured
 
 # Create a cloudevent using https://github.com/cloudevents/sdk-python
 # Note we only need source and type because the cloudevents constructor by

@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import gunicorn.app.base
 import os
 
+import gunicorn.app.base
+
 from gunicorn.workers.gthread import ThreadWorker
+
 from ..request_timeout import ThreadingTimeout
 
 # global for use in our custom gthread worker; the gunicorn arbiter spawns these

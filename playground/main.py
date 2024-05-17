@@ -1,6 +1,7 @@
-import functions_framework
 import logging
 import time
+
+import functions_framework
 
 logger = logging.getLogger(__name__)
 

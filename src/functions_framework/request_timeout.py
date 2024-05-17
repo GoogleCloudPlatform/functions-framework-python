@@ -4,7 +4,6 @@ import threading
 
 from .exceptions import RequestTimeoutException
 
-
 logger = logging.getLogger(__name__)
 
 

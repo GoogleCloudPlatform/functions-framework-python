@@ -12,14 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import pathlib
-import pytest
-import requests
 import socket
 import time
 
 from multiprocessing import Process
 
+import pytest
+import requests
+
 import functions_framework._http.gunicorn
+
 from functions_framework import create_app
 
 TEST_FUNCTIONS_DIR = pathlib.Path(__file__).resolve().parent / "test_functions"
