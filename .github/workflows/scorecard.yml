@@ -37,6 +37,7 @@ jobs:
             auth.docker.io:443
             bestpractices.coreinfrastructure.org:443
             bestpractices.dev:443
+            www.bestpractices.dev:443
             github.com:443
             index.docker.io:443
             oss-fuzz-build-logs.storage.googleapis.com:443
