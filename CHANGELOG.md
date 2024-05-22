@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.7.0](https://github.com/GoogleCloudPlatform/functions-framework-python/compare/v3.6.0...v3.7.0) (2024-05-17)
+
+
+### Features
+
+* (opt-in): terminate handling of work when the request has already timed out ([#328](https://github.com/GoogleCloudPlatform/functions-framework-python/issues/328)) ([2601975](https://github.com/GoogleCloudPlatform/functions-framework-python/commit/2601975285386fc573de8033381edc99527ef3c9))
+* Add execution id ([#320](https://github.com/GoogleCloudPlatform/functions-framework-python/issues/320)) ([662bf4c](https://github.com/GoogleCloudPlatform/functions-framework-python/commit/662bf4ced9aa52efe774662a0f0f496d3d3534fc))
+* restore gunicorn worker default configs from 3.5.0 ([#326](https://github.com/GoogleCloudPlatform/functions-framework-python/issues/326)) ([f08757a](https://github.com/GoogleCloudPlatform/functions-framework-python/commit/f08757a17267d768e4c3ca4c6979f2a7db25e83c))
+* support disabling execution id logging ([#325](https://github.com/GoogleCloudPlatform/functions-framework-python/issues/325)) ([2e7de92](https://github.com/GoogleCloudPlatform/functions-framework-python/commit/2e7de92e5f9cd83f01222eb06385d66fe0211777))
+
+
+### Bug Fixes
+
+* update scorecard.yml ([#327](https://github.com/GoogleCloudPlatform/functions-framework-python/issues/327)) ([fff38ae](https://github.com/GoogleCloudPlatform/functions-framework-python/commit/fff38ae6ecb1054bad676900216663050e6edf10))
+* Update scorecard.yml ([#329](https://github.com/GoogleCloudPlatform/functions-framework-python/issues/329)) ([04c1fdc](https://github.com/GoogleCloudPlatform/functions-framework-python/commit/04c1fdc4185b8a97eb46d72b6432d32d5d70dffc))
+
 ## [3.6.0](https://github.com/GoogleCloudPlatform/functions-framework-python/compare/v3.5.0...v3.6.0) (2024-04-29)
 
 
