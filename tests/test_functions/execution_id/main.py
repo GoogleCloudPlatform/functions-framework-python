@@ -12,7 +12,7 @@ def print_message(request):
 
 def log_message(request):
     json = request.get_json(silent=True)
-    logger.info(json.get("message"))
+    logger.warning(json.get("message"))
     return "success", 200
 
 
@@ -27,7 +27,7 @@ def error(request):
 def sleep(request):
     json = request.get_json(silent=True)
     message = json.get("message")
-    logger.info(message)
+    logger.warning(message)
     time.sleep(1)
-    logger.info(message)
+    logger.warning(message)
     return "success", 200
