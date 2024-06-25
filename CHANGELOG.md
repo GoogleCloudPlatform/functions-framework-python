@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.8.0](https://github.com/GoogleCloudPlatform/functions-framework-python/compare/v3.7.0...v3.8.0) (2024-06-25)
+
+
+### Features
+
+* Set default logging level to align with Flask's defaults ([#336](https://github.com/GoogleCloudPlatform/functions-framework-python/issues/336)) ([d1d0753](https://github.com/GoogleCloudPlatform/functions-framework-python/commit/d1d0753b6ea0dcc4222e28fc61002ac563b54cac))
+
+
+### Bug Fixes
+
+* add www.bestpractices.dev:443 to scorecard ([#330](https://github.com/GoogleCloudPlatform/functions-framework-python/issues/330)) ([02472e7](https://github.com/GoogleCloudPlatform/functions-framework-python/commit/02472e7315d0fd642db26441b3cb21f799906739))
+
 ## [3.7.0](https://github.com/GoogleCloudPlatform/functions-framework-python/compare/v3.6.0...v3.7.0) (2024-05-17)
 
 
