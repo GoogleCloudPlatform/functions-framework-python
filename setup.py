@@ -25,7 +25,7 @@ with open(path.join(here, "README.md"), encoding="utf-8") as f:
 
 setup(
     name="functions-framework",
-    version="3.8.0",
+    version="3.8.1",
     description="An open source FaaS (Function as a service) framework for writing portable Python functions -- brought to you by the Google Cloud Functions team.",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -53,7 +53,7 @@ setup(
         "flask>=1.0,<4.0",
         "click>=7.0,<9.0",
         "watchdog>=1.0.0",
-        "gunicorn>=19.2.0; platform_system!='Windows'",
+        "gunicorn>=22.0.0; platform_system!='Windows'",
         "cloudevents>=1.2.0,<2.0.0",
         "Werkzeug>=0.14,<4.0.0",
     ],
