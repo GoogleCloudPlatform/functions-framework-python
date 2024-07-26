@@ -53,7 +53,7 @@ setup(
         "flask>=1.0,<4.0",
         "click>=7.0,<9.0",
         "watchdog>=1.0.0",
-        "gunicorn>=19.2.0; platform_system!='Windows'",
+        "gunicorn>=22.0.0; platform_system!='Windows'",
         "cloudevents>=1.2.0,<2.0.0",
         "Werkzeug>=0.14,<4.0.0",
     ],
