@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.8.1](https://github.com/GoogleCloudPlatform/functions-framework-python/compare/v3.8.0...v3.8.1) (2024-07-26)
+
+
+### Bug Fixes
+
+* upgrade gunicorn to 22 to fix CVE-2024-1135 ([#341](https://github.com/GoogleCloudPlatform/functions-framework-python/issues/341)) ([d622f13](https://github.com/GoogleCloudPlatform/functions-framework-python/commit/d622f137e8a2419fc487c867d67e12d0204b586b))
+
 ## [3.8.0](https://github.com/GoogleCloudPlatform/functions-framework-python/compare/v3.7.0...v3.8.0) (2024-06-25)
 
 
