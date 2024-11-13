@@ -16,7 +16,6 @@ import os
 import sys
 import types
 
-from re import T
 from typing import Type
 
 from functions_framework.exceptions import (
