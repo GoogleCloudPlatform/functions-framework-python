@@ -10,9 +10,8 @@ Python functions -- brought to you by the Google Cloud Functions team.
 The Functions Framework lets you write lightweight functions that run in many
 different environments, including:
 
-*   [Google Cloud Functions](https://cloud.google.com/functions/)
+*   [Google Cloud Run Functions](https://cloud.google.com/functions/)
 *   Your local development machine
-*   [Cloud Run and Cloud Run for Anthos](https://cloud.google.com/run/)
 *   [Knative](https://github.com/knative/)-based environments
 
 The framework allows you to go from:
@@ -294,19 +293,13 @@ https://cloud.google.com/functions/docs/tutorials/pubsub#functions_helloworld_pu
 
 ## Run your function on serverless platforms
 
-### Google Cloud Functions
+### Google Cloud Run functions
 
 This Functions Framework is based on the [Python Runtime on Google Cloud Functions](https://cloud.google.com/functions/docs/concepts/python-runtime).
 
 On Cloud Functions, using the Functions Framework is not necessary: you don't need to add it to your `requirements.txt` file.
 
 After you've written your function, you can simply deploy it from your local machine using the `gcloud` command-line tool. [Check out the Cloud Functions quickstart](https://cloud.google.com/functions/docs/quickstart).
-
-### Cloud Run/Cloud Run on GKE
-
-Once you've written your function and added the Functions Framework to your `requirements.txt` file, all that's left is to create a container image. [Check out the Cloud Run quickstart](https://cloud.google.com/run/docs/quickstarts/build-and-deploy) for Python to create a container image and deploy it to Cloud Run. You'll write a `Dockerfile` when you build your container. This `Dockerfile` allows you to specify exactly what goes into your container (including custom binaries, a specific operating system, and more). [Here is an example `Dockerfile` that calls Functions Framework.](https://github.com/GoogleCloudPlatform/functions-framework-python/blob/main/examples/cloud_run_http)
-
-If you want even more control over the environment, you can [deploy your container image to Cloud Run on GKE](https://cloud.google.com/run/docs/quickstarts/prebuilt-deploy-gke). With Cloud Run on GKE, you can run your function on a GKE cluster, which gives you additional control over the environment (including use of GPU-based instances, longer timeouts and more).
 
 ### Container environments based on Knative
 
@@ -325,10 +318,10 @@ You can configure the Functions Framework using command-line flags or environmen
 | `--source`         | `FUNCTION_SOURCE`         | The path to the file containing your function. Default: `main.py` (in the current working directory)                                                                                             |
 | `--debug`          | `DEBUG`                   | A flag that allows to run functions-framework to run in debug mode, including live reloading. Default: `False`                                                                                   |
 
-## Enable Google Cloud Function Events
+## Enable Google Cloud Run function Events
 
 The Functions Framework can unmarshall incoming
-Google Cloud Functions [event](https://cloud.google.com/functions/docs/concepts/events-triggers#events) payloads to `event` and `context` objects.
+Google Cloud Run functions [event](https://cloud.google.com/functions/docs/concepts/events-triggers#events) payloads to `event` and `context` objects.
 These will be passed as arguments to your function when it receives a request.
 Note that your function must use the `event`-style function signature:
 
