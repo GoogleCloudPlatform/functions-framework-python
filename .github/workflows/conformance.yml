@@ -10,10 +10,16 @@ permissions: read-all
 
 jobs:
   build:
-    runs-on: ubuntu-latest
     strategy:
       matrix:
-        python: ['3.7', '3.8', '3.9', '3.10', '3.11', '3.12']
+        python: ['3.9', '3.10', '3.11', '3.12']
+        platform: [ubuntu-latest]
+        include:
+          - platform: ubuntu-22.04
+            python: '3.8'
+          - platform: ubuntu-22.04
+            python: '3.7'
+    runs-on: ${{ matrix.platform }}
     steps:
     - name: Harden Runner
       uses: step-security/harden-runner@91182cccc01eb5e619899d80e4e971d6181294a7 # v2.10.1

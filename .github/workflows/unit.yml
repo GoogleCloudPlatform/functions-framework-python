@@ -22,12 +22,20 @@ jobs:
           python: '3.8'
         - platform: macos-latest
           python: '3.7'
+        - platform: ubuntu-latest
+          python: '3.8'
+        - platform: ubuntu-latest
+          python: '3.7'
         include:
         - platform: macos-latest
           python: '3.9'
         - platform: macos-13
           python: '3.8'
         - platform: macos-13
+          python: '3.7'
+        - platform: ubuntu-22.04
+          python: '3.8'
+        - platform: ubuntu-22.04
           python: '3.7'
     runs-on: ${{ matrix.platform }}
     steps:
