@@ -1,5 +1,5 @@
 name: Python Unit CI
-on: 
+on:
   push:
     branches:
       - main
@@ -13,8 +13,9 @@ jobs:
       matrix:
         python: ['3.7', '3.8', '3.9', '3.10', '3.11', '3.12']
         platform: [ubuntu-latest, macos-latest, windows-latest]
-        # Python <= 3.9 is not available on macos-14
+        # Python <= 3.9 is not available on macos-latest
         # Workaround for https://github.com/actions/setup-python/issues/696
+        # Python <= 3.8 is not available on ubuntu-latest
         exclude:
         - platform: macos-latest
           python: '3.9'
@@ -22,12 +23,20 @@ jobs:
           python: '3.8'
         - platform: macos-latest
           python: '3.7'
+        - platform: ubuntu-latest
+          python: '3.8'
+        - platform: ubuntu-latest
+          python: '3.7'
         include:
         - platform: macos-latest
           python: '3.9'
         - platform: macos-13
           python: '3.8'
         - platform: macos-13
+          python: '3.7'
+        - platform: ubuntu-22.04
+          python: '3.8'
+        - platform: ubuntu-22.04
           python: '3.7'
     runs-on: ${{ matrix.platform }}
     steps:
@@ -39,7 +48,9 @@ jobs:
         allowed-endpoints: >
           auth.docker.io:443
           files.pythonhosted.org:443
+          api.github.com:443
           github.com:443
+          objects.githubusercontent.com:443
           production.cloudflare.docker.com:443
           pypi.org:443
           registry-1.docker.io:443
