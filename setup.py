@@ -57,6 +57,9 @@ setup(
         "cloudevents>=1.2.0,<2.0.0",
         "Werkzeug>=0.14,<4.0.0",
     ],
+    extras_require={
+        "async": ["starlette>=0.37.0,<1.0.0"],
+    },
     entry_points={
         "console_scripts": [
             "ff=functions_framework._cli:_cli",
