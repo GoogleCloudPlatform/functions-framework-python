@@ -15,9 +15,12 @@ import pathlib
 
 import pytest
 
-from cloudevents.http import CloudEvent, to_binary, to_structured
+from cloudevents import conversion as ce_conversion
+from cloudevents.http import CloudEvent
+from starlette.testclient import TestClient as StarletteTestClient
 
 from functions_framework import create_app
+from functions_framework.aio import create_asgi_app
 
 TEST_FUNCTIONS_DIR = pathlib.Path(__file__).resolve().parent / "test_functions"
 
@@ -28,18 +31,24 @@ except:
     _ModuleNotFoundError = ImportError
 
 
-@pytest.fixture
-def cloud_event_decorator_client():
-    source = TEST_FUNCTIONS_DIR / "decorators" / "decorator.py"
+@pytest.fixture(params=["decorator.py", "async_decorator.py"])
+def cloud_event_decorator_client(request):
+    source = TEST_FUNCTIONS_DIR / "decorators" / request.param
     target = "function_cloud_event"
-    return create_app(target, source).test_client()
+    if not request.param.startswith("async_"):
+        return create_app(target, source).test_client()
+    app = create_asgi_app(target, source)
+    return StarletteTestClient(app)
 
 
-@pytest.fixture
-def http_decorator_client():
-    source = TEST_FUNCTIONS_DIR / "decorators" / "decorator.py"
+@pytest.fixture(params=["decorator.py", "async_decorator.py"])
+def http_decorator_client(request):
+    source = TEST_FUNCTIONS_DIR / "decorators" / request.param
     target = "function_http"
-    return create_app(target, source).test_client()
+    if not request.param.startswith("async_"):
+        return create_app(target, source).test_client()
+    app = create_asgi_app(target, source)
+    return StarletteTestClient(app)
 
 
 @pytest.fixture
@@ -56,14 +65,13 @@ def cloud_event_1_0():
 
 
 def test_cloud_event_decorator(cloud_event_decorator_client, cloud_event_1_0):
-    headers, data = to_structured(cloud_event_1_0)
+    headers, data = ce_conversion.to_structured(cloud_event_1_0)
     resp = cloud_event_decorator_client.post("/", headers=headers, data=data)
-
     assert resp.status_code == 200
-    assert resp.data == b"OK"
+    assert resp.text == "OK"
 
 
 def test_http_decorator(http_decorator_client):
     resp = http_decorator_client.post("/my_path", json={"mode": "path"})
     assert resp.status_code == 200
-    assert resp.data == b"/my_path"
+    assert resp.text == "/my_path"
