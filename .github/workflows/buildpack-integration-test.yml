@@ -69,14 +69,18 @@ jobs:
       builder-runtime: 'python311'
       builder-runtime-version: '3.11'
       start-delay: 5
-  python312:
-    uses: GoogleCloudPlatform/functions-framework-conformance/.github/workflows/buildpack-integration-test.yml@main
-    with:
-      http-builder-source: 'tests/conformance'
-      http-builder-target: 'write_http_declarative'
-      cloudevent-builder-source: 'tests/conformance'
-      cloudevent-builder-target: 'write_cloud_event_declarative'
-      prerun: 'tests/conformance/prerun.sh ${{ github.sha }}'
-      builder-runtime: 'python312'
-      builder-runtime-version: '3.12'
-      start-delay: 5
+# Python 3.12 conformance tests are disabled due to the buildpack defaulting to
+# Ubuntu 18.04, which has no Python 3.12 version, and being unable to specify
+# the OS/stack via the conformance test configuration
+#
+#  python312:
+#    uses: GoogleCloudPlatform/functions-framework-conformance/.github/workflows/buildpack-integration-test.yml@main
+#    with:
+#      http-builder-source: 'tests/conformance'
+#      http-builder-target: 'write_http_declarative'
+#      cloudevent-builder-source: 'tests/conformance'
+#      cloudevent-builder-target: 'write_cloud_event_declarative'
+#      prerun: 'tests/conformance/prerun.sh ${{ github.sha }}'
+#      builder-runtime: 'python312'
+#      builder-runtime-version: '3.12'
+#      start-delay: 5
