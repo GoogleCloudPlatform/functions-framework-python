@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.8.3](https://github.com/GoogleCloudPlatform/functions-framework-python/compare/v3.8.2...v3.8.3) (2025-05-14)
+
+
+### Bug Fixes
+
+* Switch to `pyproject.toml` based builds ([#365](https://github.com/GoogleCloudPlatform/functions-framework-python/issues/365)) ([4c44d08](https://github.com/GoogleCloudPlatform/functions-framework-python/commit/4c44d08c5ebb304e80a3adc3f8e6d150987b29bb))
+* Update minimum required version of Flask to 2.0 ([#356](https://github.com/GoogleCloudPlatform/functions-framework-python/issues/356)) ([c6eab2f](https://github.com/GoogleCloudPlatform/functions-framework-python/commit/c6eab2fecb913d5bab1d5dbd6ba2e34b7d6cf9b9))
+* Update test suite for EOL Python versions ([#360](https://github.com/GoogleCloudPlatform/functions-framework-python/issues/360)) ([c0fa420](https://github.com/GoogleCloudPlatform/functions-framework-python/commit/c0fa420970d36d57adceaf70bbaea784e427e594))
+
+
+### Documentation
+
+* Add a development guide ([#359](https://github.com/GoogleCloudPlatform/functions-framework-python/issues/359)) ([9348c87](https://github.com/GoogleCloudPlatform/functions-framework-python/commit/9348c87cf05eae3726d041f26e43db586951cebb))
+
 ## [3.8.2](https://github.com/GoogleCloudPlatform/functions-framework-python/compare/v3.8.1...v3.8.2) (2024-11-13)
 
 
