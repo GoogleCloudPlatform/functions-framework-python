@@ -36,6 +36,9 @@ dependencies = [
 [project.urls]
 Homepage = "https://github.com/googlecloudplatform/functions-framework-python"
 
+[project.optional-dependencies]
+async = ["starlette>=0.37.0,<1.0.0"]
+
 [project.scripts]
 ff = "functions_framework._cli:_cli"
 functions-framework = "functions_framework._cli:_cli"
