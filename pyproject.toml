@@ -1,0 +1,57 @@
+[project]
+name = "functions-framework"
+version = "3.8.3"
+description = "An open source FaaS (Function as a service) framework for writing portable Python functions -- brought to you by the Google Cloud Functions team."
+readme = "README.md"
+requires-python = ">=3.5, <4"
+# Once we drop support for Python 3.7 and 3.8, this can become
+# license = "Apache-2.0"
+license = {text = "Apache-2.0"}
+authors = [
+  { name = "Google LLC", email = "googleapis-packages@google.com" }
+]
+maintainers = [
+  { name = "Google LLC", email = "googleapis-packages@google.com" }
+]
+keywords = ["functions-framework"]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3.7",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+  "flask>=2.0,<4.0",
+  "click>=7.0,<9.0",
+  "watchdog>=1.0.0",
+  "gunicorn>=22.0.0; platform_system!='Windows'",
+  "cloudevents>=1.2.0,<2.0.0",
+  "Werkzeug>=0.14,<4.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/googlecloudplatform/functions-framework-python"
+
+[project.scripts]
+ff = "functions_framework._cli:_cli"
+functions-framework = "functions_framework._cli:_cli"
+functions_framework = "functions_framework._cli:_cli"
+functions-framework-python = "functions_framework._cli:_cli"
+functions_framework_python = "functions_framework._cli:_cli"
+
+[build-system]
+requires = ["setuptools>=61.0.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+functions_framework = ["py.typed"]
+
+[tool.setuptools.package-dir]
+"" = "src"
