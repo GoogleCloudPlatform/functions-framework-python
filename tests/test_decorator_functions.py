@@ -75,3 +75,45 @@ def test_http_decorator(http_decorator_client):
     resp = http_decorator_client.post("/my_path", json={"mode": "path"})
     assert resp.status_code == 200
     assert resp.text == "/my_path"
+
+
+def test_aio_sync_cloud_event_decorator(cloud_event_1_0):
+    """Test aio decorator with sync cloud event function."""
+    source = TEST_FUNCTIONS_DIR / "decorators" / "async_decorator.py"
+    target = "function_cloud_event_sync"
+
+    app = create_asgi_app(target, source)
+    client = StarletteTestClient(app)
+
+    headers, data = ce_conversion.to_structured(cloud_event_1_0)
+    resp = client.post("/", headers=headers, data=data)
+    assert resp.status_code == 200
+    assert resp.text == "OK"
+
+
+def test_aio_sync_http_decorator():
+    source = TEST_FUNCTIONS_DIR / "decorators" / "async_decorator.py"
+    target = "function_http_sync"
+
+    app = create_asgi_app(target, source)
+    client = StarletteTestClient(app)
+
+    resp = client.post("/my_path?mode=path")
+    assert resp.status_code == 200
+    assert resp.text == "/my_path"
+
+    resp = client.post("/other_path")
+    assert resp.status_code == 200
+    assert resp.text == "sync response"
+
+
+def test_aio_http_dict_response():
+    source = TEST_FUNCTIONS_DIR / "decorators" / "async_decorator.py"
+    target = "function_http_dict_response"
+
+    app = create_asgi_app(target, source)
+    client = StarletteTestClient(app)
+
+    resp = client.post("/")
+    assert resp.status_code == 200
+    assert resp.json() == {"message": "hello", "count": 42, "success": True}

@@ -64,3 +64,35 @@ async def function_http(request):
         return request.url.path
     else:
         raise HTTPException(400)
+
+
+@functions_framework.aio.cloud_event
+def function_cloud_event_sync(cloud_event):
+    """Test sync CloudEvent function with aio decorator."""
+    valid_event = (
+        cloud_event["id"] == "my-id"
+        and cloud_event.data == {"name": "john"}
+        and cloud_event["source"] == "from-galaxy-far-far-away"
+        and cloud_event["type"] == "cloud_event.greet.you"
+        and cloud_event["time"] == "2020-08-16T13:58:54.471765"
+    )
+
+    if not valid_event:
+        raise HTTPException(500)
+
+
+@functions_framework.aio.http
+def function_http_sync(request):
+    """Test sync HTTP function with aio decorator."""
+    # Use query params since they're accessible synchronously
+    mode = request.query_params.get("mode")
+    if mode == "path":
+        return request.url.path
+    else:
+        return "sync response"
+
+
+@functions_framework.aio.http
+def function_http_dict_response(request):
+    """Test sync HTTP function returning dict with aio decorator."""
+    return {"message": "hello", "count": 42, "success": True}
