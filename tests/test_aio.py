@@ -63,8 +63,7 @@ def test_invalid_function_definition_missing_function_file():
         create_asgi_app(target, source)
 
     assert re.match(
-        r"File .* that is expected to define function doesn't exist", str(
-            excinfo.value)
+        r"File .* that is expected to define function doesn't exist", str(excinfo.value)
     )
 
 
@@ -98,8 +97,7 @@ def test_asgi_background_event_not_supported():
 async def test_lazy_asgi_app(monkeypatch):
     actual_app = AsyncMock()
     create_asgi_app_mock = Mock(return_value=actual_app)
-    monkeypatch.setattr(
-        "functions_framework.aio.create_asgi_app", create_asgi_app_mock)
+    monkeypatch.setattr("functions_framework.aio.create_asgi_app", create_asgi_app_mock)
 
     # Test that it's lazy
     target, source, signature_type = "func", "source.py", "http"
@@ -119,8 +117,7 @@ async def test_lazy_asgi_app(monkeypatch):
     assert lazy_app.app is actual_app
     assert lazy_app._app_initialized is True
     assert create_asgi_app_mock.call_count == 1
-    assert create_asgi_app_mock.call_args == call(
-        target, source, signature_type)
+    assert create_asgi_app_mock.call_args == call(target, source, signature_type)
 
     # Verify the app was called
     actual_app.assert_called_once_with(scope, receive, send)
@@ -132,8 +129,7 @@ async def test_lazy_asgi_app(monkeypatch):
     await lazy_app(scope, receive, send)
 
     assert create_asgi_app_mock.call_count == 0  # Should not create app again
-    actual_app.assert_called_once_with(
-        scope, receive, send)  # Should be called again
+    actual_app.assert_called_once_with(scope, receive, send)  # Should be called again
 
 
 @pytest.mark.asyncio
