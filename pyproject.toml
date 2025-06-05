@@ -3,7 +3,7 @@ name = "functions-framework"
 version = "3.8.3"
 description = "An open source FaaS (Function as a service) framework for writing portable Python functions -- brought to you by the Google Cloud Functions team."
 readme = "README.md"
-requires-python = ">=3.5, <4"
+requires-python = ">=3.8, <4"
 # Once we drop support for Python 3.7 and 3.8, this can become
 # license = "Apache-2.0"
 license = {text = "Apache-2.0"}
@@ -17,7 +17,6 @@ keywords = ["functions-framework"]
 classifiers = [
   "Development Status :: 5 - Production/Stable",
   "Intended Audience :: Developers",
-  "Programming Language :: Python :: 3.7",
   "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",

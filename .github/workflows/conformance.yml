@@ -17,8 +17,6 @@ jobs:
         include:
           - platform: ubuntu-22.04
             python: '3.8'
-          - platform: ubuntu-22.04
-            python: '3.7'
     runs-on: ${{ matrix.platform }}
     steps:
     - name: Harden Runner
