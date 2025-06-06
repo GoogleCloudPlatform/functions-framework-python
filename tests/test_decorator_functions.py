@@ -12,15 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import pathlib
+import sys
 
 import pytest
 
 from cloudevents import conversion as ce_conversion
 from cloudevents.http import CloudEvent
-from starlette.testclient import TestClient as StarletteTestClient
+
+# Conditional import for Starlette
+if sys.version_info >= (3, 8):
+    from starlette.testclient import TestClient as StarletteTestClient
+else:
+    StarletteTestClient = None
 
 from functions_framework import create_app
-from functions_framework.aio import create_asgi_app
+
+# Conditional import for async functionality
+if sys.version_info >= (3, 8):
+    from functions_framework.aio import create_asgi_app
+else:
+    create_asgi_app = None
 
 TEST_FUNCTIONS_DIR = pathlib.Path(__file__).resolve().parent / "test_functions"
 

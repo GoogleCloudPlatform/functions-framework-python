@@ -13,15 +13,24 @@
 # limitations under the License.
 import json
 import pathlib
+import sys
 
 import pytest
 
 from cloudevents import conversion as ce_conversion
 from cloudevents.http import CloudEvent
-from starlette.testclient import TestClient as StarletteTestClient
+
+if sys.version_info >= (3, 8):
+    from starlette.testclient import TestClient as StarletteTestClient
+else:
+    StarletteTestClient = None
 
 from functions_framework import create_app
-from functions_framework.aio import create_asgi_app
+
+if sys.version_info >= (3, 8):
+    from functions_framework.aio import create_asgi_app
+else:
+    create_asgi_app = None
 
 TEST_FUNCTIONS_DIR = pathlib.Path(__file__).resolve().parent / "test_functions"
 TEST_DATA_DIR = pathlib.Path(__file__).resolve().parent / "test_data"

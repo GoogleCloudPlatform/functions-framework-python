@@ -3,15 +3,13 @@ name = "functions-framework"
 version = "3.8.3"
 description = "An open source FaaS (Function as a service) framework for writing portable Python functions -- brought to you by the Google Cloud Functions team."
 readme = "README.md"
-requires-python = ">=3.5, <4"
+requires-python = ">=3.7, <4"
 # Once we drop support for Python 3.7 and 3.8, this can become
 # license = "Apache-2.0"
-license = {text = "Apache-2.0"}
-authors = [
-  { name = "Google LLC", email = "googleapis-packages@google.com" }
-]
+license = { text = "Apache-2.0" }
+authors = [{ name = "Google LLC", email = "googleapis-packages@google.com" }]
 maintainers = [
-  { name = "Google LLC", email = "googleapis-packages@google.com" }
+  { name = "Google LLC", email = "googleapis-packages@google.com" },
 ]
 keywords = ["functions-framework"]
 classifiers = [
@@ -31,13 +29,14 @@ dependencies = [
   "gunicorn>=22.0.0; platform_system!='Windows'",
   "cloudevents>=1.2.0,<2.0.0",
   "Werkzeug>=0.14,<4.0.0",
+  "httpx>=0.24.1",
 ]
 
 [project.urls]
 Homepage = "https://github.com/googlecloudplatform/functions-framework-python"
 
 [project.optional-dependencies]
-async = ["starlette>=0.37.0,<1.0.0"]
+async = ["starlette>=0.37.0,<1.0.0; python_version>='3.8'"]
 
 [project.scripts]
 ff = "functions_framework._cli:_cli"
@@ -58,3 +57,15 @@ functions_framework = ["py.typed"]
 
 [tool.setuptools.package-dir]
 "" = "src"
+
+[dependency-groups]
+dev = [
+    "black>=23.3.0",
+    "isort>=5.11.5",
+    "mypy>=1.4.1",
+    "pretend>=1.0.9",
+    "pytest>=7.4.4",
+    "pytest-asyncio>=0.21.2",
+    "pytest-cov>=4.1.0",
+    "pytest-integration>=0.2.3",
+]

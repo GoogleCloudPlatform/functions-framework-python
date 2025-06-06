@@ -42,3 +42,47 @@ def isolate_logging():
         sys.stderr = sys.__stderr__
         logging.shutdown()
         reload(logging)
+
+
+def pytest_collection_modifyitems(config, items):
+    """Skip async-related tests on Python 3.7 since Starlette requires Python 3.8+"""
+    if sys.version_info >= (3, 8):
+        return
+
+    skip_async = pytest.mark.skip(
+        reason="Async features require Python 3.8+ (Starlette dependency)"
+    )
+
+    for item in items:
+        skip_test = False
+
+        if hasattr(item, "callspec") and hasattr(item.callspec, "params"):
+            for param_name, param_value in item.callspec.params.items():
+                # Check if test has fixtures with async parameters
+                if isinstance(param_value, str) and (
+                    "async" in param_value or param_value.startswith("async_")
+                ):
+                    skip_test = True
+                    break
+                # Check if test is parametrized with create_asgi_app
+                if (
+                    hasattr(param_value, "__name__")
+                    and param_value.__name__ == "create_asgi_app"
+                ):
+                    skip_test = True
+                    break
+
+        # Check test file and function names for async-related test files
+        test_file = str(item.fspath)
+        test_name = item.name
+
+        # Skip tests in async-specific test files
+        if "test_aio" in test_file:
+            skip_test = True
+
+        # Skip tests that explicitly test async functionality
+        if "async" in test_name.lower() or "asgi" in test_name.lower():
+            skip_test = True
+
+        if skip_test:
+            item.add_marker(skip_async)

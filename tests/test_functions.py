@@ -15,17 +15,27 @@
 import json
 import pathlib
 import re
+import sys
 import time
 
 import pretend
 import pytest
 
-from starlette.testclient import TestClient as StarletteTestClient
+# Conditional import for Starlette
+if sys.version_info >= (3, 8):
+    from starlette.testclient import TestClient as StarletteTestClient
+else:
+    StarletteTestClient = None
 
 import functions_framework
 
 from functions_framework import LazyWSGIApp, create_app, errorhandler, exceptions
-from functions_framework.aio import create_asgi_app
+
+# Conditional import for async functionality
+if sys.version_info >= (3, 8):
+    from functions_framework.aio import create_asgi_app
+else:
+    create_asgi_app = None
 
 TEST_FUNCTIONS_DIR = pathlib.Path.cwd() / "tests" / "test_functions"
 
