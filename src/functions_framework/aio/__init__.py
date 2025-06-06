@@ -17,7 +17,7 @@ import functools
 import inspect
 import os
 
-from typing import Any, Awaitable, Callable, Union
+from typing import Any, Awaitable, Callable, Dict, Union
 
 from cloudevents.http import from_http
 from cloudevents.http.event import CloudEvent
@@ -43,7 +43,7 @@ except ImportError:
 HTTPResponse = Union[
     Response,  # Functions can return a full Starlette Response object
     str,  # Str returns are wrapped in Response(result)
-    dict[Any, Any],  # Dict returns are wrapped in JSONResponse(result)
+    Dict[Any, Any],  # Dict returns are wrapped in JSONResponse(result)
     tuple[Any, int],  # Flask-style (content, status_code) supported
     None,  # None raises HTTPException
 ]
