@@ -17,7 +17,10 @@ import re
 import sys
 import tempfile
 
-from unittest.mock import AsyncMock, Mock, call
+from unittest.mock import Mock, call
+
+if sys.version_info >= (3, 8):
+    from unittest.mock import AsyncMock
 
 import pytest
 
