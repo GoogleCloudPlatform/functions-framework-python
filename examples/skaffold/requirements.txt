@@ -1,1 +1,2 @@
 # Add any Python requirements here
+cloudevents==1.11.0

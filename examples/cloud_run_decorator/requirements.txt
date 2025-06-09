@@ -1,1 +1,2 @@
 # Optionally include additional dependencies here
+cloudevents==1.11.0
