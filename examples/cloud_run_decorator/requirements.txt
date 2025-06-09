@@ -1,2 +1,2 @@
 # Optionally include additional dependencies here
-cloudevents==1.11.0
+cloudevents==1.11.0  # Pin version - last version compatible w/ python3.7
