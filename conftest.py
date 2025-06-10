@@ -45,16 +45,16 @@ def isolate_logging():
 
 
 # Safe to remove when we drop Python 3.7 support
-def pytest_ignore_collect(path, config):
+def pytest_ignore_collect(collection_path, config):
     """Ignore async test files on Python 3.7 since Starlette requires Python 3.8+"""
     if sys.version_info >= (3, 8):
-        return False
+        return None  # Let pytest decide (default behavior)
 
     # Skip test_aio.py entirely on Python 3.7
-    if path.basename == "test_aio.py":
+    if collection_path.name == "test_aio.py":
         return True
 
-    return False
+    return None  # Let pytest decide (default behavior)
 
 
 # Safe to remove when we drop Python 3.7 support
