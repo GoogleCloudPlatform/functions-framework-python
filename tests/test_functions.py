@@ -12,18 +12,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import io
 import json
 import pathlib
 import re
+import sys
 import time
 
 import pretend
 import pytest
 
+# Conditional import for Starlette
+if sys.version_info >= (3, 8):
+    from starlette.testclient import TestClient as StarletteTestClient
+else:
+    StarletteTestClient = None
+
 import functions_framework
 
 from functions_framework import LazyWSGIApp, create_app, errorhandler, exceptions
+
+# Conditional import for async functionality
+if sys.version_info >= (3, 8):
+    from functions_framework.aio import create_asgi_app
+else:
+    create_asgi_app = None
 
 TEST_FUNCTIONS_DIR = pathlib.Path.cwd() / "tests" / "test_functions"
 
@@ -72,127 +84,181 @@ def create_ce_headers():
     }
 
 
-def test_http_function_executes_success():
-    source = TEST_FUNCTIONS_DIR / "http_trigger" / "main.py"
+@pytest.fixture(params=["main.py", "async_main.py"])
+def http_trigger_client(request):
+    source = TEST_FUNCTIONS_DIR / "http_trigger" / request.param
     target = "function"
+    if not request.param.startswith("async_"):
+        return create_app(target, source).test_client()
+    app = create_asgi_app(target, source)
+    return StarletteTestClient(app, raise_server_exceptions=False)
 
-    client = create_app(target, source).test_client()
 
-    resp = client.post("/my_path", json={"mode": "SUCCESS"})
+@pytest.fixture(params=["main.py", "async_main.py"])
+def http_request_check_client(request):
+    source = TEST_FUNCTIONS_DIR / "http_request_check" / request.param
+    target = "function"
+    if not request.param.startswith("async_"):
+        return create_app(target, source).test_client()
+    app = create_asgi_app(target, source)
+    return StarletteTestClient(
+        app,
+        # Override baseurl to use localhost instead of default http://testserver.
+        base_url="http://localhost",
+    )
+
+
+@pytest.fixture(params=["main.py", "async_main.py"])
+def http_check_env_client(request):
+    source = TEST_FUNCTIONS_DIR / "http_check_env" / request.param
+    target = "function"
+    if not request.param.startswith("async_"):
+        return create_app(target, source).test_client()
+    app = create_asgi_app(target, source)
+    return StarletteTestClient(app)
+
+
+@pytest.fixture(params=["main.py", "async_main.py"])
+def http_trigger_sleep_client(request):
+    source = TEST_FUNCTIONS_DIR / "http_trigger_sleep" / request.param
+    target = "function"
+    if not request.param.startswith("async_"):
+        return create_app(target, source).test_client()
+    app = create_asgi_app(target, source)
+    return StarletteTestClient(app)
+
+
+@pytest.fixture(params=["main.py", "async_main.py"])
+def http_with_import_client(request):
+    source = TEST_FUNCTIONS_DIR / "http_with_import" / request.param
+    target = "function"
+    if not request.param.startswith("async_"):
+        return create_app(target, source).test_client()
+    app = create_asgi_app(target, source)
+    return StarletteTestClient(app)
+
+
+@pytest.fixture(params=["sync", "async"])
+def http_method_check_client(request):
+    source = TEST_FUNCTIONS_DIR / "http_method_check" / "main.py"
+    target = "function"
+    if not request.param == "async":
+        return create_app(target, source).test_client()
+    app = create_asgi_app(target, source)
+    return StarletteTestClient(app)
+
+
+@pytest.fixture(params=["sync", "async"])
+def module_is_correct_client(request):
+    source = TEST_FUNCTIONS_DIR / "module_is_correct" / "main.py"
+    target = "function"
+    if not request.param == "async":
+        return create_app(target, source).test_client()
+    app = create_asgi_app(target, source)
+    return StarletteTestClient(app)
+
+
+@pytest.fixture(params=["sync", "async"])
+def returns_none_client(request):
+    source = TEST_FUNCTIONS_DIR / "returns_none" / "main.py"
+    target = "function"
+    if not request.param == "async":
+        return create_app(target, source).test_client()
+    app = create_asgi_app(target, source)
+    return StarletteTestClient(app)
+
+
+@pytest.fixture(params=["sync", "async"])
+def relative_imports_client(request):
+    source = TEST_FUNCTIONS_DIR / "relative_imports" / "main.py"
+    target = "function"
+    if not request.param == "async":
+        return create_app(target, source).test_client()
+    app = create_asgi_app(target, source)
+    return StarletteTestClient(app)
+
+
+def test_http_function_executes_success(http_trigger_client):
+    resp = http_trigger_client.post("/my_path", json={"mode": "SUCCESS"})
     assert resp.status_code == 200
-    assert resp.data == b"success"
+    assert resp.text == "success"
 
 
-def test_http_function_executes_failure():
-    source = TEST_FUNCTIONS_DIR / "http_trigger" / "main.py"
-    target = "function"
-
-    client = create_app(target, source).test_client()
-
-    resp = client.get("/", json={"mode": "FAILURE"})
+def test_http_function_executes_failure(http_trigger_client):
+    resp = http_trigger_client.post("/", json={"mode": "FAILURE"})
     assert resp.status_code == 400
-    assert resp.data == b"failure"
+    assert resp.text == "failure"
 
 
-def test_http_function_executes_throw():
-    source = TEST_FUNCTIONS_DIR / "http_trigger" / "main.py"
-    target = "function"
-
-    client = create_app(target, source).test_client()
-
-    resp = client.put("/", json={"mode": "THROW"})
+def test_http_function_executes_throw(http_trigger_client):
+    resp = http_trigger_client.put("/", json={"mode": "THROW"})
     assert resp.status_code == 500
 
 
-def test_http_function_request_url_empty_path():
-    source = TEST_FUNCTIONS_DIR / "http_request_check" / "main.py"
-    target = "function"
+def test_http_function_request_url_empty_path(http_request_check_client):
+    # Starlette TestClient normalizes empty path "" to "/" before making the request,
+    # while Flask preserves the empty path and lets the server handle the redirect
+    if StarletteTestClient and isinstance(
+        http_request_check_client, StarletteTestClient
+    ):
+        # Starlette TestClient converts "" to "/" so we get a direct 200 response
+        resp = http_request_check_client.post("", json={"mode": "url"})
+        assert resp.status_code == 200
+        assert resp.text == "http://localhost/"
+    else:
+        # Flask returns a 308 redirect from empty path to "/"
+        resp = http_request_check_client.post("", json={"mode": "url"})
+        assert resp.status_code == 308
+        assert resp.location == "http://localhost/"
 
-    client = create_app(target, source).test_client()
 
-    resp = client.get("", json={"mode": "url"})
-    assert resp.status_code == 308
-    assert resp.location == "http://localhost/"
-
-
-def test_http_function_request_url_slash():
-    source = TEST_FUNCTIONS_DIR / "http_request_check" / "main.py"
-    target = "function"
-
-    client = create_app(target, source).test_client()
-
-    resp = client.get("/", json={"mode": "url"})
+def test_http_function_request_url_slash(http_request_check_client):
+    resp = http_request_check_client.post("/", json={"mode": "url"})
     assert resp.status_code == 200
-    assert resp.data == b"http://localhost/"
+    assert resp.text == "http://localhost/"
 
 
-def test_http_function_rquest_url_path():
-    source = TEST_FUNCTIONS_DIR / "http_request_check" / "main.py"
-    target = "function"
-
-    client = create_app(target, source).test_client()
-
-    resp = client.get("/my_path", json={"mode": "url"})
+def test_http_function_rquest_url_path(http_request_check_client):
+    resp = http_request_check_client.post("/my_path", json={"mode": "url"})
     assert resp.status_code == 200
-    assert resp.data == b"http://localhost/my_path"
+    assert resp.text == "http://localhost/my_path"
 
 
-def test_http_function_request_path_slash():
-    source = TEST_FUNCTIONS_DIR / "http_request_check" / "main.py"
-    target = "function"
-
-    client = create_app(target, source).test_client()
-
-    resp = client.get("/", json={"mode": "path"})
+def test_http_function_request_path_slash(http_request_check_client):
+    resp = http_request_check_client.post("/", json={"mode": "path"})
     assert resp.status_code == 200
-    assert resp.data == b"/"
+    assert resp.text == "/"
 
 
-def test_http_function_request_path_path():
-    source = TEST_FUNCTIONS_DIR / "http_request_check" / "main.py"
-    target = "function"
-
-    client = create_app(target, source).test_client()
-
-    resp = client.get("/my_path", json={"mode": "path"})
+def test_http_function_request_path_path(http_request_check_client):
+    resp = http_request_check_client.post("/my_path", json={"mode": "path"})
     assert resp.status_code == 200
-    assert resp.data == b"/my_path"
+    assert resp.text == "/my_path"
 
 
-def test_http_function_check_env_function_target():
-    source = TEST_FUNCTIONS_DIR / "http_check_env" / "main.py"
-    target = "function"
-
-    client = create_app(target, source).test_client()
-
-    resp = client.post("/", json={"mode": "FUNCTION_TARGET"})
+def test_http_function_check_env_function_target(http_check_env_client):
+    resp = http_check_env_client.post("/", json={"mode": "FUNCTION_TARGET"})
     assert resp.status_code == 200
-    assert resp.data == b"function"
+    # Use .content for StarletteTestClient, .data for Flask test client (both return bytes)
+    data = getattr(resp, "content", getattr(resp, "data", None))
+    assert data == b"function"
 
 
-def test_http_function_check_env_function_signature_type():
-    source = TEST_FUNCTIONS_DIR / "http_check_env" / "main.py"
-    target = "function"
-
-    client = create_app(target, source).test_client()
-
-    resp = client.post("/", json={"mode": "FUNCTION_SIGNATURE_TYPE"})
+def test_http_function_check_env_function_signature_type(http_check_env_client):
+    resp = http_check_env_client.post("/", json={"mode": "FUNCTION_SIGNATURE_TYPE"})
     assert resp.status_code == 200
-    assert resp.data == b"http"
+    assert resp.text == "http"
 
 
-def test_http_function_execution_time():
-    source = TEST_FUNCTIONS_DIR / "http_trigger_sleep" / "main.py"
-    target = "function"
-
-    client = create_app(target, source).test_client()
-
+def test_http_function_execution_time(http_trigger_sleep_client):
     start_time = time.time()
-    resp = client.get("/", json={"mode": "1000"})
+    resp = http_trigger_sleep_client.post("/", json={"mode": "1000"})
     execution_time_sec = time.time() - start_time
 
     assert resp.status_code == 200
-    assert resp.data == b"OK"
+    assert resp.text == "OK"
+    # Check that the execution time is roughly correct (allowing some buffer)
+    assert execution_time_sec > 0.9
 
 
 def test_background_function_executes(background_event_client, background_json):
@@ -268,7 +334,8 @@ def test_invalid_function_definition_missing_function_file():
     )
 
 
-def test_invalid_function_definition_multiple_entry_points():
+@pytest.mark.parametrize("create_app", [create_app, create_asgi_app])
+def test_invalid_function_definition_multiple_entry_points(create_app):
     source = TEST_FUNCTIONS_DIR / "background_multiple_entry_points" / "main.py"
     target = "function"
 
@@ -281,7 +348,8 @@ def test_invalid_function_definition_multiple_entry_points():
     )
 
 
-def test_invalid_function_definition_multiple_entry_points_invalid_function():
+@pytest.mark.parametrize("create_app", [create_app, create_asgi_app])
+def test_invalid_function_definition_multiple_entry_points_invalid_function(create_app):
     source = TEST_FUNCTIONS_DIR / "background_multiple_entry_points" / "main.py"
     target = "invalidFunction"
 
@@ -294,7 +362,8 @@ def test_invalid_function_definition_multiple_entry_points_invalid_function():
     )
 
 
-def test_invalid_function_definition_multiple_entry_points_not_a_function():
+@pytest.mark.parametrize("create_app", [create_app, create_asgi_app])
+def test_invalid_function_definition_multiple_entry_points_not_a_function(create_app):
     source = TEST_FUNCTIONS_DIR / "background_multiple_entry_points" / "main.py"
     target = "notAFunction"
 
@@ -308,7 +377,8 @@ def test_invalid_function_definition_multiple_entry_points_not_a_function():
     )
 
 
-def test_invalid_function_definition_function_syntax_error():
+@pytest.mark.parametrize("create_app", [create_app, create_asgi_app])
+def test_invalid_function_definition_function_syntax_error(create_app):
     source = TEST_FUNCTIONS_DIR / "background_load_error" / "main.py"
     target = "function"
 
@@ -336,7 +406,8 @@ def test_invalid_function_definition_function_syntax_robustness_with_debug(monke
     assert resp.status_code == 500
 
 
-def test_invalid_function_definition_missing_dependency():
+@pytest.mark.parametrize("create_app", [create_app, create_asgi_app])
+def test_invalid_function_definition_missing_dependency(create_app):
     source = TEST_FUNCTIONS_DIR / "background_missing_dependency" / "main.py"
     target = "function"
 
@@ -346,7 +417,8 @@ def test_invalid_function_definition_missing_dependency():
     assert "No module named 'nonexistentpackage'" in str(excinfo.value)
 
 
-def test_invalid_configuration():
+@pytest.mark.parametrize("create_app", [create_app, create_asgi_app])
+def test_invalid_configuration(create_app):
     with pytest.raises(exceptions.InvalidConfigurationException) as excinfo:
         create_app(None, None, None)
 
@@ -356,7 +428,8 @@ def test_invalid_configuration():
     )
 
 
-def test_invalid_signature_type():
+@pytest.mark.parametrize("create_app", [create_app, create_asgi_app])
+def test_invalid_signature_type(create_app):
     source = TEST_FUNCTIONS_DIR / "http_trigger" / "main.py"
     target = "function"
 
@@ -382,54 +455,39 @@ def test_http_function_flask_render_template():
     )
 
 
-def test_http_function_with_import():
-    source = TEST_FUNCTIONS_DIR / "http_with_import" / "main.py"
-    target = "function"
-
-    client = create_app(target, source).test_client()
-
-    resp = client.get("/")
+def test_http_function_with_import(http_with_import_client):
+    resp = http_with_import_client.get("/")
 
     assert resp.status_code == 200
-    assert resp.data == b"Hello"
+    assert resp.text == "Hello"
 
 
 @pytest.mark.parametrize(
-    "method, data",
+    "method, text",
     [
-        ("get", b"GET"),
-        ("head", b""),  # body will be empty
-        ("post", b"POST"),
-        ("put", b"PUT"),
-        ("delete", b"DELETE"),
-        ("options", b"OPTIONS"),
-        ("trace", b"TRACE"),
-        ("patch", b"PATCH"),
+        ("get", "GET"),
+        ("head", ""),  # body will be empty
+        ("post", "POST"),
+        ("put", "PUT"),
+        ("delete", "DELETE"),
+        ("options", "OPTIONS"),
+        # ("trace", "TRACE"), # unsupported in httpx
+        ("patch", "PATCH"),
     ],
 )
-def test_http_function_all_methods(method, data):
-    source = TEST_FUNCTIONS_DIR / "http_method_check" / "main.py"
-    target = "function"
-
-    client = create_app(target, source).test_client()
-
-    resp = getattr(client, method)("/")
+def test_http_function_all_methods(http_method_check_client, method, text):
+    resp = getattr(http_method_check_client, method)("/")
 
     assert resp.status_code == 200
-    assert resp.data == data
+    assert resp.text == text
 
 
 @pytest.mark.parametrize("path", ["robots.txt", "favicon.ico"])
-def test_error_paths(path):
-    source = TEST_FUNCTIONS_DIR / "http_trigger" / "main.py"
-    target = "function"
-
-    client = create_app(target, source).test_client()
-
-    resp = client.get("/{}".format(path))
+def test_error_paths(http_trigger_client, path):
+    resp = http_trigger_client.get("/{}".format(path))
 
     assert resp.status_code == 404
-    assert b"Not Found" in resp.data
+    assert "Not Found" in resp.text
 
 
 @pytest.mark.parametrize(
@@ -473,12 +531,8 @@ def test_dummy_error_handler():
         pass
 
 
-def test_class_in_main_is_in_right_module():
-    source = TEST_FUNCTIONS_DIR / "module_is_correct" / "main.py"
-    target = "function"
-
-    client = create_app(target, source).test_client()
-    resp = client.get("/")
+def test_class_in_main_is_in_right_module(module_is_correct_client):
+    resp = module_is_correct_client.get("/")
 
     assert resp.status_code == 200
 
@@ -493,12 +547,8 @@ def test_flask_current_app_is_available():
     assert resp.status_code == 200
 
 
-def test_function_returns_none():
-    source = TEST_FUNCTIONS_DIR / "returns_none" / "main.py"
-    target = "function"
-
-    client = create_app(target, source).test_client()
-    resp = client.get("/")
+def test_function_returns_none(returns_none_client):
+    resp = returns_none_client.get("/")
 
     assert resp.status_code == 500
 
@@ -513,6 +563,20 @@ def test_function_returns_stream():
     assert resp.status_code == 200
     assert resp.is_streamed
     assert resp.data.decode("utf-8") == "1.0\n3.0\n6.0\n10.0\n"
+
+
+def test_async_function_returns_stream():
+    source = TEST_FUNCTIONS_DIR / "http_streaming" / "async_main.py"
+    target = "function"
+
+    client = StarletteTestClient(create_asgi_app(target, source))
+
+    collected_response = ""
+    with client.stream("POST", "/", content="1\n2\n3\n4\n") as resp:
+        assert resp.status_code == 200
+        for text in resp.iter_text():
+            collected_response += text
+    assert collected_response == "1.0\n3.0\n6.0\n10.0\n"
 
 
 def test_legacy_function_check_env(monkeypatch):
@@ -633,12 +697,7 @@ def tests_cloud_to_background_event_client_invalid_source(
     assert resp.status_code == 500
 
 
-def test_relative_imports():
-    source = TEST_FUNCTIONS_DIR / "relative_imports" / "main.py"
-    target = "function"
-
-    client = create_app(target, source).test_client()
-
-    resp = client.get("/")
+def test_relative_imports(relative_imports_client):
+    resp = relative_imports_client.get("/")
     assert resp.status_code == 200
-    assert resp.data == b"success"
+    assert resp.text == "success"

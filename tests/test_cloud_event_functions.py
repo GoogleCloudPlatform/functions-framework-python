@@ -13,12 +13,24 @@
 # limitations under the License.
 import json
 import pathlib
+import sys
 
 import pytest
 
-from cloudevents.http import CloudEvent, to_binary, to_structured
+from cloudevents import conversion as ce_conversion
+from cloudevents.http import CloudEvent
+
+if sys.version_info >= (3, 8):
+    from starlette.testclient import TestClient as StarletteTestClient
+else:
+    StarletteTestClient = None
 
 from functions_framework import create_app
+
+if sys.version_info >= (3, 8):
+    from functions_framework.aio import create_asgi_app
+else:
+    create_asgi_app = None
 
 TEST_FUNCTIONS_DIR = pathlib.Path(__file__).resolve().parent / "test_functions"
 TEST_DATA_DIR = pathlib.Path(__file__).resolve().parent / "test_data"
@@ -89,57 +101,63 @@ def background_event():
         return json.load(f)
 
 
-@pytest.fixture
-def client():
-    source = TEST_FUNCTIONS_DIR / "cloud_events" / "main.py"
+@pytest.fixture(params=["main.py", "async_main.py"])
+def client(request):
+    source = TEST_FUNCTIONS_DIR / "cloud_events" / request.param
     target = "function"
-    return create_app(target, source, "cloudevent").test_client()
+    if not request.param.startswith("async_"):
+        return create_app(target, source, "cloudevent").test_client()
+    app = create_asgi_app(target, source, "cloudevent")
+    return StarletteTestClient(app)
 
 
-@pytest.fixture
-def empty_client():
-    source = TEST_FUNCTIONS_DIR / "cloud_events" / "empty_data.py"
+@pytest.fixture(params=["empty_data.py", "async_empty_data.py"])
+def empty_client(request):
+    source = TEST_FUNCTIONS_DIR / "cloud_events" / request.param
     target = "function"
-    return create_app(target, source, "cloudevent").test_client()
+    if not request.param.startswith("async_"):
+        return create_app(target, source, "cloudevent").test_client()
+    app = create_asgi_app(target, source, "cloudevent")
+    return StarletteTestClient(app)
 
 
 @pytest.fixture
-def converted_background_event_client():
+def converted_background_event_client(request):
     source = TEST_FUNCTIONS_DIR / "cloud_events" / "converted_background_event.py"
     target = "function"
     return create_app(target, source, "cloudevent").test_client()
 
 
 def test_event(client, cloud_event_1_0):
-    headers, data = to_structured(cloud_event_1_0)
+    headers, data = ce_conversion.to_structured(cloud_event_1_0)
     resp = client.post("/", headers=headers, data=data)
 
     assert resp.status_code == 200
-    assert resp.data == b"OK"
+    assert resp.text == "OK"
 
 
 def test_binary_event(client, cloud_event_1_0):
-    headers, data = to_binary(cloud_event_1_0)
+    headers, data = ce_conversion.to_binary(cloud_event_1_0)
     resp = client.post("/", headers=headers, data=data)
 
     assert resp.status_code == 200
-    assert resp.data == b"OK"
+    assert resp.text == "OK"
 
 
 def test_event_0_3(client, cloud_event_0_3):
-    headers, data = to_structured(cloud_event_0_3)
+    headers, data = ce_conversion.to_structured(cloud_event_0_3)
     resp = client.post("/", headers=headers, data=data)
 
     assert resp.status_code == 200
-    assert resp.data == b"OK"
+    assert resp.text == "OK"
 
 
 def test_binary_event_0_3(client, cloud_event_0_3):
-    headers, data = to_binary(cloud_event_0_3)
+    headers, data = ce_conversion.to_binary(cloud_event_0_3)
     resp = client.post("/", headers=headers, data=data)
 
     assert resp.status_code == 200
-    assert resp.data == b"OK"
+    assert resp.text == "OK"
 
 
 @pytest.mark.parametrize("specversion", ["0.3", "1.0"])
@@ -156,7 +174,7 @@ def test_cloud_event_missing_required_binary_fields(
         resp = client.post("/", headers=invalid_headers, json=data_payload)
 
         assert resp.status_code == 400
-        assert "MissingRequiredFields" in resp.get_data().decode()
+        assert "MissingRequiredFields" in resp.text
 
 
 @pytest.mark.parametrize("specversion", ["0.3", "1.0"])
@@ -174,7 +192,7 @@ def test_cloud_event_missing_required_structured_fields(
         resp = client.post("/", headers=headers, json=invalid_data)
 
         assert resp.status_code == 400
-        assert "MissingRequiredFields" in resp.data.decode()
+        assert "MissingRequiredFields" in resp.text
 
 
 def test_invalid_fields_binary(client, create_headers_binary, data_payload):
@@ -183,7 +201,7 @@ def test_invalid_fields_binary(client, create_headers_binary, data_payload):
     resp = client.post("/", headers=headers, json=data_payload)
 
     assert resp.status_code == 400
-    assert "InvalidRequiredFields" in resp.data.decode()
+    assert "InvalidRequiredFields" in resp.text
 
 
 def test_unparsable_cloud_event(client):
@@ -191,7 +209,7 @@ def test_unparsable_cloud_event(client):
     resp = client.post("/", headers=headers, data="")
 
     assert resp.status_code == 400
-    assert "Bad Request" in resp.data.decode()
+    assert "Bad Request" in resp.text
 
 
 @pytest.mark.parametrize("specversion", ["0.3", "1.0"])
@@ -200,7 +218,7 @@ def test_empty_data_binary(empty_client, create_headers_binary, specversion):
     resp = empty_client.post("/", headers=headers, json="")
 
     assert resp.status_code == 200
-    assert resp.get_data() == b"OK"
+    assert resp.text == "OK"
 
 
 @pytest.mark.parametrize("specversion", ["0.3", "1.0"])
@@ -211,7 +229,7 @@ def test_empty_data_structured(empty_client, specversion, create_structured_data
     resp = empty_client.post("/", headers=headers, json=data)
 
     assert resp.status_code == 200
-    assert resp.get_data() == b"OK"
+    assert resp.text == "OK"
 
 
 @pytest.mark.parametrize("specversion", ["0.3", "1.0"])
@@ -220,7 +238,7 @@ def test_no_mime_type_structured(empty_client, specversion, create_structured_da
     resp = empty_client.post("/", headers={}, json=data)
 
     assert resp.status_code == 200
-    assert resp.get_data() == b"OK"
+    assert resp.text == "OK"
 
 
 def test_background_event(converted_background_event_client, background_event):
@@ -228,5 +246,6 @@ def test_background_event(converted_background_event_client, background_event):
         "/", headers={}, json=background_event
     )
 
+    print(resp.text)
     assert resp.status_code == 200
-    assert resp.get_data() == b"OK"
+    assert resp.text == "OK"
