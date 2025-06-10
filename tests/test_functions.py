@@ -101,7 +101,11 @@ def http_request_check_client(request):
     if not request.param.startswith("async_"):
         return create_app(target, source).test_client()
     app = create_asgi_app(target, source)
-    return StarletteTestClient(app, base_url="http://localhost")
+    return StarletteTestClient(
+        app,
+        # Override baseurl to use localhost instead of default http://testserver.
+        base_url="http://localhost",
+    )
 
 
 @pytest.fixture(params=["main.py", "async_main.py"])
@@ -142,8 +146,6 @@ def http_method_check_client(request):
         return create_app(target, source).test_client()
     app = create_asgi_app(target, source)
     return StarletteTestClient(app)
-
-    source = TEST_FUNCTIONS_DIR / "module_is_correct" / "main.py"
 
 
 @pytest.fixture(params=["sync", "async"])
@@ -194,14 +196,20 @@ def test_http_function_executes_throw(http_trigger_client):
 
 
 def test_http_function_request_url_empty_path(http_request_check_client):
-    if isinstance(http_request_check_client, StarletteTestClient):
-        pytest.skip(
-            "This specific redirect test (empty path '' -> '/') is not "
-            " applicableto Starlette's default behavior."
-        )
-    resp = http_request_check_client.post("", json={"mode": "url"})
-    assert resp.status_code == 308
-    assert resp.location == "http://localhost/"
+    # Starlette TestClient normalizes empty path "" to "/" before making the request,
+    # while Flask preserves the empty path and lets the server handle the redirect
+    if StarletteTestClient and isinstance(
+        http_request_check_client, StarletteTestClient
+    ):
+        # Starlette TestClient converts "" to "/" so we get a direct 200 response
+        resp = http_request_check_client.post("", json={"mode": "url"})
+        assert resp.status_code == 200
+        assert resp.text == "http://localhost/"
+    else:
+        # Flask returns a 308 redirect from empty path to "/"
+        resp = http_request_check_client.post("", json={"mode": "url"})
+        assert resp.status_code == 308
+        assert resp.location == "http://localhost/"
 
 
 def test_http_function_request_url_slash(http_request_check_client):
