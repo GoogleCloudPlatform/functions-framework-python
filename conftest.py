@@ -49,11 +49,11 @@ def pytest_ignore_collect(path, config):
     """Ignore async test files on Python 3.7 since Starlette requires Python 3.8+"""
     if sys.version_info >= (3, 8):
         return False
-    
+
     # Skip test_aio.py entirely on Python 3.7
     if path.basename == "test_aio.py":
         return True
-    
+
     return False
 
 
