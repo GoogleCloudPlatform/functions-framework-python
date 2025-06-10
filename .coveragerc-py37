@@ -1,0 +1,10 @@
+[run]
+# Coverage configuration specifically for Python 3.7 environments
+# Excludes the aio module which requires Python 3.8+ (Starlette dependency)
+# This file is only used by py37-* tox environments
+omit = 
+    */functions_framework/aio/*
+    */.tox/*
+    */tests/*
+    */venv/*
+    */.venv/*
