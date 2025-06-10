@@ -48,13 +48,13 @@ def isolate_logging():
 def pytest_ignore_collect(collection_path, config):
     """Ignore async test files on Python 3.7 since Starlette requires Python 3.8+"""
     if sys.version_info >= (3, 8):
-        return None  # Let pytest decide (default behavior)
+        return None
 
     # Skip test_aio.py entirely on Python 3.7
     if collection_path.name == "test_aio.py":
         return True
 
-    return None  # Let pytest decide (default behavior)
+    return None
 
 
 # Safe to remove when we drop Python 3.7 support
@@ -86,16 +86,8 @@ def pytest_collection_modifyitems(config, items):
                     skip_test = True
                     break
 
-        # Check test file and function names for async-related test files
-        test_file = str(item.fspath)
-        test_name = item.name
-
-        # Skip tests in files with async-related keywords
-        if any(keyword in test_file.lower() for keyword in async_keywords):
-            skip_test = True
-
         # Skip tests that explicitly test async functionality
-        if any(keyword in test_name.lower() for keyword in async_keywords):
+        if any(keyword in item.name.lower() for keyword in async_keywords):
             skip_test = True
 
         if skip_test:
