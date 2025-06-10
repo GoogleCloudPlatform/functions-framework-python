@@ -67,14 +67,17 @@ def pytest_collection_modifyitems(config, items):
         reason="Async features require Python 3.8+ (Starlette dependency)"
     )
 
+    # Keywords that indicate async-related tests
+    async_keywords = ["async", "asgi", "aio", "starlette"]
+
     for item in items:
         skip_test = False
 
         if hasattr(item, "callspec") and hasattr(item.callspec, "params"):
             for param_name, param_value in item.callspec.params.items():
-                # Check if test has fixtures with async parameters
-                if isinstance(param_value, str) and (
-                    "async" in param_value or param_value.startswith("async_")
+                # Check if test has fixtures with async-related parameters
+                if isinstance(param_value, str) and any(
+                    keyword in param_value.lower() for keyword in async_keywords
                 ):
                     skip_test = True
                     break
@@ -87,12 +90,12 @@ def pytest_collection_modifyitems(config, items):
         test_file = str(item.fspath)
         test_name = item.name
 
-        # Skip tests in async-specific test files (backup for any not caught by ignore)
-        if "test_aio" in test_file:
+        # Skip tests in files with async-related keywords
+        if any(keyword in test_file.lower() for keyword in async_keywords):
             skip_test = True
 
         # Skip tests that explicitly test async functionality
-        if "async" in test_name.lower() or "asgi" in test_name.lower():
+        if any(keyword in test_name.lower() for keyword in async_keywords):
             skip_test = True
 
         if skip_test:
