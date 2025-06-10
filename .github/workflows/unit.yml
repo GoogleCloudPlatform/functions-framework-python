@@ -64,4 +64,7 @@ jobs:
     - name: Install tox
       run: python -m pip install tox
     - name: Test
-      run: python -m tox -e py-${{ matrix.platform }}
+      run: |
+        # Remove dots from python version string, i.e. 3.10 -> 310
+        PY_VERSION=$(echo "${{ matrix.python }}" | sed 's/\.//g')
+        python -m tox -e py${PY_VERSION}-${{ matrix.platform }}
