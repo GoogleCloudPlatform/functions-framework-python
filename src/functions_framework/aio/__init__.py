@@ -107,7 +107,10 @@ def _http_func_wrapper(function, is_async):
         if is_async:
             result = await function(request)
         else:
-            result = await asyncio.to_thread(function, request)
+            # TODO: Use asyncio.to_thread when we drop Python 3.8 support
+            # Python 3.8 compatible version of asyncio.to_thread
+            loop = asyncio.get_event_loop()
+            result = await loop.run_in_executor(None, function, request)
         if isinstance(result, str):
             return Response(result)
         elif isinstance(result, dict):
@@ -138,7 +141,10 @@ def _cloudevent_func_wrapper(function, is_async):
         if is_async:
             await function(event)
         else:
-            await asyncio.to_thread(function, event)
+            # TODO: Use asyncio.to_thread when we drop Python 3.8 support
+            # Python 3.8 compatible version of asyncio.to_thread
+            loop = asyncio.get_event_loop()
+            await loop.run_in_executor(None, function, event)
         return Response("OK")
 
     return handler
