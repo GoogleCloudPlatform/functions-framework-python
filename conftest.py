@@ -78,11 +78,8 @@ def pytest_collection_modifyitems(config, items):
                 ):
                     skip_test = True
                     break
-                # Check if test is parametrized with create_asgi_app
-                if (
-                    hasattr(param_value, "__name__")
-                    and param_value.__name__ == "create_asgi_app"
-                ):
+                # Skip tests parametrized with None (create_asgi_app on Python 3.7)
+                if param_value is None:
                     skip_test = True
                     break
 
