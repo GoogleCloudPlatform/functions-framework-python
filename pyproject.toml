@@ -38,8 +38,8 @@ Homepage = "https://github.com/googlecloudplatform/functions-framework-python"
 [project.optional-dependencies]
 async = [
     "starlette>=0.37.0,<1.0.0; python_version>='3.8'",
-    "uvicorn>=0.18.0,<1.0.0; platform_system!='Windows' and python_version>='3.8'",
-    "uvicorn-worker>=0.2.0,<1.0.0; platform_system!='Windows' and python_version>='3.8'"
+    "uvicorn>=0.18.0,<1.0.0; python_version>='3.8'",
+    "uvicorn-worker>=0.2.0,<1.0.0; python_version>='3.8'"
 ]
 
 [project.scripts]
