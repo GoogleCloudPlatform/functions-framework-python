@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.9.0](https://github.com/GoogleCloudPlatform/functions-framework-python/compare/v3.8.3...v3.9.0) (2025-06-12)
+
+
+### Features
+
+* add flag to run functions framework in asgi stack ([#376](https://github.com/GoogleCloudPlatform/functions-framework-python/issues/376)) ([268acf1](https://github.com/GoogleCloudPlatform/functions-framework-python/commit/268acf121015bf2a5592715e4cfe582f9d236ff8))
+* add support for async functions ([#364](https://github.com/GoogleCloudPlatform/functions-framework-python/issues/364)) ([49f6985](https://github.com/GoogleCloudPlatform/functions-framework-python/commit/49f698517a06d0e47b2aadc2d603e0b193770440))
+
+
+### Bug Fixes
+
+* **ci:** specify python version in tox environment ([#375](https://github.com/GoogleCloudPlatform/functions-framework-python/issues/375)) ([37e0bf7](https://github.com/GoogleCloudPlatform/functions-framework-python/commit/37e0bf764ff24ebb82ba18bcac1bee6b03cecb13))
+* Pin cloudevent sdk version to support python3.7. ([#373](https://github.com/GoogleCloudPlatform/functions-framework-python/issues/373)) ([cc2b9b5](https://github.com/GoogleCloudPlatform/functions-framework-python/commit/cc2b9b584fcc3daaa2762ae62a3ce1277a488a1c))
+
 ## [3.8.3](https://github.com/GoogleCloudPlatform/functions-framework-python/compare/v3.8.2...v3.8.3) (2025-05-14)
 
 
