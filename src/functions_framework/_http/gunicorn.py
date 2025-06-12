@@ -87,6 +87,5 @@ class UvicornApplication(BaseGunicornApplication):
     """Gunicorn application for ASGI apps using Uvicorn workers."""
 
     def __init__(self, app, host, port, debug, **options):
+        options["worker_class"] = "uvicorn_worker.UvicornWorker"
         super().__init__(app, host, port, debug, **options)
-
-        self.options["worker_class"] = "uvicorn_worker.UvicornWorker"

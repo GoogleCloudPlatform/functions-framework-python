@@ -237,7 +237,6 @@ def test_starlette_application(monkeypatch, debug):
     assert starlette_app.debug == debug
     assert starlette_app.options == {
         "log_level": "debug" if debug else "error",
-        "reload": debug,
         "custom": "value",
     }
 
@@ -249,7 +248,6 @@ def test_starlette_application(monkeypatch, debug):
             host=host,
             port=int(port),
             log_level="debug" if debug else "error",
-            reload=debug,
             custom="value",
         )
     ]
