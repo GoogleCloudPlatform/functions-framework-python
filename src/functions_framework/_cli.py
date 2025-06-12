@@ -32,6 +32,18 @@ from functions_framework._http import create_server
 @click.option("--host", envvar="HOST", type=click.STRING, default="0.0.0.0")
 @click.option("--port", envvar="PORT", type=click.INT, default=8080)
 @click.option("--debug", envvar="DEBUG", is_flag=True)
-def _cli(target, source, signature_type, host, port, debug):
-    app = create_app(target, source, signature_type)
+@click.option(
+    "--gateway",
+    envvar="GATEWAY",
+    type=click.Choice(["wsgi", "asgi"]),
+    default="wsgi",
+    help="Server gateway interface type (wsgi for sync, asgi for async)"
+)
+def _cli(target, source, signature_type, host, port, debug, gateway):
+    if gateway == "asgi":
+        from functions_framework.aio import create_asgi_app
+        app = create_asgi_app(target, source, signature_type)
+    else:
+        app = create_app(target, source, signature_type)
+    
     create_server(app, debug).run(host, port)

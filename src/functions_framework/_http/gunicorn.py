@@ -27,31 +27,19 @@ from ..request_timeout import ThreadingTimeout
 TIMEOUT_SECONDS = None
 
 
-class GunicornApplication(gunicorn.app.base.BaseApplication):
+class BaseGunicornApplication(gunicorn.app.base.BaseApplication):
+    """Base Gunicorn application with common configuration."""
     def __init__(self, app, host, port, debug, **options):
-        threads = int(os.environ.get("THREADS", (os.cpu_count() or 1) * 4))
-
         global TIMEOUT_SECONDS
         TIMEOUT_SECONDS = int(os.environ.get("CLOUD_RUN_TIMEOUT_SECONDS", 0))
 
         self.options = {
             "bind": "%s:%s" % (host, port),
             "workers": int(os.environ.get("WORKERS", 1)),
-            "threads": threads,
             "loglevel": os.environ.get("GUNICORN_LOG_LEVEL", "error"),
             "limit_request_line": 0,
+            "timeout": TIMEOUT_SECONDS,
         }
-
-        if (
-            TIMEOUT_SECONDS > 0
-            and threads > 1
-            and (os.environ.get("THREADED_TIMEOUT_ENABLED", "False").lower() == "true")
-        ):  # pragma: no cover
-            self.options["worker_class"] = (
-                "functions_framework._http.gunicorn.GThreadWorkerWithTimeoutSupport"
-            )
-        else:
-            self.options["timeout"] = TIMEOUT_SECONDS
 
         self.options.update(options)
         self.app = app
@@ -66,7 +54,36 @@ class GunicornApplication(gunicorn.app.base.BaseApplication):
         return self.app
 
 
+class GunicornApplication(BaseGunicornApplication):
+    """Gunicorn application for WSGI apps with gthread worker support."""
+    def __init__(self, app, host, port, debug, **options):
+        threads = int(os.environ.get("THREADS", (os.cpu_count() or 1) * 4))
+        options["threads"] = threads
+        
+        super().__init__(app, host, port, debug, **options)
+        
+        # Use custom worker with timeout support if conditions are met
+        if (
+            TIMEOUT_SECONDS > 0
+            and threads > 1
+            and (os.environ.get("THREADED_TIMEOUT_ENABLED", "False").lower() == "true")
+        ):  # pragma: no cover
+            self.options["worker_class"] = (
+                "functions_framework._http.gunicorn.GThreadWorkerWithTimeoutSupport"
+            )
+            # Remove timeout from options when using custom worker
+            del self.options["timeout"]
+
+
 class GThreadWorkerWithTimeoutSupport(ThreadWorker):  # pragma: no cover
     def handle_request(self, req, conn):
         with ThreadingTimeout(TIMEOUT_SECONDS):
             super(GThreadWorkerWithTimeoutSupport, self).handle_request(req, conn)
+
+
+class UvicornApplication(BaseGunicornApplication):
+    """Gunicorn application for ASGI apps using Uvicorn workers."""
+    def __init__(self, app, host, port, debug, **options):
+        super().__init__(app, host, port, debug, **options)
+        
+        self.options["worker_class"] = "uvicorn_worker.UvicornWorker"
