@@ -50,8 +50,8 @@ def pytest_ignore_collect(collection_path, config):
     if sys.version_info >= (3, 8):
         return None
 
-    # Skip test_aio.py entirely on Python 3.7
-    if collection_path.name == "test_aio.py":
+    # Skip test_aio.py and test_asgi.py entirely on Python 3.7
+    if collection_path.name in ["test_aio.py", "test_asgi.py"]:
         return True
 
     return None
