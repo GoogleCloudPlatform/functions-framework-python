@@ -60,6 +60,8 @@ class GunicornApplication(BaseGunicornApplication):
 
     def __init__(self, app, host, port, debug, **options):
         threads = int(os.environ.get("THREADS", (os.cpu_count() or 1) * 4))
+        # Make a copy to avoid mutating the passed-in options dict
+        options = dict(options)
         options["threads"] = threads
 
         super().__init__(app, host, port, debug, **options)
@@ -87,5 +89,6 @@ class UvicornApplication(BaseGunicornApplication):
     """Gunicorn application for ASGI apps using Uvicorn workers."""
 
     def __init__(self, app, host, port, debug, **options):
+        options = dict(options)
         options["worker_class"] = "uvicorn_worker.UvicornWorker"
         super().__init__(app, host, port, debug, **options)
