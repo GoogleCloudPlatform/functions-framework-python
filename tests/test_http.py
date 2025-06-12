@@ -46,7 +46,6 @@ def test_create_server(monkeypatch, debug):
     ],
 )
 def test_httpserver(monkeypatch, debug, gunicorn_missing, expected):
-    # Create a mock Flask app
     app = flask.Flask("test")
     http_server = pretend.stub(run=pretend.call_recorder(lambda: None))
     server_classes = {

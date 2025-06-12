@@ -23,9 +23,7 @@ class HTTPServer:
         self.debug = debug
         self.options = options
 
-        # Check if app is Flask (WSGI) or not (ASGI)
         if isinstance(app, Flask):
-            # WSGI app
             if self.debug:
                 self.server_class = FlaskApplication
             else:
@@ -36,7 +34,6 @@ class HTTPServer:
                 except ImportError as e:
                     self.server_class = FlaskApplication
         else:  # pragma: no cover
-            # ASGI app (Starlette or other)
             if self.debug:
                 from functions_framework._http.asgi import StarletteApplication
 
