@@ -203,7 +203,9 @@ def create_asgi_app(target=None, source=None, signature_type=None):
         )
     elif signature_type == _function_registry.CLOUDEVENT_SIGNATURE_TYPE:
         cloudevent_handler = _cloudevent_func_wrapper(function, is_async)
-        routes.append(Route("/{path:path}", endpoint=cloudevent_handler, methods=["POST"]))
+        routes.append(
+            Route("/{path:path}", endpoint=cloudevent_handler, methods=["POST"])
+        )
         routes.append(Route("/", endpoint=cloudevent_handler, methods=["POST"]))
     elif signature_type == _function_registry.TYPED_SIGNATURE_TYPE:
         raise FunctionsFrameworkException(
