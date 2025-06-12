@@ -59,7 +59,7 @@ jobs:
       with:
         functionType: 'cloudevent'
         useBuildpacks: false
-        validateMapping: true
+        validateMapping: false
         cmd: "'functions-framework --source tests/conformance/async_main.py --target write_cloud_event --signature-type cloudevent --gateway asgi'"
 
     - name: Run HTTP conformance tests declarative
@@ -75,7 +75,7 @@ jobs:
       with:
         functionType: 'cloudevent'
         useBuildpacks: false
-        validateMapping: true
+        validateMapping: false
         cmd: "'functions-framework --source tests/conformance/async_main.py --target write_cloud_event_declarative --gateway asgi'"
 
     - name: Run HTTP concurrency tests declarative
@@ -87,3 +87,5 @@ jobs:
         cmd: "'functions-framework --source tests/conformance/async_main.py --target write_http_declarative_concurrent --gateway asgi'"
 
     # Note: Event (legacy) and Typed tests are not supported in ASGI mode
+    # Note: validateMapping is set to false for CloudEvent tests because ASGI mode
+    # does not support automatic conversion from legacy events to CloudEvents
