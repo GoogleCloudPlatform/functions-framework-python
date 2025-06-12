@@ -10,3 +10,5 @@ dist/
 function_output.json
 serverlog_stderr.txt
 serverlog_stdout.txt
+venv/
+test-integration

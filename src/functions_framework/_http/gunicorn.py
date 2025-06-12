@@ -61,10 +61,10 @@ class GunicornApplication(BaseGunicornApplication):
     def __init__(self, app, host, port, debug, **options):
         threads = int(os.environ.get("THREADS", (os.cpu_count() or 1) * 4))
         # Make a copy to avoid mutating the passed-in options dict
-        options = dict(options)
-        options["threads"] = threads
+        options_copy = dict(options)
+        options_copy["threads"] = threads
 
-        super().__init__(app, host, port, debug, **options)
+        super().__init__(app, host, port, debug, **options_copy)
 
         # Use custom worker with timeout support if conditions are met
         if (
@@ -89,6 +89,7 @@ class UvicornApplication(BaseGunicornApplication):
     """Gunicorn application for ASGI apps using Uvicorn workers."""
 
     def __init__(self, app, host, port, debug, **options):
-        options = dict(options)
-        options["worker_class"] = "uvicorn_worker.UvicornWorker"
-        super().__init__(app, host, port, debug, **options)
+        # Make a copy to avoid mutating the passed-in options dict
+        options_copy = dict(options)
+        options_copy["worker_class"] = "uvicorn_worker.UvicornWorker"
+        super().__init__(app, host, port, debug, **options_copy)

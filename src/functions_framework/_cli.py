@@ -40,7 +40,7 @@ from functions_framework._http import create_server
     help="Server gateway interface type (wsgi for sync, asgi for async)",
 )
 def _cli(target, source, signature_type, host, port, debug, gateway):
-    if gateway == "asgi":
+    if gateway == "asgi":  # pragma: no cover
         from functions_framework.aio import create_asgi_app
 
         app = create_asgi_app(target, source, signature_type)
