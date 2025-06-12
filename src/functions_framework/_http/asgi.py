@@ -33,10 +33,8 @@ class StarletteApplication:
         self.port = port
         self.debug = debug
 
-        # Default uvicorn config
         self.options = {
             "log_level": "debug" if debug else "error",
-            "reload": debug,
         }
         self.options.update(options)
 
