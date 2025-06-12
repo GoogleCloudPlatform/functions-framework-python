@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from flask import Flask
+
 from functions_framework._http.flask import FlaskApplication
 
 
@@ -21,15 +23,30 @@ class HTTPServer:
         self.debug = debug
         self.options = options
 
-        if self.debug:
-            self.server_class = FlaskApplication
-        else:
-            try:
-                from functions_framework._http.gunicorn import GunicornApplication
-
-                self.server_class = GunicornApplication
-            except ImportError as e:
+        if isinstance(app, Flask):
+            if self.debug:
                 self.server_class = FlaskApplication
+            else:
+                try:
+                    from functions_framework._http.gunicorn import GunicornApplication
+
+                    self.server_class = GunicornApplication
+                except ImportError as e:
+                    self.server_class = FlaskApplication
+        else:  # pragma: no cover
+            if self.debug:
+                from functions_framework._http.asgi import StarletteApplication
+
+                self.server_class = StarletteApplication
+            else:
+                try:
+                    from functions_framework._http.gunicorn import UvicornApplication
+
+                    self.server_class = UvicornApplication
+                except ImportError as e:
+                    from functions_framework._http.asgi import StarletteApplication
+
+                    self.server_class = StarletteApplication
 
     def run(self, host, port):
         http_server = self.server_class(
@@ -38,5 +55,5 @@ class HTTPServer:
         http_server.run()
 
 
-def create_server(wsgi_app, debug, **options):
-    return HTTPServer(wsgi_app, debug, **options)
+def create_server(app, debug, **options):
+    return HTTPServer(app, debug, **options)

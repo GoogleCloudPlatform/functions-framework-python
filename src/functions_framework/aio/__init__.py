@@ -197,14 +197,16 @@ def create_asgi_app(target=None, source=None, signature_type=None):
         routes.append(
             Route(
                 "/{path:path}",
-                http_handler,
+                endpoint=http_handler,
                 methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"],
             )
         )
     elif signature_type == _function_registry.CLOUDEVENT_SIGNATURE_TYPE:
         cloudevent_handler = _cloudevent_func_wrapper(function, is_async)
-        routes.append(Route("/{path:path}", cloudevent_handler, methods=["POST"]))
-        routes.append(Route("/", cloudevent_handler, methods=["POST"]))
+        routes.append(
+            Route("/{path:path}", endpoint=cloudevent_handler, methods=["POST"])
+        )
+        routes.append(Route("/", endpoint=cloudevent_handler, methods=["POST"]))
     elif signature_type == _function_registry.TYPED_SIGNATURE_TYPE:
         raise FunctionsFrameworkException(
             f"ASGI server does not support typed events (signature type: '{signature_type}'). "

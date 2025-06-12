@@ -4,7 +4,18 @@
 # This file is only used by py37-* tox environments
 omit = 
     */functions_framework/aio/*
+    */functions_framework/_http/asgi.py
     */.tox/*
     */tests/*
     */venv/*
     */.venv/*
+
+[report]
+exclude_lines =
+    # Have to re-enable the standard pragma
+    pragma: no cover
+    
+    # Don't complain about async-specific imports and code
+    from functions_framework.aio import
+    from functions_framework._http.asgi import
+    from functions_framework._http.gunicorn import UvicornApplication

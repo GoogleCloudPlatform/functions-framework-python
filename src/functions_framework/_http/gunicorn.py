@@ -70,3 +70,28 @@ class GThreadWorkerWithTimeoutSupport(ThreadWorker):  # pragma: no cover
     def handle_request(self, req, conn):
         with ThreadingTimeout(TIMEOUT_SECONDS):
             super(GThreadWorkerWithTimeoutSupport, self).handle_request(req, conn)
+
+
+class UvicornApplication(gunicorn.app.base.BaseApplication):
+    """Gunicorn application for ASGI apps using Uvicorn workers."""
+
+    def __init__(self, app, host, port, debug, **options):
+        self.options = {
+            "bind": "%s:%s" % (host, port),
+            "workers": int(os.environ.get("WORKERS", 1)),
+            "worker_class": "uvicorn_worker.UvicornWorker",
+            "timeout": int(os.environ.get("CLOUD_RUN_TIMEOUT_SECONDS", 0)),
+            "loglevel": os.environ.get("GUNICORN_LOG_LEVEL", "error"),
+            "limit_request_line": 0,
+        }
+        self.options.update(options)
+        self.app = app
+
+        super().__init__()
+
+    def load_config(self):
+        for key, value in self.options.items():
+            self.cfg.set(key, value)
+
+    def load(self):
+        return self.app
