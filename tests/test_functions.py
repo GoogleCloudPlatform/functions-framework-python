@@ -21,7 +21,6 @@ import time
 import pretend
 import pytest
 
-# Conditional import for Starlette
 if sys.version_info >= (3, 8):
     from starlette.testclient import TestClient as StarletteTestClient
 else:
@@ -31,7 +30,6 @@ import functions_framework
 
 from functions_framework import LazyWSGIApp, create_app, errorhandler, exceptions
 
-# Conditional import for async functionality
 if sys.version_info >= (3, 8):
     from functions_framework.aio import create_asgi_app
 else:

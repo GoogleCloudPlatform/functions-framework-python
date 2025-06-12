@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import sys
+
 import pretend
 import pytest
 
@@ -103,3 +105,22 @@ def test_cli(monkeypatch, args, env, create_app_calls, run_calls):
     assert result.exit_code == 0
     assert create_app.calls == create_app_calls
     assert wsgi_server.run.calls == run_calls
+
+
+def test_asgi_cli(monkeypatch):
+    asgi_server = pretend.stub(run=pretend.call_recorder(lambda *a, **kw: None))
+    asgi_app = pretend.stub()
+
+    create_asgi_app = pretend.call_recorder(lambda *a, **kw: asgi_app)
+    aio_module = pretend.stub(create_asgi_app=create_asgi_app)
+    monkeypatch.setitem(sys.modules, "functions_framework.aio", aio_module)
+
+    create_server = pretend.call_recorder(lambda *a, **kw: asgi_server)
+    monkeypatch.setattr(functions_framework._cli, "create_server", create_server)
+
+    runner = CliRunner()
+    result = runner.invoke(_cli, ["--target", "foo", "--gateway", "asgi"])
+
+    assert result.exit_code == 0
+    assert create_asgi_app.calls == [pretend.call("foo", None, "http")]
+    assert asgi_server.run.calls == [pretend.call("0.0.0.0", 8080)]
