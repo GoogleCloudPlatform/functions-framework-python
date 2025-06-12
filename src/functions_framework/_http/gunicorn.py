@@ -28,27 +28,20 @@ TIMEOUT_SECONDS = None
 
 
 class GunicornApplication(gunicorn.app.base.BaseApplication):
-    """Gunicorn application for WSGI apps with gthread worker support."""
-
     def __init__(self, app, host, port, debug, **options):
+        threads = int(os.environ.get("THREADS", (os.cpu_count() or 1) * 4))
+
         global TIMEOUT_SECONDS
         TIMEOUT_SECONDS = int(os.environ.get("CLOUD_RUN_TIMEOUT_SECONDS", 0))
-        threads = int(os.environ.get("THREADS", (os.cpu_count() or 1) * 4))
 
         self.options = {
             "bind": "%s:%s" % (host, port),
             "workers": int(os.environ.get("WORKERS", 1)),
             "threads": threads,
-            "timeout": TIMEOUT_SECONDS,
             "loglevel": os.environ.get("GUNICORN_LOG_LEVEL", "error"),
             "limit_request_line": 0,
         }
-        self.options.update(options)
-        self.app = app
 
-        super().__init__()
-
-        # Use custom worker with timeout support if conditions are met
         if (
             TIMEOUT_SECONDS > 0
             and threads > 1
@@ -57,8 +50,13 @@ class GunicornApplication(gunicorn.app.base.BaseApplication):
             self.options["worker_class"] = (
                 "functions_framework._http.gunicorn.GThreadWorkerWithTimeoutSupport"
             )
-            # Remove timeout from options when using custom worker
-            del self.options["timeout"]
+        else:
+            self.options["timeout"] = TIMEOUT_SECONDS
+
+        self.options.update(options)
+        self.app = app
+
+        super().__init__()
 
     def load_config(self):
         for key, value in self.options.items():
