@@ -17,10 +17,10 @@ import uvicorn
 
 class StarletteApplication:
     """A Starlette application that uses Uvicorn for direct serving (development mode)."""
-    
+
     def __init__(self, app, host, port, debug, **options):
         """Initialize the Starlette application.
-        
+
         Args:
             app: The ASGI application to serve
             host: The host to bind to
@@ -32,19 +32,14 @@ class StarletteApplication:
         self.host = host
         self.port = port
         self.debug = debug
-        
+
         # Default uvicorn config
         self.options = {
             "log_level": "debug" if debug else "error",
             "reload": debug,
         }
         self.options.update(options)
-    
+
     def run(self):
         """Run the Uvicorn server directly."""
-        uvicorn.run(
-            self.app,
-            host=self.host,
-            port=int(self.port),
-            **self.options
-        )
+        uvicorn.run(self.app, host=self.host, port=int(self.port), **self.options)

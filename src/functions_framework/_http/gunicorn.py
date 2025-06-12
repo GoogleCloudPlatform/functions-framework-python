@@ -29,6 +29,7 @@ TIMEOUT_SECONDS = None
 
 class BaseGunicornApplication(gunicorn.app.base.BaseApplication):
     """Base Gunicorn application with common configuration."""
+
     def __init__(self, app, host, port, debug, **options):
         global TIMEOUT_SECONDS
         TIMEOUT_SECONDS = int(os.environ.get("CLOUD_RUN_TIMEOUT_SECONDS", 0))
@@ -56,12 +57,13 @@ class BaseGunicornApplication(gunicorn.app.base.BaseApplication):
 
 class GunicornApplication(BaseGunicornApplication):
     """Gunicorn application for WSGI apps with gthread worker support."""
+
     def __init__(self, app, host, port, debug, **options):
         threads = int(os.environ.get("THREADS", (os.cpu_count() or 1) * 4))
         options["threads"] = threads
-        
+
         super().__init__(app, host, port, debug, **options)
-        
+
         # Use custom worker with timeout support if conditions are met
         if (
             TIMEOUT_SECONDS > 0
@@ -83,7 +85,8 @@ class GThreadWorkerWithTimeoutSupport(ThreadWorker):  # pragma: no cover
 
 class UvicornApplication(BaseGunicornApplication):
     """Gunicorn application for ASGI apps using Uvicorn workers."""
+
     def __init__(self, app, host, port, debug, **options):
         super().__init__(app, host, port, debug, **options)
-        
+
         self.options["worker_class"] = "uvicorn_worker.UvicornWorker"

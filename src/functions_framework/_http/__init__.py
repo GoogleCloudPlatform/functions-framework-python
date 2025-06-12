@@ -22,7 +22,7 @@ class HTTPServer:
         self.app = app
         self.debug = debug
         self.options = options
-        
+
         # Check if app is Flask (WSGI) or not (ASGI)
         if isinstance(app, Flask):
             # WSGI app
@@ -31,6 +31,7 @@ class HTTPServer:
             else:
                 try:
                     from functions_framework._http.gunicorn import GunicornApplication
+
                     self.server_class = GunicornApplication
                 except ImportError as e:
                     self.server_class = FlaskApplication
@@ -38,13 +39,16 @@ class HTTPServer:
             # ASGI app (Starlette or other)
             if self.debug:
                 from functions_framework._http.asgi import StarletteApplication
+
                 self.server_class = StarletteApplication
             else:
                 try:
                     from functions_framework._http.gunicorn import UvicornApplication
+
                     self.server_class = UvicornApplication
                 except ImportError as e:
                     from functions_framework._http.asgi import StarletteApplication
+
                     self.server_class = StarletteApplication
 
     def run(self, host, port):

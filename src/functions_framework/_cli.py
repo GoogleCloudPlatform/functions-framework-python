@@ -37,13 +37,14 @@ from functions_framework._http import create_server
     envvar="GATEWAY",
     type=click.Choice(["wsgi", "asgi"]),
     default="wsgi",
-    help="Server gateway interface type (wsgi for sync, asgi for async)"
+    help="Server gateway interface type (wsgi for sync, asgi for async)",
 )
 def _cli(target, source, signature_type, host, port, debug, gateway):
     if gateway == "asgi":
         from functions_framework.aio import create_asgi_app
+
         app = create_asgi_app(target, source, signature_type)
     else:
         app = create_app(target, source, signature_type)
-    
+
     create_server(app, debug).run(host, port)
