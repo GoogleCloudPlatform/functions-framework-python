@@ -57,13 +57,11 @@ def test_starlette_application_init():
     assert starlette_app.port == port
     assert starlette_app.debug is True
     assert starlette_app.options["log_level"] == "debug"
-    assert starlette_app.options["reload"] is True
     assert starlette_app.options["custom"] == "value"
 
     # Test production mode
     starlette_app = StarletteApplication(app, host, port, debug=False)
     assert starlette_app.options["log_level"] == "error"
-    assert starlette_app.options["reload"] is False
 
 
 @pytest.mark.skipif("platform.system() == 'Windows'")
@@ -118,6 +116,5 @@ def test_starlette_application_run(monkeypatch):
         "host": host,
         "port": int(port),
         "log_level": "debug",
-        "reload": True,
         "custom": "value",
     }
