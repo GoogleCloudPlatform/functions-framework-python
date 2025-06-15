@@ -15,9 +15,12 @@
 import asyncio
 import functools
 import inspect
+import json
+import logging
 import os
 import re
 import sys
+import traceback
 
 from typing import Any, Awaitable, Callable, Dict, Tuple, Union
 
@@ -55,33 +58,19 @@ _CRASH = "crash"
 
 
 async def _crash_handler(request, exc):
-    import logging
-    import traceback
-    import json
-    
     # Log the exception
     logger = logging.getLogger()
     tb_lines = traceback.format_exception(type(exc), exc, exc.__traceback__)
     tb_text = ''.join(tb_lines)
     error_msg = f"Exception on {request.url.path} [{request.method}]\n{tb_text}".rstrip()
     
-    # Check if we need to set execution context for logging
+    # When execution ID logging is enabled, we need to extract execution_id from headers
+    # because the decorator resets the context before exception handlers run
     if _enable_execution_id_logging():
-        # Get execution_id from request headers
-        exec_id = request.headers.get(execution_id.EXECUTION_ID_REQUEST_HEADER)
-        span_id = None
-        
-        # Try to get span ID from trace context header
-        trace_context = request.headers.get(execution_id.TRACE_CONTEXT_REQUEST_HEADER, "")
-        trace_match = re.match(execution_id._TRACE_CONTEXT_REGEX_PATTERN, trace_context)
-        if trace_match:
-            span_id = trace_match.group("span_id")  # pragma: no cover
-        
-        if exec_id:
+        context = execution_id._extract_context_from_headers(request.headers)
+        if context.execution_id:
             # Temporarily set context for logging
-            token = execution_id.execution_context_var.set(
-                execution_id.ExecutionContext(exec_id, span_id)
-            )
+            token = execution_id.execution_context_var.set(context)
             try:
                 # Output as JSON so LoggingHandlerAddExecutionId can process it
                 log_entry = {"message": error_msg, "levelname": "ERROR"}
@@ -89,7 +78,7 @@ async def _crash_handler(request, exc):
             finally:
                 execution_id.execution_context_var.reset(token)
         else:  # pragma: no cover
-            # No execution ID, just log normally
+            # No execution ID in headers
             log_entry = {"message": error_msg, "levelname": "ERROR"}
             logger.error(json.dumps(log_entry))
     else:

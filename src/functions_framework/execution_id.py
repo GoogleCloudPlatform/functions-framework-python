@@ -15,6 +15,7 @@
 import contextlib
 import contextvars
 import functools
+import inspect
 import io
 import json
 import logging
@@ -76,6 +77,20 @@ def _generate_execution_id():
         _EXECUTION_ID_CHARSET[random.randrange(len(_EXECUTION_ID_CHARSET))]
         for _ in range(_EXECUTION_ID_LENGTH)
     )
+
+
+def _extract_context_from_headers(headers):
+    """Extract execution context from request headers."""
+    execution_id = headers.get(EXECUTION_ID_REQUEST_HEADER)
+    
+    # Try to get span ID from trace context header
+    trace_context = re.match(
+        _TRACE_CONTEXT_REGEX_PATTERN,
+        headers.get(TRACE_CONTEXT_REQUEST_HEADER, ""),
+    )
+    span_id = trace_context.group("span_id") if trace_context else None
+    
+    return ExecutionContext(execution_id, span_id)
 
 
 # Middleware to add execution id to request header if one does not already exist
@@ -147,13 +162,8 @@ def set_execution_context(request, enable_id_logging=False):
     def decorator(view_function):
         @functools.wraps(view_function)
         def wrapper(*args, **kwargs):
-            trace_context = re.match(
-                _TRACE_CONTEXT_REGEX_PATTERN,
-                request.headers.get(TRACE_CONTEXT_REQUEST_HEADER, ""),
-            )
-            execution_id = request.headers.get(EXECUTION_ID_REQUEST_HEADER)
-            span_id = trace_context.group("span_id") if trace_context else None
-            _set_current_context(ExecutionContext(execution_id, span_id))
+            context = _extract_context_from_headers(request.headers)
+            _set_current_context(context)
 
             with stderr_redirect, stdout_redirect:
                 return view_function(*args, **kwargs)
@@ -179,21 +189,15 @@ def set_execution_context_async(enable_id_logging=False):
     def decorator(view_function):
         @functools.wraps(view_function)
         async def async_wrapper(request, *args, **kwargs):
-            # Extract execution ID and span ID from Starlette request
-            trace_context = re.match(
-                _TRACE_CONTEXT_REGEX_PATTERN,
-                request.headers.get(TRACE_CONTEXT_REQUEST_HEADER, ""),
-            )
-            execution_id = request.headers.get(EXECUTION_ID_REQUEST_HEADER)
-            span_id = trace_context.group("span_id") if trace_context else None
+            # Extract execution context from headers
+            context = _extract_context_from_headers(request.headers)
             
             # Set context using contextvars
-            token = execution_context_var.set(ExecutionContext(execution_id, span_id))
+            token = execution_context_var.set(context)
             
             try:
                 with stderr_redirect, stdout_redirect:
                     # Handle both sync and async functions
-                    import inspect
                     if inspect.iscoroutinefunction(view_function):
                         return await view_function(request, *args, **kwargs)
                     else:
@@ -205,15 +209,10 @@ def set_execution_context_async(enable_id_logging=False):
         @functools.wraps(view_function)
         def sync_wrapper(request, *args, **kwargs):  # pragma: no cover
             # For sync functions, we still need to set up the context
-            trace_context = re.match(
-                _TRACE_CONTEXT_REGEX_PATTERN,
-                request.headers.get(TRACE_CONTEXT_REQUEST_HEADER, ""),
-            )
-            execution_id = request.headers.get(EXECUTION_ID_REQUEST_HEADER)
-            span_id = trace_context.group("span_id") if trace_context else None
+            context = _extract_context_from_headers(request.headers)
             
             # Set context using contextvars
-            token = execution_context_var.set(ExecutionContext(execution_id, span_id))
+            token = execution_context_var.set(context)
             
             try:
                 with stderr_redirect, stdout_redirect:
@@ -223,7 +222,6 @@ def set_execution_context_async(enable_id_logging=False):
                 execution_context_var.reset(token)
         
         # Return appropriate wrapper based on whether the function is async
-        import inspect
         if inspect.iscoroutinefunction(view_function):
             return async_wrapper
         else:
