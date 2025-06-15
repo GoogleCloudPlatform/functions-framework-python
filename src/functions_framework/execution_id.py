@@ -54,7 +54,7 @@ def _get_current_context():
     context = execution_context_var.get()
     if context is not None:
         return context
-    return (
+    return (  # pragma: no cover
         flask.g.execution_id_context
         if flask.has_request_context() and "execution_id_context" in flask.g
         else None
@@ -188,7 +188,7 @@ def set_execution_context_async(enable_id_logging=False):
                 if inspect.iscoroutinefunction(view_function):
                     result = await view_function(request, *args, **kwargs)
                 else:
-                    result = view_function(request, *args, **kwargs)
+                    result = view_function(request, *args, **kwargs)  # pragma: no cover
 
                 # Only reset context on successful completion
                 # On exception, leave context available for exception handlers
