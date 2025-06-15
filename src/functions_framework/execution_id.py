@@ -159,7 +159,6 @@ def set_execution_context(request, enable_id_logging=False):
 
             with stderr_redirect, stdout_redirect:
                 result = view_function(*args, **kwargs)
-                # Context cleanup happens automatically via Flask's request context
                 return result
 
         return wrapper
@@ -167,7 +166,6 @@ def set_execution_context(request, enable_id_logging=False):
     return decorator
 
 
-# Async version of set_execution_context for ASGI/Starlette
 def set_execution_context_async(enable_id_logging=False):
     if enable_id_logging:
         stdout_redirect = contextlib.redirect_stdout(
