@@ -64,6 +64,8 @@ functions_framework = ["py.typed"]
 
 [dependency-groups]
 dev = [
+    "black>=23.3.0",
+    "isort>=5.11.5",
     "pretend>=1.0.9",
     "pytest>=7.4.4",
     "pytest-asyncio>=0.21.2",

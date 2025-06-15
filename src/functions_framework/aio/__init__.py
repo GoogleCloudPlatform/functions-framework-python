@@ -61,9 +61,11 @@ async def _crash_handler(request, exc):
     # Log the exception
     logger = logging.getLogger()
     tb_lines = traceback.format_exception(type(exc), exc, exc.__traceback__)
-    tb_text = ''.join(tb_lines)
-    error_msg = f"Exception on {request.url.path} [{request.method}]\n{tb_text}".rstrip()
-    
+    tb_text = "".join(tb_lines)
+    error_msg = (
+        f"Exception on {request.url.path} [{request.method}]\n{tb_text}".rstrip()
+    )
+
     # Context should still be available since we don't reset on exception
     if _enable_execution_id_logging():
         # Output as JSON so LoggingHandlerAddExecutionId can process it
@@ -72,9 +74,10 @@ async def _crash_handler(request, exc):
     else:
         # Execution ID logging not enabled, log plain text
         logger.error(error_msg)
-    
+
     headers = {_FUNCTION_STATUS_HEADER_FIELD: _CRASH}
     return Response("Internal Server Error", status_code=500, headers=headers)
+
 
 CloudEventFunction = Callable[[CloudEvent], Union[None, Awaitable[None]]]
 HTTPFunction = Callable[[Request], Union[HTTPResponse, Awaitable[HTTPResponse]]]
@@ -163,7 +166,7 @@ def _cloudevent_func_wrapper(function, is_async, enable_id_logging=False):
             raise HTTPException(
                 400, detail=f"Bad Request: Got CloudEvent exception: {repr(e)}"
             )
-        
+
         if is_async:
             await function(event)
         else:
@@ -189,19 +192,21 @@ def _enable_execution_id_logging():
 
 def _configure_app_execution_id_logging():
     # Logging needs to be configured before app logger is accessed
-    import logging.config
     import logging
-    
+    import logging.config
+
     # Configure root logger to use our custom handler
     root_logger = logging.getLogger()
     root_logger.setLevel(logging.INFO)
-    
+
     # Remove existing handlers
     for handler in root_logger.handlers[:]:
         root_logger.removeHandler(handler)
-    
+
     # Add our custom handler that adds execution ID
-    handler = logging.StreamHandler(execution_id.LoggingHandlerAddExecutionId(sys.stderr))
+    handler = logging.StreamHandler(
+        execution_id.LoggingHandlerAddExecutionId(sys.stderr)
+    )
     handler.setLevel(logging.NOTSET)
     root_logger.addHandler(handler)
 
@@ -227,11 +232,11 @@ def create_asgi_app(target=None, source=None, signature_type=None):
         )
 
     source_module, spec = _function_registry.load_function_module(source)
-    
+
     enable_id_logging = _enable_execution_id_logging()
     if enable_id_logging:
         _configure_app_execution_id_logging()
-    
+
     spec.loader.exec_module(source_module)
     function = _function_registry.get_user_function(source, source_module, target)
     signature_type = _function_registry.get_func_signature_type(target, signature_type)
@@ -259,7 +264,9 @@ def create_asgi_app(target=None, source=None, signature_type=None):
             )
         )
     elif signature_type == _function_registry.CLOUDEVENT_SIGNATURE_TYPE:
-        cloudevent_handler = _cloudevent_func_wrapper(function, is_async, enable_id_logging)
+        cloudevent_handler = _cloudevent_func_wrapper(
+            function, is_async, enable_id_logging
+        )
         routes.append(
             Route("/{path:path}", endpoint=cloudevent_handler, methods=["POST"])
         )
@@ -282,10 +289,10 @@ def create_asgi_app(target=None, source=None, signature_type=None):
         Exception: _crash_handler,
     }
     app = Starlette(routes=routes, exception_handlers=exception_handlers)
-    
+
     # Apply ASGI middleware for execution ID
     app = execution_id.AsgiMiddleware(app)
-    
+
     return app
 
 

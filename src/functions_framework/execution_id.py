@@ -41,7 +41,7 @@ TRACE_CONTEXT_REQUEST_HEADER = "X-Cloud-Trace-Context"
 logger = logging.getLogger(__name__)
 
 # Context variable for async execution context
-execution_context_var = contextvars.ContextVar('execution_context', default=None)
+execution_context_var = contextvars.ContextVar("execution_context", default=None)
 
 
 class ExecutionContext:
@@ -82,14 +82,14 @@ def _generate_execution_id():
 def _extract_context_from_headers(headers):
     """Extract execution context from request headers."""
     execution_id = headers.get(EXECUTION_ID_REQUEST_HEADER)
-    
+
     # Try to get span ID from trace context header
     trace_context = re.match(
         _TRACE_CONTEXT_REGEX_PATTERN,
         headers.get(TRACE_CONTEXT_REQUEST_HEADER, ""),
     )
     span_id = trace_context.group("span_id") if trace_context else None
-    
+
     return ExecutionContext(execution_id, span_id)
 
 
@@ -118,20 +118,22 @@ class AsgiMiddleware:
             trace_context_header = b"x-cloud-trace-context"
             execution_id = None
             trace_context = None
-            
+
             for name, value in scope.get("headers", []):
                 if name.lower() == execution_id_header:
                     execution_id = value.decode("latin-1")
                 elif name.lower() == trace_context_header:
                     trace_context = value.decode("latin-1")
-            
+
             if not execution_id:
                 execution_id = _generate_execution_id()
                 # Add the execution ID to headers
                 new_headers = list(scope.get("headers", []))
-                new_headers.append((execution_id_header, execution_id.encode("latin-1")))
+                new_headers.append(
+                    (execution_id_header, execution_id.encode("latin-1"))
+                )
                 scope["headers"] = new_headers
-            
+
             # Store execution context in ASGI scope for recovery in case of context loss
             # Parse trace context to extract span ID
             span_id = None
@@ -139,10 +141,10 @@ class AsgiMiddleware:
                 trace_match = re.match(_TRACE_CONTEXT_REGEX_PATTERN, trace_context)
                 if trace_match:
                     span_id = trace_match.group("span_id")
-            
+
             # Store in scope for potential recovery
             scope["execution_context"] = ExecutionContext(execution_id, span_id)
-        
+
         await self.app(scope, receive, send)  # pragma: no cover
 
 
@@ -167,7 +169,7 @@ def set_execution_context(request, enable_id_logging=False):
 
             with stderr_redirect, stdout_redirect:
                 result = view_function(*args, **kwargs)
-                
+
                 # Context cleanup happens automatically via Flask's request context
                 # No need to manually clean up flask.g
                 return result
@@ -195,38 +197,38 @@ def set_execution_context_async(enable_id_logging=False):
         async def async_wrapper(request, *args, **kwargs):
             # Extract execution context from headers
             context = _extract_context_from_headers(request.headers)
-            
+
             # Set context using contextvars
             token = execution_context_var.set(context)
-            
+
             with stderr_redirect, stdout_redirect:
                 # Handle both sync and async functions
                 if inspect.iscoroutinefunction(view_function):
                     result = await view_function(request, *args, **kwargs)
                 else:
                     result = view_function(request, *args, **kwargs)  # pragma: no cover
-                
+
                 # Only reset context on successful completion
                 # On exception, leave context available for exception handlers
                 execution_context_var.reset(token)
                 return result
-        
+
         @functools.wraps(view_function)
         def sync_wrapper(request, *args, **kwargs):  # pragma: no cover
             # For sync functions, we still need to set up the context
             context = _extract_context_from_headers(request.headers)
-            
+
             # Set context using contextvars
             token = execution_context_var.set(context)
-            
+
             with stderr_redirect, stdout_redirect:
                 result = view_function(request, *args, **kwargs)
-                
+
                 # Only reset context on successful completion
                 # On exception, leave context available for exception handlers
                 execution_context_var.reset(token)
                 return result
-        
+
         # Return appropriate wrapper based on whether the function is async
         if inspect.iscoroutinefunction(view_function):
             return async_wrapper

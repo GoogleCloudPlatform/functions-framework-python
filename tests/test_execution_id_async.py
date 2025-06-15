@@ -21,6 +21,7 @@ from functools import partial
 from unittest.mock import Mock
 
 import pytest
+
 from starlette.testclient import TestClient
 
 from functions_framework import execution_id
@@ -44,12 +45,14 @@ async def test_async_user_function_can_retrieve_execution_id_from_header():
             "Content-Type": "application/json",
         },
     )
-    
+
     assert resp.json()["execution_id"] == TEST_EXECUTION_ID
 
 
 @pytest.mark.asyncio
-async def test_async_uncaught_exception_in_user_function_sets_execution_id(capsys, monkeypatch):
+async def test_async_uncaught_exception_in_user_function_sets_execution_id(
+    capsys, monkeypatch
+):
     monkeypatch.setenv("LOG_EXECUTION_ID", "true")
     source = TEST_FUNCTIONS_DIR / "execution_id" / "async_main.py"
     target = "async_error"
@@ -123,7 +126,7 @@ async def test_async_user_function_can_retrieve_generated_execution_id(monkeypat
             "Content-Type": "application/json",
         },
     )
-    
+
     assert resp.json()["execution_id"] == TEST_EXECUTION_ID
 
 
@@ -147,19 +150,21 @@ async def test_async_does_not_set_execution_id_when_not_enabled(capsys):
 
 
 @pytest.mark.asyncio
-async def test_async_concurrent_requests_maintain_separate_execution_ids(capsys, monkeypatch):
+async def test_async_concurrent_requests_maintain_separate_execution_ids(
+    capsys, monkeypatch
+):
     monkeypatch.setenv("LOG_EXECUTION_ID", "true")
-    
+
     source = TEST_FUNCTIONS_DIR / "execution_id" / "async_main.py"
     target = "async_sleep"
     app = create_asgi_app(target, source)
     # Use separate clients to avoid connection pooling issues
     client1 = TestClient(app, raise_server_exceptions=False)
     client2 = TestClient(app, raise_server_exceptions=False)
-    
+
     # Make concurrent requests with explicit execution IDs
     import threading
-    
+
     def make_request(client, message, exec_id):
         client.post(
             "/",
@@ -169,31 +174,39 @@ async def test_async_concurrent_requests_maintain_separate_execution_ids(capsys,
             },
             json={"message": message},
         )
-    
-    thread1 = threading.Thread(target=lambda: make_request(client1, "message1", "exec-id-1"))
-    thread2 = threading.Thread(target=lambda: make_request(client2, "message2", "exec-id-2"))
-    
+
+    thread1 = threading.Thread(
+        target=lambda: make_request(client1, "message1", "exec-id-1")
+    )
+    thread2 = threading.Thread(
+        target=lambda: make_request(client2, "message2", "exec-id-2")
+    )
+
     thread1.start()
     thread2.start()
     thread1.join()
     thread2.join()
-    
+
     record = capsys.readouterr()
     logs = record.err.strip().split("\n")
     logs_as_json = [json.loads(log) for log in logs if log]
-    
+
     # Check that each message appears twice (once at start, once at end of async_sleep)
     # and that each has the correct execution ID
     message1_logs = [log for log in logs_as_json if log.get("message") == "message1"]
     message2_logs = [log for log in logs_as_json if log.get("message") == "message2"]
-    
-    assert len(message1_logs) == 2, f"Expected 2 logs for message1, got {len(message1_logs)}"
-    assert len(message2_logs) == 2, f"Expected 2 logs for message2, got {len(message2_logs)}"
-    
+
+    assert (
+        len(message1_logs) == 2
+    ), f"Expected 2 logs for message1, got {len(message1_logs)}"
+    assert (
+        len(message2_logs) == 2
+    ), f"Expected 2 logs for message2, got {len(message2_logs)}"
+
     # Check that all message1 logs have exec-id-1
     for log in message1_logs:
         assert log["logging.googleapis.com/labels"]["execution_id"] == "exec-id-1"
-    
+
     # Check that all message2 logs have exec-id-2
     for log in message2_logs:
         assert log["logging.googleapis.com/labels"]["execution_id"] == "exec-id-2"
@@ -231,9 +244,9 @@ async def test_async_set_execution_context_headers(
     target = "async_trace_test"
     app = create_asgi_app(target, source)
     client = TestClient(app)
-    
+
     resp = client.post("/", headers=headers)
-    
+
     result = resp.json()
     if should_generate:
         # When no execution ID is provided, middleware generates one
@@ -247,44 +260,45 @@ async def test_async_set_execution_context_headers(
 @pytest.mark.asyncio
 async def test_crash_handler_without_context_sets_execution_id():
     """Test that crash handler returns proper error response with crash header."""
-    from functions_framework.aio import _crash_handler
     from unittest.mock import Mock
-    
+
+    from functions_framework.aio import _crash_handler
+
     # Create a mock request
     request = Mock()
     request.url.path = "/test"
-    request.method = "POST" 
+    request.method = "POST"
     request.headers = {"Function-Execution-Id": "test-exec-id"}
-    
+
     # Create an exception
     exc = ValueError("Test error")
-    
+
     # Call crash handler
     response = await _crash_handler(request, exc)
-    
+
     # Check response
     assert response.status_code == 500
     assert response.headers["X-Google-Status"] == "crash"
 
 
-@pytest.mark.asyncio 
+@pytest.mark.asyncio
 async def test_async_decorator_with_sync_function():
     """Test that the async decorator handles sync functions properly."""
     from functions_framework.execution_id import set_execution_context_async
-    
+
     # Create a sync function
     def sync_func(request):
         return {"status": "ok"}
-    
+
     # Apply the async decorator
     wrapped = set_execution_context_async(enable_id_logging=False)(sync_func)
-    
+
     # Create mock request
     request = Mock()
     request.headers = Mock()
     request.headers.get = Mock(return_value="")
-    
+
     # Call the wrapped function - it should be sync since the original was sync
     result = wrapped(request)
-    
+
     assert result == {"status": "ok"}
