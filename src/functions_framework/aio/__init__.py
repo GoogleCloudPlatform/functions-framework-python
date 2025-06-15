@@ -28,6 +28,7 @@ from cloudevents.http import from_http
 from cloudevents.http.event import CloudEvent
 
 from functions_framework import _function_registry, execution_id
+from functions_framework import _enable_execution_id_logging
 from functions_framework.exceptions import (
     FunctionsFrameworkException,
     MissingSourceException,
@@ -65,9 +66,7 @@ async def _crash_handler(request, exc):
         f"Exception on {request.url.path} [{request.method}]\n{tb_text}".rstrip()
     )
 
-    # Context should still be available since we don't reset on exception
     if _enable_execution_id_logging():
-        # Output as JSON so LoggingHandlerAddExecutionId can process it
         log_entry = {"message": error_msg, "levelname": "ERROR"}
         logger.error(json.dumps(log_entry))
     else:
@@ -181,11 +180,6 @@ async def _handle_not_found(request: Request):
     raise HTTPException(status_code=404, detail="Not Found")
 
 
-def _enable_execution_id_logging():
-    # Based on distutils.util.strtobool
-    truthy_values = ("y", "yes", "t", "true", "on", "1")
-    env_var_value = os.environ.get("LOG_EXECUTION_ID")
-    return env_var_value in truthy_values
 
 
 def _configure_app_execution_id_logging():
