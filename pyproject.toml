@@ -61,3 +61,10 @@ functions_framework = ["py.typed"]
 
 [tool.setuptools.package-dir]
 "" = "src"
+
+[dependency-groups]
+dev = [
+    "pretend>=1.0.9",
+    "pytest>=7.4.4",
+    "pytest-asyncio>=0.21.2",
+]

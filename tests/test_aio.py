@@ -143,6 +143,8 @@ async def test_http_func_wrapper_json_response():
     wrapper = _http_func_wrapper(http_func, is_async=True)
 
     request = Mock()
+    request.headers = Mock()
+    request.headers.get = Mock(return_value="")
     response = await wrapper(request)
 
     assert response.__class__.__name__ == "JSONResponse"
@@ -158,6 +160,8 @@ async def test_http_func_wrapper_sync_function():
     wrapper = _http_func_wrapper(sync_http_func, is_async=False)
 
     request = Mock()
+    request.headers = Mock()
+    request.headers.get = Mock(return_value="")
     response = await wrapper(request)
 
     assert response.__class__.__name__ == "Response"

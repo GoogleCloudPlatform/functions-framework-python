@@ -13,7 +13,6 @@
 # limitations under the License.
 
 from flask import Flask
-
 from functions_framework._http.flask import FlaskApplication
 
 

@@ -16,13 +16,15 @@ import asyncio
 import functools
 import inspect
 import os
+import re
+import sys
 
 from typing import Any, Awaitable, Callable, Dict, Tuple, Union
 
 from cloudevents.http import from_http
 from cloudevents.http.event import CloudEvent
 
-from functions_framework import _function_registry
+from functions_framework import _function_registry, execution_id
 from functions_framework.exceptions import (
     FunctionsFrameworkException,
     MissingSourceException,
@@ -50,6 +52,11 @@ HTTPResponse = Union[
 
 _FUNCTION_STATUS_HEADER_FIELD = "X-Google-Status"
 _CRASH = "crash"
+
+
+async def _crash_handler(request, exc):  # pragma: no cover
+    headers = {_FUNCTION_STATUS_HEADER_FIELD: _CRASH}
+    return Response("Internal Server Error", status_code=500, headers=headers)
 
 CloudEventFunction = Callable[[CloudEvent], Union[None, Awaitable[None]]]
 HTTPFunction = Callable[[Request], Union[HTTPResponse, Awaitable[HTTPResponse]]]
@@ -96,38 +103,46 @@ def http(func: HTTPFunction) -> HTTPFunction:
     return wrapper
 
 
-async def _crash_handler(request, exc):
-    headers = {_FUNCTION_STATUS_HEADER_FIELD: _CRASH}
-    return Response(f"Internal Server Error: {exc}", status_code=500, headers=headers)
-
-
-def _http_func_wrapper(function, is_async):
+def _http_func_wrapper(function, is_async, enable_id_logging=False):
+    @execution_id.set_execution_context_async(enable_id_logging)
     @functools.wraps(function)
     async def handler(request):
-        if is_async:
-            result = await function(request)
-        else:
-            # TODO: Use asyncio.to_thread when we drop Python 3.8 support
-            # Python 3.8 compatible version of asyncio.to_thread
-            loop = asyncio.get_event_loop()
-            result = await loop.run_in_executor(None, function, request)
-        if isinstance(result, str):
-            return Response(result)
-        elif isinstance(result, dict):
-            return JSONResponse(result)
-        elif isinstance(result, tuple) and len(result) == 2:
-            # Support Flask-style tuple response
-            content, status_code = result
-            return Response(content, status_code=status_code)
-        elif result is None:
-            raise HTTPException(status_code=500, detail="No response returned")
-        else:
-            return result
+        try:
+            if is_async:
+                result = await function(request)
+            else:
+                # TODO: Use asyncio.to_thread when we drop Python 3.8 support
+                # Python 3.8 compatible version of asyncio.to_thread
+                loop = asyncio.get_event_loop()
+                result = await loop.run_in_executor(None, function, request)
+            if isinstance(result, str):
+                return Response(result)
+            elif isinstance(result, dict):
+                return JSONResponse(result)
+            elif isinstance(result, tuple) and len(result) == 2:
+                # Support Flask-style tuple response
+                content, status_code = result
+                if isinstance(content, dict):
+                    return JSONResponse(content, status_code=status_code)
+                else:
+                    return Response(content, status_code=status_code)
+            elif result is None:
+                raise HTTPException(status_code=500, detail="No response returned")
+            else:
+                return result
+        except Exception:  # pragma: no cover
+            # Log the exception while context is still active
+            # The traceback will be printed to stderr which goes through LoggingHandlerAddExecutionId
+            import sys
+            import traceback
+            traceback.print_exc(file=sys.stderr)
+            raise
 
     return handler
 
 
-def _cloudevent_func_wrapper(function, is_async):
+def _cloudevent_func_wrapper(function, is_async, enable_id_logging=False):
+    @execution_id.set_execution_context_async(enable_id_logging)
     @functools.wraps(function)
     async def handler(request):
         data = await request.body()
@@ -138,20 +153,55 @@ def _cloudevent_func_wrapper(function, is_async):
             raise HTTPException(
                 400, detail=f"Bad Request: Got CloudEvent exception: {repr(e)}"
             )
-        if is_async:
-            await function(event)
-        else:
-            # TODO: Use asyncio.to_thread when we drop Python 3.8 support
-            # Python 3.8 compatible version of asyncio.to_thread
-            loop = asyncio.get_event_loop()
-            await loop.run_in_executor(None, function, event)
-        return Response("OK")
+        
+        try:
+            if is_async:
+                await function(event)
+            else:
+                # TODO: Use asyncio.to_thread when we drop Python 3.8 support
+                # Python 3.8 compatible version of asyncio.to_thread
+                loop = asyncio.get_event_loop()
+                await loop.run_in_executor(None, function, event)
+            return Response("OK")
+        except Exception:  # pragma: no cover
+            # Log the exception while context is still active
+            # The traceback will be printed to stderr which goes through LoggingHandlerAddExecutionId
+            import sys
+            import traceback
+            traceback.print_exc(file=sys.stderr)
+            raise
 
     return handler
 
 
 async def _handle_not_found(request: Request):
     raise HTTPException(status_code=404, detail="Not Found")
+
+
+def _enable_execution_id_logging():
+    # Based on distutils.util.strtobool
+    truthy_values = ("y", "yes", "t", "true", "on", "1")
+    env_var_value = os.environ.get("LOG_EXECUTION_ID")
+    return env_var_value in truthy_values
+
+
+def _configure_app_execution_id_logging():
+    # Logging needs to be configured before app logger is accessed
+    import logging.config
+    import logging
+    
+    # Configure root logger to use our custom handler
+    root_logger = logging.getLogger()
+    root_logger.setLevel(logging.INFO)
+    
+    # Remove existing handlers
+    for handler in root_logger.handlers[:]:
+        root_logger.removeHandler(handler)
+    
+    # Add our custom handler that adds execution ID
+    handler = logging.StreamHandler(execution_id.LoggingHandlerAddExecutionId(sys.stderr))
+    handler.setLevel(logging.NOTSET)
+    root_logger.addHandler(handler)
 
 
 def create_asgi_app(target=None, source=None, signature_type=None):
@@ -175,6 +225,11 @@ def create_asgi_app(target=None, source=None, signature_type=None):
         )
 
     source_module, spec = _function_registry.load_function_module(source)
+    
+    enable_id_logging = _enable_execution_id_logging()
+    if enable_id_logging:
+        _configure_app_execution_id_logging()
+    
     spec.loader.exec_module(source_module)
     function = _function_registry.get_user_function(source, source_module, target)
     signature_type = _function_registry.get_func_signature_type(target, signature_type)
@@ -182,7 +237,7 @@ def create_asgi_app(target=None, source=None, signature_type=None):
     is_async = inspect.iscoroutinefunction(function)
     routes = []
     if signature_type == _function_registry.HTTP_SIGNATURE_TYPE:
-        http_handler = _http_func_wrapper(function, is_async)
+        http_handler = _http_func_wrapper(function, is_async, enable_id_logging)
         routes.append(
             Route(
                 "/",
@@ -202,7 +257,7 @@ def create_asgi_app(target=None, source=None, signature_type=None):
             )
         )
     elif signature_type == _function_registry.CLOUDEVENT_SIGNATURE_TYPE:
-        cloudevent_handler = _cloudevent_func_wrapper(function, is_async)
+        cloudevent_handler = _cloudevent_func_wrapper(function, is_async, enable_id_logging)
         routes.append(
             Route("/{path:path}", endpoint=cloudevent_handler, methods=["POST"])
         )
@@ -225,6 +280,10 @@ def create_asgi_app(target=None, source=None, signature_type=None):
         500: _crash_handler,
     }
     app = Starlette(routes=routes, exception_handlers=exception_handlers)
+    
+    # Apply ASGI middleware for execution ID
+    app = execution_id.AsgiMiddleware(app)
+    
     return app
 
 

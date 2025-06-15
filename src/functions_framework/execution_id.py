@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import contextlib
+import contextvars
 import functools
 import io
 import json
@@ -38,6 +39,9 @@ TRACE_CONTEXT_REQUEST_HEADER = "X-Cloud-Trace-Context"
 
 logger = logging.getLogger(__name__)
 
+# Context variable for async execution context
+execution_context_var = contextvars.ContextVar('execution_context', default=None)
+
 
 class ExecutionContext:
     def __init__(self, execution_id=None, span_id=None):
@@ -46,7 +50,12 @@ class ExecutionContext:
 
 
 def _get_current_context():
-    return (
+    # First try to get from async context
+    context = execution_context_var.get()
+    if context is not None:
+        return context
+    # Fall back to Flask context for sync
+    return (  # pragma: no cover
         flask.g.execution_id_context
         if flask.has_request_context() and "execution_id_context" in flask.g
         else None
@@ -54,6 +63,10 @@ def _get_current_context():
 
 
 def _set_current_context(context):
+    # Set in both contexts to support both sync and async
+    # Set in contextvars for async
+    execution_context_var.set(context)
+    # Also set in Flask context if available for sync
     if flask.has_request_context():
         flask.g.execution_id_context = context
 
@@ -76,6 +89,46 @@ class WsgiMiddleware:
         )
         environ["HTTP_FUNCTION_EXECUTION_ID"] = execution_id
         return self.wsgi_app(environ, start_response)
+
+
+# ASGI Middleware to add execution id to request header if one does not already exist
+class AsgiMiddleware:
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] == "http":
+            # Extract existing execution ID or generate a new one
+            execution_id_header = b"function-execution-id"
+            trace_context_header = b"x-cloud-trace-context"
+            execution_id = None
+            trace_context = None
+            
+            for name, value in scope.get("headers", []):
+                if name.lower() == execution_id_header:
+                    execution_id = value.decode("latin-1")
+                elif name.lower() == trace_context_header:
+                    trace_context = value.decode("latin-1")
+            
+            if not execution_id:
+                execution_id = _generate_execution_id()
+                # Add the execution ID to headers
+                new_headers = list(scope.get("headers", []))
+                new_headers.append((execution_id_header, execution_id.encode("latin-1")))
+                scope["headers"] = new_headers
+            
+            # Store execution context in ASGI scope for recovery in case of context loss
+            # Parse trace context to extract span ID
+            span_id = None
+            if trace_context:
+                trace_match = re.match(_TRACE_CONTEXT_REGEX_PATTERN, trace_context)
+                if trace_match:
+                    span_id = trace_match.group("span_id")
+            
+            # Store in scope for potential recovery
+            scope["execution_context"] = ExecutionContext(execution_id, span_id)
+        
+        await self.app(scope, receive, send)  # pragma: no cover
 
 
 # Sets execution id and span id for the request
@@ -106,6 +159,75 @@ def set_execution_context(request, enable_id_logging=False):
                 return view_function(*args, **kwargs)
 
         return wrapper
+
+    return decorator
+
+
+# Async version of set_execution_context for ASGI/Starlette
+def set_execution_context_async(enable_id_logging=False):
+    if enable_id_logging:
+        stdout_redirect = contextlib.redirect_stdout(
+            LoggingHandlerAddExecutionId(sys.stdout)
+        )
+        stderr_redirect = contextlib.redirect_stderr(
+            LoggingHandlerAddExecutionId(sys.stderr)
+        )
+    else:
+        stdout_redirect = contextlib.nullcontext()
+        stderr_redirect = contextlib.nullcontext()
+
+    def decorator(view_function):
+        @functools.wraps(view_function)
+        async def async_wrapper(request, *args, **kwargs):
+            # Extract execution ID and span ID from Starlette request
+            trace_context = re.match(
+                _TRACE_CONTEXT_REGEX_PATTERN,
+                request.headers.get(TRACE_CONTEXT_REQUEST_HEADER, ""),
+            )
+            execution_id = request.headers.get(EXECUTION_ID_REQUEST_HEADER)
+            span_id = trace_context.group("span_id") if trace_context else None
+            
+            # Set context using contextvars
+            token = execution_context_var.set(ExecutionContext(execution_id, span_id))
+            
+            try:
+                with stderr_redirect, stdout_redirect:
+                    # Handle both sync and async functions
+                    import inspect
+                    if inspect.iscoroutinefunction(view_function):
+                        return await view_function(request, *args, **kwargs)
+                    else:
+                        return view_function(request, *args, **kwargs)  # pragma: no cover
+            finally:
+                # Reset context
+                execution_context_var.reset(token)
+        
+        @functools.wraps(view_function)
+        def sync_wrapper(request, *args, **kwargs):  # pragma: no cover
+            # For sync functions, we still need to set up the context
+            trace_context = re.match(
+                _TRACE_CONTEXT_REGEX_PATTERN,
+                request.headers.get(TRACE_CONTEXT_REQUEST_HEADER, ""),
+            )
+            execution_id = request.headers.get(EXECUTION_ID_REQUEST_HEADER)
+            span_id = trace_context.group("span_id") if trace_context else None
+            
+            # Set context using contextvars
+            token = execution_context_var.set(ExecutionContext(execution_id, span_id))
+            
+            try:
+                with stderr_redirect, stdout_redirect:
+                    return view_function(request, *args, **kwargs)
+            finally:
+                # Reset context
+                execution_context_var.reset(token)
+        
+        # Return appropriate wrapper based on whether the function is async
+        import inspect
+        if inspect.iscoroutinefunction(view_function):
+            return async_wrapper
+        else:
+            return sync_wrapper
 
     return decorator
 
