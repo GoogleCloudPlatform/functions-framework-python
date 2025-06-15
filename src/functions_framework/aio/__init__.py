@@ -54,7 +54,48 @@ _FUNCTION_STATUS_HEADER_FIELD = "X-Google-Status"
 _CRASH = "crash"
 
 
-async def _crash_handler(request, exc):  # pragma: no cover
+async def _crash_handler(request, exc):
+    import logging
+    import traceback
+    import json
+    
+    # Log the exception
+    logger = logging.getLogger()
+    tb_lines = traceback.format_exception(type(exc), exc, exc.__traceback__)
+    tb_text = ''.join(tb_lines)
+    error_msg = f"Exception on {request.url.path} [{request.method}]\n{tb_text}".rstrip()
+    
+    # Check if we need to set execution context for logging
+    if _enable_execution_id_logging():
+        # Get execution_id from request headers
+        exec_id = request.headers.get(execution_id.EXECUTION_ID_REQUEST_HEADER)
+        span_id = None
+        
+        # Try to get span ID from trace context header
+        trace_context = request.headers.get(execution_id.TRACE_CONTEXT_REQUEST_HEADER, "")
+        trace_match = re.match(execution_id._TRACE_CONTEXT_REGEX_PATTERN, trace_context)
+        if trace_match:
+            span_id = trace_match.group("span_id")  # pragma: no cover
+        
+        if exec_id:
+            # Temporarily set context for logging
+            token = execution_id.execution_context_var.set(
+                execution_id.ExecutionContext(exec_id, span_id)
+            )
+            try:
+                # Output as JSON so LoggingHandlerAddExecutionId can process it
+                log_entry = {"message": error_msg, "levelname": "ERROR"}
+                logger.error(json.dumps(log_entry))
+            finally:
+                execution_id.execution_context_var.reset(token)
+        else:  # pragma: no cover
+            # No execution ID, just log normally
+            log_entry = {"message": error_msg, "levelname": "ERROR"}
+            logger.error(json.dumps(log_entry))
+    else:
+        # Execution ID logging not enabled, log plain text
+        logger.error(error_msg)
+    
     headers = {_FUNCTION_STATUS_HEADER_FIELD: _CRASH}
     return Response("Internal Server Error", status_code=500, headers=headers)
 
@@ -107,36 +148,28 @@ def _http_func_wrapper(function, is_async, enable_id_logging=False):
     @execution_id.set_execution_context_async(enable_id_logging)
     @functools.wraps(function)
     async def handler(request):
-        try:
-            if is_async:
-                result = await function(request)
+        if is_async:
+            result = await function(request)
+        else:
+            # TODO: Use asyncio.to_thread when we drop Python 3.8 support
+            # Python 3.8 compatible version of asyncio.to_thread
+            loop = asyncio.get_event_loop()
+            result = await loop.run_in_executor(None, function, request)
+        if isinstance(result, str):
+            return Response(result)
+        elif isinstance(result, dict):
+            return JSONResponse(result)
+        elif isinstance(result, tuple) and len(result) == 2:
+            # Support Flask-style tuple response
+            content, status_code = result
+            if isinstance(content, dict):
+                return JSONResponse(content, status_code=status_code)
             else:
-                # TODO: Use asyncio.to_thread when we drop Python 3.8 support
-                # Python 3.8 compatible version of asyncio.to_thread
-                loop = asyncio.get_event_loop()
-                result = await loop.run_in_executor(None, function, request)
-            if isinstance(result, str):
-                return Response(result)
-            elif isinstance(result, dict):
-                return JSONResponse(result)
-            elif isinstance(result, tuple) and len(result) == 2:
-                # Support Flask-style tuple response
-                content, status_code = result
-                if isinstance(content, dict):
-                    return JSONResponse(content, status_code=status_code)
-                else:
-                    return Response(content, status_code=status_code)
-            elif result is None:
-                raise HTTPException(status_code=500, detail="No response returned")
-            else:
-                return result
-        except Exception:  # pragma: no cover
-            # Log the exception while context is still active
-            # The traceback will be printed to stderr which goes through LoggingHandlerAddExecutionId
-            import sys
-            import traceback
-            traceback.print_exc(file=sys.stderr)
-            raise
+                return Response(content, status_code=status_code)
+        elif result is None:
+            raise HTTPException(status_code=500, detail="No response returned")
+        else:
+            return result
 
     return handler
 
@@ -154,22 +187,14 @@ def _cloudevent_func_wrapper(function, is_async, enable_id_logging=False):
                 400, detail=f"Bad Request: Got CloudEvent exception: {repr(e)}"
             )
         
-        try:
-            if is_async:
-                await function(event)
-            else:
-                # TODO: Use asyncio.to_thread when we drop Python 3.8 support
-                # Python 3.8 compatible version of asyncio.to_thread
-                loop = asyncio.get_event_loop()
-                await loop.run_in_executor(None, function, event)
-            return Response("OK")
-        except Exception:  # pragma: no cover
-            # Log the exception while context is still active
-            # The traceback will be printed to stderr which goes through LoggingHandlerAddExecutionId
-            import sys
-            import traceback
-            traceback.print_exc(file=sys.stderr)
-            raise
+        if is_async:
+            await function(event)
+        else:
+            # TODO: Use asyncio.to_thread when we drop Python 3.8 support
+            # Python 3.8 compatible version of asyncio.to_thread
+            loop = asyncio.get_event_loop()
+            await loop.run_in_executor(None, function, event)
+        return Response("OK")
 
     return handler
 
@@ -277,7 +302,7 @@ def create_asgi_app(target=None, source=None, signature_type=None):
         )
 
     exception_handlers = {
-        500: _crash_handler,
+        Exception: _crash_handler,
     }
     app = Starlette(routes=routes, exception_handlers=exception_handlers)
     

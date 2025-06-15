@@ -246,7 +246,7 @@ async def test_async_set_execution_context_headers(
 
 @pytest.mark.asyncio
 async def test_crash_handler_without_context_sets_execution_id():
-    """Test that crash handler returns proper error response."""
+    """Test that crash handler returns proper error response with crash header."""
     from functions_framework.aio import _crash_handler
     from unittest.mock import Mock
     
