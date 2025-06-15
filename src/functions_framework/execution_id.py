@@ -178,37 +178,34 @@ def set_execution_context_async(enable_id_logging=False):
         stdout_redirect = contextlib.nullcontext()
         stderr_redirect = contextlib.nullcontext()
 
-    def decorator(view_function):
-        @functools.wraps(view_function)
+    def decorator(func):
+        @functools.wraps(func)
         async def async_wrapper(request, *args, **kwargs):
             context = _extract_context_from_headers(request.headers)
             token = execution_context_var.set(context)
 
             with stderr_redirect, stdout_redirect:
-                if inspect.iscoroutinefunction(view_function):
-                    result = await view_function(request, *args, **kwargs)
-                else:
-                    result = view_function(request, *args, **kwargs)  # pragma: no cover
+                result = await func(request, *args, **kwargs)
 
                 # Only reset context on successful completion
                 # On exception, leave context available for exception handlers
                 execution_context_var.reset(token)
                 return result
 
-        @functools.wraps(view_function)
+        @functools.wraps(func)
         def sync_wrapper(request, *args, **kwargs):
             context = _extract_context_from_headers(request.headers)
             token = execution_context_var.set(context)
 
             with stderr_redirect, stdout_redirect:
-                result = view_function(request, *args, **kwargs)
+                result = func(request, *args, **kwargs)
 
                 # Only reset context on successful completion
                 # On exception, leave context available for exception handlers
                 execution_context_var.reset(token)
                 return result
 
-        if inspect.iscoroutinefunction(view_function):
+        if inspect.iscoroutinefunction(func):
             return async_wrapper
         else:
             return sync_wrapper
