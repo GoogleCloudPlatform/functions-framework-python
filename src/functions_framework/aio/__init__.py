@@ -64,23 +64,11 @@ async def _crash_handler(request, exc):
     tb_text = ''.join(tb_lines)
     error_msg = f"Exception on {request.url.path} [{request.method}]\n{tb_text}".rstrip()
     
-    # When execution ID logging is enabled, we need to extract execution_id from headers
-    # because the decorator resets the context before exception handlers run
+    # Context should still be available since we don't reset on exception
     if _enable_execution_id_logging():
-        context = execution_id._extract_context_from_headers(request.headers)
-        if context.execution_id:
-            # Temporarily set context for logging
-            token = execution_id.execution_context_var.set(context)
-            try:
-                # Output as JSON so LoggingHandlerAddExecutionId can process it
-                log_entry = {"message": error_msg, "levelname": "ERROR"}
-                logger.error(json.dumps(log_entry))
-            finally:
-                execution_id.execution_context_var.reset(token)
-        else:  # pragma: no cover
-            # No execution ID in headers
-            log_entry = {"message": error_msg, "levelname": "ERROR"}
-            logger.error(json.dumps(log_entry))
+        # Output as JSON so LoggingHandlerAddExecutionId can process it
+        log_entry = {"message": error_msg, "levelname": "ERROR"}
+        logger.error(json.dumps(log_entry))
     else:
         # Execution ID logging not enabled, log plain text
         logger.error(error_msg)

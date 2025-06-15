@@ -166,7 +166,11 @@ def set_execution_context(request, enable_id_logging=False):
             _set_current_context(context)
 
             with stderr_redirect, stdout_redirect:
-                return view_function(*args, **kwargs)
+                result = view_function(*args, **kwargs)
+                
+                # Context cleanup happens automatically via Flask's request context
+                # No need to manually clean up flask.g
+                return result
 
         return wrapper
 
@@ -195,16 +199,17 @@ def set_execution_context_async(enable_id_logging=False):
             # Set context using contextvars
             token = execution_context_var.set(context)
             
-            try:
-                with stderr_redirect, stdout_redirect:
-                    # Handle both sync and async functions
-                    if inspect.iscoroutinefunction(view_function):
-                        return await view_function(request, *args, **kwargs)
-                    else:
-                        return view_function(request, *args, **kwargs)  # pragma: no cover
-            finally:
-                # Reset context
+            with stderr_redirect, stdout_redirect:
+                # Handle both sync and async functions
+                if inspect.iscoroutinefunction(view_function):
+                    result = await view_function(request, *args, **kwargs)
+                else:
+                    result = view_function(request, *args, **kwargs)  # pragma: no cover
+                
+                # Only reset context on successful completion
+                # On exception, leave context available for exception handlers
                 execution_context_var.reset(token)
+                return result
         
         @functools.wraps(view_function)
         def sync_wrapper(request, *args, **kwargs):  # pragma: no cover
@@ -214,12 +219,13 @@ def set_execution_context_async(enable_id_logging=False):
             # Set context using contextvars
             token = execution_context_var.set(context)
             
-            try:
-                with stderr_redirect, stdout_redirect:
-                    return view_function(request, *args, **kwargs)
-            finally:
-                # Reset context
+            with stderr_redirect, stdout_redirect:
+                result = view_function(request, *args, **kwargs)
+                
+                # Only reset context on successful completion
+                # On exception, leave context available for exception handlers
                 execution_context_var.reset(token)
+                return result
         
         # Return appropriate wrapper based on whether the function is async
         if inspect.iscoroutinefunction(view_function):
