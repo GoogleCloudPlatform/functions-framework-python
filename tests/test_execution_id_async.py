@@ -11,13 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import asyncio
 import json
 import pathlib
-import re
-import sys
-
-from functools import partial
 from unittest.mock import Mock
 
 import pytest
@@ -32,8 +27,7 @@ TEST_EXECUTION_ID = "test_execution_id"
 TEST_SPAN_ID = "123456"
 
 
-@pytest.mark.asyncio
-async def test_async_user_function_can_retrieve_execution_id_from_header():
+def test_async_user_function_can_retrieve_execution_id_from_header():
     source = TEST_FUNCTIONS_DIR / "execution_id" / "async_main.py"
     target = "async_function"
     app = create_asgi_app(target, source)
@@ -49,8 +43,7 @@ async def test_async_user_function_can_retrieve_execution_id_from_header():
     assert resp.json()["execution_id"] == TEST_EXECUTION_ID
 
 
-@pytest.mark.asyncio
-async def test_async_uncaught_exception_in_user_function_sets_execution_id(
+def test_async_uncaught_exception_in_user_function_sets_execution_id(
     capsys, monkeypatch
 ):
     monkeypatch.setenv("LOG_EXECUTION_ID", "true")
@@ -71,8 +64,7 @@ async def test_async_uncaught_exception_in_user_function_sets_execution_id(
     assert f'"execution_id": "{TEST_EXECUTION_ID}"' in record.err
 
 
-@pytest.mark.asyncio
-async def test_async_print_from_user_function_sets_execution_id(capsys, monkeypatch):
+def test_async_print_from_user_function_sets_execution_id(capsys, monkeypatch):
     monkeypatch.setenv("LOG_EXECUTION_ID", "true")
     source = TEST_FUNCTIONS_DIR / "execution_id" / "async_main.py"
     target = "async_print_message"
@@ -91,8 +83,7 @@ async def test_async_print_from_user_function_sets_execution_id(capsys, monkeypa
     assert '"message": "some-message"' in record.out
 
 
-@pytest.mark.asyncio
-async def test_async_log_from_user_function_sets_execution_id(capsys, monkeypatch):
+def test_async_log_from_user_function_sets_execution_id(capsys, monkeypatch):
     monkeypatch.setenv("LOG_EXECUTION_ID", "true")
     source = TEST_FUNCTIONS_DIR / "execution_id" / "async_main.py"
     target = "async_log_message"
@@ -111,8 +102,7 @@ async def test_async_log_from_user_function_sets_execution_id(capsys, monkeypatc
     assert '"custom-field": "some-message"' in record.err
 
 
-@pytest.mark.asyncio
-async def test_async_user_function_can_retrieve_generated_execution_id(monkeypatch):
+def test_async_user_function_can_retrieve_generated_execution_id(monkeypatch):
     monkeypatch.setattr(
         execution_id, "_generate_execution_id", lambda: TEST_EXECUTION_ID
     )
@@ -130,8 +120,7 @@ async def test_async_user_function_can_retrieve_generated_execution_id(monkeypat
     assert resp.json()["execution_id"] == TEST_EXECUTION_ID
 
 
-@pytest.mark.asyncio
-async def test_async_does_not_set_execution_id_when_not_enabled(capsys):
+def test_async_does_not_set_execution_id_when_not_enabled(capsys):
     source = TEST_FUNCTIONS_DIR / "execution_id" / "async_main.py"
     target = "async_print_message"
     app = create_asgi_app(target, source)
@@ -149,8 +138,7 @@ async def test_async_does_not_set_execution_id_when_not_enabled(capsys):
     assert "some-message" in record.out
 
 
-@pytest.mark.asyncio
-async def test_async_concurrent_requests_maintain_separate_execution_ids(
+def test_async_concurrent_requests_maintain_separate_execution_ids(
     capsys, monkeypatch
 ):
     monkeypatch.setenv("LOG_EXECUTION_ID", "true")
@@ -236,8 +224,7 @@ async def test_async_concurrent_requests_maintain_separate_execution_ids(
         ),
     ],
 )
-@pytest.mark.asyncio
-async def test_async_set_execution_context_headers(
+def test_async_set_execution_context_headers(
     headers, expected_execution_id, expected_span_id, should_generate
 ):
     source = TEST_FUNCTIONS_DIR / "execution_id" / "async_main.py"
@@ -260,8 +247,6 @@ async def test_async_set_execution_context_headers(
 @pytest.mark.asyncio
 async def test_crash_handler_without_context_sets_execution_id():
     """Test that crash handler returns proper error response with crash header."""
-    from unittest.mock import Mock
-
     from functions_framework.aio import _crash_handler
 
     # Create a mock request
@@ -281,8 +266,7 @@ async def test_crash_handler_without_context_sets_execution_id():
     assert response.headers["X-Google-Status"] == "crash"
 
 
-@pytest.mark.asyncio
-async def test_async_decorator_with_sync_function():
+def test_async_decorator_with_sync_function():
     """Test that the async decorator handles sync functions properly."""
     from functions_framework.execution_id import set_execution_context_async
 

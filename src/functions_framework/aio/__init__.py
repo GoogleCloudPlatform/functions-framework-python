@@ -58,7 +58,6 @@ _CRASH = "crash"
 
 
 async def _crash_handler(request, exc):
-    # Log the exception
     logger = logging.getLogger()
     tb_lines = traceback.format_exception(type(exc), exc, exc.__traceback__)
     tb_text = "".join(tb_lines)
@@ -72,7 +71,6 @@ async def _crash_handler(request, exc):
         log_entry = {"message": error_msg, "levelname": "ERROR"}
         logger.error(json.dumps(log_entry))
     else:
-        # Execution ID logging not enabled, log plain text
         logger.error(error_msg)
 
     headers = {_FUNCTION_STATUS_HEADER_FIELD: _CRASH}
@@ -191,11 +189,9 @@ def _enable_execution_id_logging():
 
 
 def _configure_app_execution_id_logging():
-    # Logging needs to be configured before app logger is accessed
     import logging
     import logging.config
 
-    # Configure root logger to use our custom handler
     root_logger = logging.getLogger()
     root_logger.setLevel(logging.INFO)
 
@@ -203,7 +199,6 @@ def _configure_app_execution_id_logging():
     for handler in root_logger.handlers[:]:
         root_logger.removeHandler(handler)
 
-    # Add our custom handler that adds execution ID
     handler = logging.StreamHandler(
         execution_id.LoggingHandlerAddExecutionId(sys.stderr)
     )
