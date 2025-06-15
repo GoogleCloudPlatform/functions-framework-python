@@ -138,9 +138,7 @@ def test_async_does_not_set_execution_id_when_not_enabled(capsys):
     assert "some-message" in record.out
 
 
-def test_async_concurrent_requests_maintain_separate_execution_ids(
-    capsys, monkeypatch
-):
+def test_async_concurrent_requests_maintain_separate_execution_ids(capsys, monkeypatch):
     monkeypatch.setenv("LOG_EXECUTION_ID", "true")
 
     source = TEST_FUNCTIONS_DIR / "execution_id" / "async_main.py"

@@ -78,7 +78,7 @@ def _generate_execution_id():
 def _extract_context_from_headers(headers):
     """Extract execution context from request headers."""
     execution_id = headers.get(EXECUTION_ID_REQUEST_HEADER)
-    
+
     trace_context = re.match(
         _TRACE_CONTEXT_REGEX_PATTERN,
         headers.get(TRACE_CONTEXT_REQUEST_HEADER, ""),
