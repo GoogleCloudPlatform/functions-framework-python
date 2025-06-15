@@ -196,7 +196,7 @@ def set_execution_context_async(enable_id_logging=False):
                 return result
 
         @functools.wraps(view_function)
-        def sync_wrapper(request, *args, **kwargs):  # pragma: no cover
+        def sync_wrapper(request, *args, **kwargs):
             context = _extract_context_from_headers(request.headers)
             token = execution_context_var.set(context)
 
