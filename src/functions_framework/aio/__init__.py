@@ -27,8 +27,11 @@ from typing import Any, Awaitable, Callable, Dict, Tuple, Union
 from cloudevents.http import from_http
 from cloudevents.http.event import CloudEvent
 
-from functions_framework import _function_registry, execution_id
-from functions_framework import _enable_execution_id_logging
+from functions_framework import (
+    _enable_execution_id_logging,
+    _function_registry,
+    execution_id,
+)
 from functions_framework.exceptions import (
     FunctionsFrameworkException,
     MissingSourceException,
