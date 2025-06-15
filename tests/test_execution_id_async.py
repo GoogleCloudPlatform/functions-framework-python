@@ -284,3 +284,22 @@ def test_async_decorator_with_sync_function():
     result = wrapped(request)
 
     assert result == {"status": "ok"}
+
+
+def test_sync_function_called_from_async_context():
+    """Test that a sync function works correctly when called from async ASGI app."""
+    source = TEST_FUNCTIONS_DIR / "execution_id" / "async_main.py"
+    target = "sync_function_in_async_context"
+    app = create_asgi_app(target, source)
+    client = TestClient(app)
+    resp = client.post(
+        "/",
+        headers={
+            "Function-Execution-Id": TEST_EXECUTION_ID,
+            "Content-Type": "application/json",
+        },
+    )
+
+    result = resp.json()
+    assert result["execution_id"] == TEST_EXECUTION_ID
+    assert result["type"] == "sync"

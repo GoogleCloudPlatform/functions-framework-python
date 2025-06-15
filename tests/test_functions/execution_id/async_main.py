@@ -42,3 +42,9 @@ async def async_trace_test(request):
         "execution_id": context.execution_id if context else None,
         "span_id": context.span_id if context else None,
     }
+
+
+# Sync function to test the sync branch in async decorator
+def sync_function_in_async_context(request):
+    """A sync function that can be called from async context."""
+    return {"execution_id": request.headers.get("Function-Execution-Id"), "type": "sync"}
