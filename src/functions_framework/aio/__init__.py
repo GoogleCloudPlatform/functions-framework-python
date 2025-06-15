@@ -180,8 +180,6 @@ async def _handle_not_found(request: Request):
     raise HTTPException(status_code=404, detail="Not Found")
 
 
-
-
 def _configure_app_execution_id_logging():
     import logging
     import logging.config

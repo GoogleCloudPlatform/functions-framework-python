@@ -51,7 +51,11 @@ def pytest_ignore_collect(collection_path, config):
         return None
 
     # Skip test_aio.py, test_asgi.py, and test_execution_id_async.py entirely on Python 3.7
-    if collection_path.name in ["test_aio.py", "test_asgi.py", "test_execution_id_async.py"]:
+    if collection_path.name in [
+        "test_aio.py",
+        "test_asgi.py",
+        "test_execution_id_async.py",
+    ]:
         return True
 
     return None
