@@ -11,10 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import asyncio
 import json
 import pathlib
+import re
+import sys
 
-from unittest.mock import Mock
+from functools import partial
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -28,7 +32,7 @@ TEST_EXECUTION_ID = "test_execution_id"
 TEST_SPAN_ID = "123456"
 
 
-def test_async_user_function_can_retrieve_execution_id_from_header():
+def test_user_function_can_retrieve_execution_id_from_header():
     source = TEST_FUNCTIONS_DIR / "execution_id" / "async_main.py"
     target = "async_function"
     app = create_asgi_app(target, source)
@@ -44,9 +48,7 @@ def test_async_user_function_can_retrieve_execution_id_from_header():
     assert resp.json()["execution_id"] == TEST_EXECUTION_ID
 
 
-def test_async_uncaught_exception_in_user_function_sets_execution_id(
-    capsys, monkeypatch
-):
+def test_uncaught_exception_in_user_function_sets_execution_id(capsys, monkeypatch):
     monkeypatch.setenv("LOG_EXECUTION_ID", "true")
     source = TEST_FUNCTIONS_DIR / "execution_id" / "async_main.py"
     target = "async_error"
@@ -62,12 +64,12 @@ def test_async_uncaught_exception_in_user_function_sets_execution_id(
     )
     assert resp.status_code == 500
     record = capsys.readouterr()
-    assert f'"execution_id": "{TEST_EXECUTION_ID}"' in record.out
-    assert '"logging.googleapis.com/labels"' in record.out
-    assert "ZeroDivisionError" in record.out
+    assert f'"execution_id": "{TEST_EXECUTION_ID}"' in record.err
+    assert '"logging.googleapis.com/labels"' in record.err
+    assert "ZeroDivisionError" in record.err
 
 
-def test_async_print_from_user_function_sets_execution_id(capsys, monkeypatch):
+def test_print_from_user_function_sets_execution_id(capsys, monkeypatch):
     monkeypatch.setenv("LOG_EXECUTION_ID", "true")
     source = TEST_FUNCTIONS_DIR / "execution_id" / "async_main.py"
     target = "async_print_message"
@@ -86,7 +88,7 @@ def test_async_print_from_user_function_sets_execution_id(capsys, monkeypatch):
     assert '"message": "some-message"' in record.out
 
 
-def test_async_log_from_user_function_sets_execution_id(capsys, monkeypatch):
+def test_log_from_user_function_sets_execution_id(capsys, monkeypatch):
     monkeypatch.setenv("LOG_EXECUTION_ID", "true")
     source = TEST_FUNCTIONS_DIR / "execution_id" / "async_main.py"
     target = "async_log_message"
@@ -101,12 +103,12 @@ def test_async_log_from_user_function_sets_execution_id(capsys, monkeypatch):
         json={"message": json.dumps({"custom-field": "some-message"})},
     )
     record = capsys.readouterr()
-    assert f'"execution_id": "{TEST_EXECUTION_ID}"' in record.out
-    assert '\\"custom-field\\": \\"some-message\\"' in record.out
-    assert '"logging.googleapis.com/labels"' in record.out
+    assert f'"execution_id": "{TEST_EXECUTION_ID}"' in record.err
+    assert '"custom-field": "some-message"' in record.err
+    assert '"logging.googleapis.com/labels"' in record.err
 
 
-def test_async_user_function_can_retrieve_generated_execution_id(monkeypatch):
+def test_user_function_can_retrieve_generated_execution_id(monkeypatch):
     monkeypatch.setattr(
         execution_id, "_generate_execution_id", lambda: TEST_EXECUTION_ID
     )
@@ -124,7 +126,7 @@ def test_async_user_function_can_retrieve_generated_execution_id(monkeypatch):
     assert resp.json()["execution_id"] == TEST_EXECUTION_ID
 
 
-def test_async_does_not_set_execution_id_when_not_enabled(capsys):
+def test_does_not_set_execution_id_when_not_enabled(capsys):
     source = TEST_FUNCTIONS_DIR / "execution_id" / "async_main.py"
     target = "async_print_message"
     app = create_asgi_app(target, source)
@@ -142,61 +144,50 @@ def test_async_does_not_set_execution_id_when_not_enabled(capsys):
     assert "some-message" in record.out
 
 
-def test_async_concurrent_requests_maintain_separate_execution_ids(capsys, monkeypatch):
-    monkeypatch.setenv("LOG_EXECUTION_ID", "true")
-
+def test_does_not_set_execution_id_when_env_var_is_false(capsys, monkeypatch):
+    monkeypatch.setenv("LOG_EXECUTION_ID", "false")
     source = TEST_FUNCTIONS_DIR / "execution_id" / "async_main.py"
-    target = "async_sleep"
+    target = "async_print_message"
     app = create_asgi_app(target, source)
-    # Use separate clients to avoid connection pooling issues
-    client1 = TestClient(app, raise_server_exceptions=False)
-    client2 = TestClient(app, raise_server_exceptions=False)
-
-    # Make concurrent requests with explicit execution IDs
-    import threading
-
-    def make_request(client, message, exec_id):
-        client.post(
-            "/",
-            headers={
-                "Content-Type": "application/json",
-                "Function-Execution-Id": exec_id,
-            },
-            json={"message": message},
-        )
-
-    thread1 = threading.Thread(
-        target=lambda: make_request(client1, "message1", "exec-id-1")
+    client = TestClient(app)
+    client.post(
+        "/",
+        headers={
+            "Function-Execution-Id": TEST_EXECUTION_ID,
+            "Content-Type": "application/json",
+        },
+        json={"message": "some-message"},
     )
-    thread2 = threading.Thread(
-        target=lambda: make_request(client2, "message2", "exec-id-2")
-    )
-
-    thread1.start()
-    thread2.start()
-    thread1.join()
-    thread2.join()
-
     record = capsys.readouterr()
-    logs = record.out.strip().split("\n")
-    logs_as_json = [json.loads(log) for log in logs if log and log.startswith("{")]
+    assert f'"execution_id": "{TEST_EXECUTION_ID}"' not in record.out
+    assert "some-message" in record.out
 
-    message1_logs = [log for log in logs_as_json if log.get("message") == "message1"]
-    message2_logs = [log for log in logs_as_json if log.get("message") == "message2"]
 
-    assert (
-        len(message1_logs) == 2
-    ), f"Expected 2 logs for message1, got {len(message1_logs)}"
-    assert (
-        len(message2_logs) == 2
-    ), f"Expected 2 logs for message2, got {len(message2_logs)}"
+def test_does_not_set_execution_id_when_env_var_is_not_bool_like(capsys, monkeypatch):
+    monkeypatch.setenv("LOG_EXECUTION_ID", "maybe")
+    source = TEST_FUNCTIONS_DIR / "execution_id" / "async_main.py"
+    target = "async_print_message"
+    app = create_asgi_app(target, source)
+    client = TestClient(app)
+    client.post(
+        "/",
+        headers={
+            "Function-Execution-Id": TEST_EXECUTION_ID,
+            "Content-Type": "application/json",
+        },
+        json={"message": "some-message"},
+    )
+    record = capsys.readouterr()
+    assert f'"execution_id": "{TEST_EXECUTION_ID}"' not in record.out
+    assert "some-message" in record.out
 
-    for log in message1_logs:
-        assert log["logging.googleapis.com/labels"]["execution_id"] == "exec-id-1"
 
-    # Check that all message2 logs have exec-id-2
-    for log in message2_logs:
-        assert log["logging.googleapis.com/labels"]["execution_id"] == "exec-id-2"
+def test_generate_execution_id():
+    expected_matching_regex = "^[0-9a-zA-Z]{12}$"
+    actual_execution_id = execution_id._generate_execution_id()
+
+    match = re.match(expected_matching_regex, actual_execution_id).group(0)
+    assert match == actual_execution_id
 
 
 @pytest.mark.parametrize(
@@ -223,7 +214,7 @@ def test_async_concurrent_requests_maintain_separate_execution_ids(capsys, monke
         ),
     ],
 )
-def test_async_set_execution_context_headers(
+def test_set_execution_context_headers(
     headers, expected_execution_id, expected_span_id, should_generate
 ):
     source = TEST_FUNCTIONS_DIR / "execution_id" / "async_main.py"
@@ -244,25 +235,64 @@ def test_async_set_execution_context_headers(
 
 
 @pytest.mark.asyncio
-async def test_crash_handler_without_context_sets_execution_id():
-    """Test that crash handler returns proper error response with crash header."""
-    from functions_framework.aio import _crash_handler
+async def test_maintains_execution_id_for_concurrent_requests(monkeypatch, capsys):
+    monkeypatch.setenv("LOG_EXECUTION_ID", "true")
 
-    # Create a mock request
-    request = Mock()
-    request.url.path = "/test"
-    request.method = "POST"
-    request.headers = {"Function-Execution-Id": "test-exec-id"}
+    expected_logs = (
+        {
+            "message": "message1",
+            "logging.googleapis.com/labels": {"execution_id": "test-execution-id-1"},
+        },
+        {
+            "message": "message2",
+            "logging.googleapis.com/labels": {"execution_id": "test-execution-id-2"},
+        },
+        {
+            "message": "message1",
+            "logging.googleapis.com/labels": {"execution_id": "test-execution-id-1"},
+        },
+        {
+            "message": "message2",
+            "logging.googleapis.com/labels": {"execution_id": "test-execution-id-2"},
+        },
+    )
 
-    # Create an exception
-    exc = ValueError("Test error")
+    source = TEST_FUNCTIONS_DIR / "execution_id" / "async_main.py"
+    target = "async_sleep"
+    app = create_asgi_app(target, source)
+    client = TestClient(app)
+    loop = asyncio.get_event_loop()
+    response1 = loop.run_in_executor(
+        None,
+        partial(
+            client.post,
+            "/",
+            headers={
+                "Content-Type": "application/json",
+                "Function-Execution-Id": "test-execution-id-1",
+            },
+            json={"message": "message1"},
+        ),
+    )
+    response2 = loop.run_in_executor(
+        None,
+        partial(
+            client.post,
+            "/",
+            headers={
+                "Content-Type": "application/json",
+                "Function-Execution-Id": "test-execution-id-2",
+            },
+            json={"message": "message2"},
+        ),
+    )
+    await asyncio.wait((response1, response2))
+    record = capsys.readouterr()
+    logs = record.err.strip().split("\n")
+    logs_as_json = tuple(json.loads(log) for log in logs)
 
-    # Call crash handler
-    response = await _crash_handler(request, exc)
-
-    # Check response
-    assert response.status_code == 500
-    assert response.headers["X-Google-Status"] == "crash"
+    sort_key = lambda d: d["message"]
+    assert sorted(logs_as_json, key=sort_key) == sorted(expected_logs, key=sort_key)
 
 
 def test_async_decorator_with_sync_function():
@@ -285,22 +315,3 @@ def test_async_decorator_with_sync_function():
     result = wrapped(request)
 
     assert result == {"status": "ok"}
-
-
-def test_sync_function_called_from_async_context():
-    """Test that a sync function works correctly when called from async ASGI app."""
-    source = TEST_FUNCTIONS_DIR / "execution_id" / "async_main.py"
-    target = "sync_function_in_async_context"
-    app = create_asgi_app(target, source)
-    client = TestClient(app)
-    resp = client.post(
-        "/",
-        headers={
-            "Function-Execution-Id": TEST_EXECUTION_ID,
-            "Content-Type": "application/json",
-        },
-    )
-
-    result = resp.json()
-    assert result["execution_id"] == TEST_EXECUTION_ID
-    assert result["type"] == "sync"

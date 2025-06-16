@@ -18,6 +18,7 @@ import functools
 import inspect
 import json
 import logging
+import logging.config
 import os
 import re
 import sys
@@ -180,42 +181,19 @@ async def _handle_not_found(request: Request):
 
 
 def _configure_app_execution_id_logging():
-    import logging
-    import logging.config
-
-    class AsyncExecutionIdHandler(logging.StreamHandler):
-        def emit(self, record):
-            context = execution_id.execution_context_var.get(None)
-
-            log_entry = {
-                "message": self.format(record),
-                "severity": record.levelname,
-            }
-
-            if context and context.execution_id:
-                log_entry["logging.googleapis.com/labels"] = {
-                    "execution_id": context.execution_id
-                }
-
-            if context and context.span_id:
-                log_entry["logging.googleapis.com/spanId"] = context.span_id
-
-            try:
-                self.stream.write(json.dumps(log_entry) + "\n")
-                self.stream.flush()
-            except Exception:
-                super().emit(record)
-
-    root_logger = logging.getLogger()
-    root_logger.setLevel(logging.INFO)
-
-    for handler in root_logger.handlers[:]:
-        root_logger.removeHandler(handler)
-
-    handler = AsyncExecutionIdHandler(sys.stdout)
-    handler.setFormatter(logging.Formatter("%(message)s"))
-    handler.setLevel(logging.NOTSET)
-    root_logger.addHandler(handler)
+    # Logging needs to be configured before app logger is accessed
+    logging.config.dictConfig(
+        {
+            "version": 1,
+            "handlers": {
+                "asgi": {
+                    "class": "logging.StreamHandler",
+                    "stream": "ext://functions_framework.execution_id.logging_stream",
+                },
+            },
+            "root": {"level": "INFO", "handlers": ["asgi"]},
+        }
+    )
 
 
 def create_asgi_app(target=None, source=None, signature_type=None):
