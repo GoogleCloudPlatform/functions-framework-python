@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import asyncio
+import contextvars
 import functools
 import inspect
 import json
@@ -69,11 +70,7 @@ async def _crash_handler(request, exc):
         f"Exception on {request.url.path} [{request.method}]\n{tb_text}".rstrip()
     )
 
-    if _enable_execution_id_logging():
-        log_entry = {"message": error_msg, "levelname": "ERROR"}
-        logger.error(json.dumps(log_entry))
-    else:
-        logger.error(error_msg)
+    logger.error(error_msg)
 
     headers = {_FUNCTION_STATUS_HEADER_FIELD: _CRASH}
     return Response("Internal Server Error", status_code=500, headers=headers)
@@ -132,15 +129,14 @@ def _http_func_wrapper(function, is_async, enable_id_logging=False):
             result = await function(request)
         else:
             # TODO: Use asyncio.to_thread when we drop Python 3.8 support
-            # Python 3.8 compatible version of asyncio.to_thread
             loop = asyncio.get_event_loop()
-            result = await loop.run_in_executor(None, function, request)
+            ctx = contextvars.copy_context()
+            result = await loop.run_in_executor(None, ctx.run, function, request)
         if isinstance(result, str):
             return Response(result)
         elif isinstance(result, dict):
             return JSONResponse(result)
         elif isinstance(result, tuple) and len(result) == 2:
-            # Support Flask-style tuple response
             content, status_code = result
             if isinstance(content, dict):
                 return JSONResponse(content, status_code=status_code)
@@ -187,16 +183,37 @@ def _configure_app_execution_id_logging():
     import logging
     import logging.config
 
+    class AsyncExecutionIdHandler(logging.StreamHandler):
+        def emit(self, record):
+            context = execution_id.execution_context_var.get(None)
+
+            log_entry = {
+                "message": self.format(record),
+                "severity": record.levelname,
+            }
+
+            if context and context.execution_id:
+                log_entry["logging.googleapis.com/labels"] = {
+                    "execution_id": context.execution_id
+                }
+
+            if context and context.span_id:
+                log_entry["logging.googleapis.com/spanId"] = context.span_id
+
+            try:
+                self.stream.write(json.dumps(log_entry) + "\n")
+                self.stream.flush()
+            except Exception:
+                super().emit(record)
+
     root_logger = logging.getLogger()
     root_logger.setLevel(logging.INFO)
 
-    # Remove existing handlers
     for handler in root_logger.handlers[:]:
         root_logger.removeHandler(handler)
 
-    handler = logging.StreamHandler(
-        execution_id.LoggingHandlerAddExecutionId(sys.stderr)
-    )
+    handler = AsyncExecutionIdHandler(sys.stdout)
+    handler.setFormatter(logging.Formatter("%(message)s"))
     handler.setLevel(logging.NOTSET)
     root_logger.addHandler(handler)
 

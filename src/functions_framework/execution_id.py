@@ -88,7 +88,6 @@ def _extract_context_from_headers(headers):
     return ExecutionContext(execution_id, span_id)
 
 
-# Middleware to add execution id to request header if one does not already exist
 class WsgiMiddleware:
     def __init__(self, wsgi_app):
         self.wsgi_app = wsgi_app
@@ -101,7 +100,6 @@ class WsgiMiddleware:
         return self.wsgi_app(environ, start_response)
 
 
-# ASGI Middleware to add execution id to request header if one does not already exist
 class AsgiMiddleware:
     def __init__(self, app):
         self.app = app
@@ -187,8 +185,6 @@ def set_execution_context_async(enable_id_logging=False):
             with stderr_redirect, stdout_redirect:
                 result = await func(request, *args, **kwargs)
 
-                # Only reset context on successful completion
-                # On exception, leave context available for exception handlers
                 execution_context_var.reset(token)
                 return result
 
@@ -200,8 +196,6 @@ def set_execution_context_async(enable_id_logging=False):
             with stderr_redirect, stdout_redirect:
                 result = func(request, *args, **kwargs)
 
-                # Only reset context on successful completion
-                # On exception, leave context available for exception handlers
                 execution_context_var.reset(token)
                 return result
 

@@ -62,7 +62,9 @@ def test_async_uncaught_exception_in_user_function_sets_execution_id(
     )
     assert resp.status_code == 500
     record = capsys.readouterr()
-    assert f'"execution_id": "{TEST_EXECUTION_ID}"' in record.err
+    assert f'"execution_id": "{TEST_EXECUTION_ID}"' in record.out
+    assert '"logging.googleapis.com/labels"' in record.out
+    assert "ZeroDivisionError" in record.out
 
 
 def test_async_print_from_user_function_sets_execution_id(capsys, monkeypatch):
@@ -99,8 +101,9 @@ def test_async_log_from_user_function_sets_execution_id(capsys, monkeypatch):
         json={"message": json.dumps({"custom-field": "some-message"})},
     )
     record = capsys.readouterr()
-    assert f'"execution_id": "{TEST_EXECUTION_ID}"' in record.err
-    assert '"custom-field": "some-message"' in record.err
+    assert f'"execution_id": "{TEST_EXECUTION_ID}"' in record.out
+    assert '\\"custom-field\\": \\"some-message\\"' in record.out
+    assert '"logging.googleapis.com/labels"' in record.out
 
 
 def test_async_user_function_can_retrieve_generated_execution_id(monkeypatch):
@@ -175,11 +178,9 @@ def test_async_concurrent_requests_maintain_separate_execution_ids(capsys, monke
     thread2.join()
 
     record = capsys.readouterr()
-    logs = record.err.strip().split("\n")
-    logs_as_json = [json.loads(log) for log in logs if log]
+    logs = record.out.strip().split("\n")
+    logs_as_json = [json.loads(log) for log in logs if log and log.startswith("{")]
 
-    # Check that each message appears twice (once at start, once at end of async_sleep)
-    # and that each has the correct execution ID
     message1_logs = [log for log in logs_as_json if log.get("message") == "message1"]
     message2_logs = [log for log in logs_as_json if log.get("message") == "message2"]
 
@@ -190,7 +191,6 @@ def test_async_concurrent_requests_maintain_separate_execution_ids(capsys, monke
         len(message2_logs) == 2
     ), f"Expected 2 logs for message2, got {len(message2_logs)}"
 
-    # Check that all message1 logs have exec-id-1
     for log in message1_logs:
         assert log["logging.googleapis.com/labels"]["execution_id"] == "exec-id-1"
 
