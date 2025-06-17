@@ -105,17 +105,14 @@ class AsgiMiddleware:
         self.app = app
 
     async def __call__(self, scope, receive, send):
-        if scope["type"] == "http":
+        if scope["type"] == "http":  # pragma: no branch
             execution_id_header = b"function-execution-id"
-            trace_context_header = b"x-cloud-trace-context"
             execution_id = None
-            trace_context = None
 
             for name, value in scope.get("headers", []):
                 if name.lower() == execution_id_header:
                     execution_id = value.decode("latin-1")
-                elif name.lower() == trace_context_header:
-                    trace_context = value.decode("latin-1")
+                    break
 
             if not execution_id:
                 execution_id = _generate_execution_id()
@@ -125,15 +122,7 @@ class AsgiMiddleware:
                 )
                 scope["headers"] = new_headers
 
-            span_id = None
-            if trace_context:
-                trace_match = re.match(_TRACE_CONTEXT_REGEX_PATTERN, trace_context)
-                if trace_match:
-                    span_id = trace_match.group("span_id")
-
-            scope["execution_context"] = ExecutionContext(execution_id, span_id)
-
-        await self.app(scope, receive, send)  # pragma: no cover
+        await self.app(scope, receive, send)
 
 
 def set_execution_context(request, enable_id_logging=False):

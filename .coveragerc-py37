@@ -22,5 +22,4 @@ exclude_lines =
     
     # Exclude async-specific classes and functions in execution_id.py
     class AsgiMiddleware:
-    async def __call__
     def set_execution_context_async
