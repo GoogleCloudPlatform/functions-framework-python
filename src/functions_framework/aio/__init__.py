@@ -296,7 +296,6 @@ def create_asgi_app(target=None, source=None, signature_type=None):
         )
 
     app = Starlette(
-        debug=False,
         routes=routes,
         middleware=[
             Middleware(ExceptionHandlerMiddleware),
