@@ -15,7 +15,6 @@ import asyncio
 import json
 import pathlib
 import re
-import sys
 
 from functools import partial
 from unittest.mock import Mock, patch
@@ -297,14 +296,15 @@ async def test_maintains_execution_id_for_concurrent_requests(monkeypatch, capsy
 
 def test_async_decorator_with_sync_function():
     """Test that the async decorator handles sync functions properly."""
-    from functions_framework.execution_id import set_execution_context_async
 
     # Create a sync function
     def sync_func(request):
         return {"status": "ok"}
 
-    # Apply the async decorator
-    wrapped = set_execution_context_async(enable_id_logging=False)(sync_func)
+    # Apply the decorator
+    wrapped = execution_id.set_execution_context_async(enable_id_logging=False)(
+        sync_func
+    )
 
     # Create mock request
     request = Mock()

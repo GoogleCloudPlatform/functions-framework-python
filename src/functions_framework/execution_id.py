@@ -136,8 +136,17 @@ class AsgiMiddleware:
         await self.app(scope, receive, send)  # pragma: no cover
 
 
-# Sets execution id and span id for the request
 def set_execution_context(request, enable_id_logging=False):
+    """Decorator for Flask/WSGI handlers that sets execution context.
+
+    Takes request object at decoration time (Flask pattern where request is available
+    via thread-local context when decorator is applied).
+
+    Usage:
+        @set_execution_context(request, enable_id_logging=True)
+        def view_func(path):
+            ...
+    """
     if enable_id_logging:
         stdout_redirect = contextlib.redirect_stdout(
             LoggingHandlerAddExecutionId(sys.stdout)
@@ -165,6 +174,16 @@ def set_execution_context(request, enable_id_logging=False):
 
 
 def set_execution_context_async(enable_id_logging=False):
+    """Decorator for ASGI/async handlers that sets execution context.
+
+    Unlike set_execution_context which takes request at decoration time (Flask pattern),
+    this expects the decorated function to receive request as its first parameter (ASGI pattern).
+
+    Usage:
+        @set_execution_context_async(enable_id_logging=True)
+        async def handler(request, *args, **kwargs):
+            ...
+    """
     if enable_id_logging:
         stdout_redirect = contextlib.redirect_stdout(
             LoggingHandlerAddExecutionId(sys.stdout)
