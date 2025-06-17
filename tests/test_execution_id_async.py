@@ -17,7 +17,7 @@ import pathlib
 import re
 
 from functools import partial
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 import pytest
 

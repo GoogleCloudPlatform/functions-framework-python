@@ -59,21 +59,6 @@ HTTPResponse = Union[
 _FUNCTION_STATUS_HEADER_FIELD = "X-Google-Status"
 _CRASH = "crash"
 
-
-async def _crash_handler(request, exc):
-    logger = logging.getLogger()
-    tb_lines = traceback.format_exception(type(exc), exc, exc.__traceback__)
-    tb_text = "".join(tb_lines)
-    error_msg = (
-        f"Exception on {request.url.path} [{request.method}]\n{tb_text}".rstrip()
-    )
-
-    logger.error(error_msg)
-
-    headers = {_FUNCTION_STATUS_HEADER_FIELD: _CRASH}
-    return Response("Internal Server Error", status_code=500, headers=headers)
-
-
 CloudEventFunction = Callable[[CloudEvent], Union[None, Awaitable[None]]]
 HTTPFunction = Callable[[Request], Union[HTTPResponse, Awaitable[HTTPResponse]]]
 
@@ -193,6 +178,45 @@ def _configure_app_execution_id_logging():
     )
 
 
+
+
+class ExceptionHandlerMiddleware:
+    def __init__(self, app):
+        self.app = app
+    
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":  # pragma: no cover
+            await self.app(scope, receive, send)
+            return
+        
+        try:
+            await self.app(scope, receive, send)
+        except Exception as exc:
+            logger = logging.getLogger()
+            tb_lines = traceback.format_exception(type(exc), exc, exc.__traceback__)
+            tb_text = "".join(tb_lines)
+            
+            path = scope.get("path", "/")
+            method = scope.get("method", "GET")
+            error_msg = f"Exception on {path} [{method}]\n{tb_text}".rstrip()
+            
+            logger.error(error_msg)
+            
+            headers = [[b"content-type", b"text/plain"], 
+                      [_FUNCTION_STATUS_HEADER_FIELD.encode(), _CRASH.encode()]]
+            
+            await send({
+                "type": "http.response.start",
+                "status": 500,
+                "headers": headers,
+            })
+            await send({
+                "type": "http.response.body",
+                "body": b"Internal Server Error",
+            })
+            # Don't re-raise to prevent starlette from printing tracebak again
+
+
 def create_asgi_app(target=None, source=None, signature_type=None):
     """Create an ASGI application for the function.
 
@@ -267,13 +291,16 @@ def create_asgi_app(target=None, source=None, signature_type=None):
             f"Unsupported signature type for ASGI server: {signature_type}"
         )
 
-    exception_handlers = {
-        Exception: _crash_handler,
-    }
-    app = Starlette(routes=routes, exception_handlers=exception_handlers)
-
-    # Apply ASGI middleware for execution ID
-    app = execution_id.AsgiMiddleware(app)
+    from starlette.middleware import Middleware
+    
+    app = Starlette(
+        debug=False,
+        routes=routes,
+        middleware=[
+            Middleware(ExceptionHandlerMiddleware),
+            Middleware(execution_id.AsgiMiddleware),
+        ],
+    )
 
     return app
 
