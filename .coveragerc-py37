@@ -19,3 +19,7 @@ exclude_lines =
     from functions_framework.aio import
     from functions_framework._http.asgi import
     from functions_framework._http.gunicorn import UvicornApplication
+    
+    # Exclude async-specific classes and functions in execution_id.py
+    class AsgiMiddleware:
+    def set_execution_context_async

@@ -13,16 +13,24 @@
 # limitations under the License.
 
 import asyncio
+import contextvars
 import functools
 import inspect
+import logging
+import logging.config
 import os
+import traceback
 
 from typing import Any, Awaitable, Callable, Dict, Tuple, Union
 
 from cloudevents.http import from_http
 from cloudevents.http.event import CloudEvent
 
-from functions_framework import _function_registry
+from functions_framework import (
+    _enable_execution_id_logging,
+    _function_registry,
+    execution_id,
+)
 from functions_framework.exceptions import (
     FunctionsFrameworkException,
     MissingSourceException,
@@ -31,6 +39,7 @@ from functions_framework.exceptions import (
 try:
     from starlette.applications import Starlette
     from starlette.exceptions import HTTPException
+    from starlette.middleware import Middleware
     from starlette.requests import Request
     from starlette.responses import JSONResponse, Response
     from starlette.routing import Route
@@ -96,29 +105,27 @@ def http(func: HTTPFunction) -> HTTPFunction:
     return wrapper
 
 
-async def _crash_handler(request, exc):
-    headers = {_FUNCTION_STATUS_HEADER_FIELD: _CRASH}
-    return Response(f"Internal Server Error: {exc}", status_code=500, headers=headers)
-
-
-def _http_func_wrapper(function, is_async):
+def _http_func_wrapper(function, is_async, enable_id_logging=False):
+    @execution_id.set_execution_context_async(enable_id_logging)
     @functools.wraps(function)
     async def handler(request):
         if is_async:
             result = await function(request)
         else:
             # TODO: Use asyncio.to_thread when we drop Python 3.8 support
-            # Python 3.8 compatible version of asyncio.to_thread
             loop = asyncio.get_event_loop()
-            result = await loop.run_in_executor(None, function, request)
+            ctx = contextvars.copy_context()
+            result = await loop.run_in_executor(None, ctx.run, function, request)
         if isinstance(result, str):
             return Response(result)
         elif isinstance(result, dict):
             return JSONResponse(result)
         elif isinstance(result, tuple) and len(result) == 2:
-            # Support Flask-style tuple response
             content, status_code = result
-            return Response(content, status_code=status_code)
+            if isinstance(content, dict):
+                return JSONResponse(content, status_code=status_code)
+            else:
+                return Response(content, status_code=status_code)
         elif result is None:
             raise HTTPException(status_code=500, detail="No response returned")
         else:
@@ -127,7 +134,8 @@ def _http_func_wrapper(function, is_async):
     return handler
 
 
-def _cloudevent_func_wrapper(function, is_async):
+def _cloudevent_func_wrapper(function, is_async, enable_id_logging=False):
+    @execution_id.set_execution_context_async(enable_id_logging)
     @functools.wraps(function)
     async def handler(request):
         data = await request.body()
@@ -142,9 +150,9 @@ def _cloudevent_func_wrapper(function, is_async):
             await function(event)
         else:
             # TODO: Use asyncio.to_thread when we drop Python 3.8 support
-            # Python 3.8 compatible version of asyncio.to_thread
             loop = asyncio.get_event_loop()
-            await loop.run_in_executor(None, function, event)
+            ctx = contextvars.copy_context()
+            await loop.run_in_executor(None, ctx.run, function, event)
         return Response("OK")
 
     return handler
@@ -152,6 +160,64 @@ def _cloudevent_func_wrapper(function, is_async):
 
 async def _handle_not_found(request: Request):
     raise HTTPException(status_code=404, detail="Not Found")
+
+
+def _configure_app_execution_id_logging():
+    logging.config.dictConfig(
+        {
+            "version": 1,
+            "handlers": {
+                "asgi": {
+                    "class": "logging.StreamHandler",
+                    "stream": "ext://functions_framework.execution_id.logging_stream",
+                },
+            },
+            "root": {"level": "INFO", "handlers": ["asgi"]},
+        }
+    )
+
+
+class ExceptionHandlerMiddleware:
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":  # pragma: no cover
+            await self.app(scope, receive, send)
+            return
+
+        try:
+            await self.app(scope, receive, send)
+        except Exception as exc:
+            logger = logging.getLogger()
+            tb_lines = traceback.format_exception(type(exc), exc, exc.__traceback__)
+            tb_text = "".join(tb_lines)
+
+            path = scope.get("path", "/")
+            method = scope.get("method", "GET")
+            error_msg = f"Exception on {path} [{method}]\n{tb_text}".rstrip()
+
+            logger.error(error_msg)
+
+            headers = [
+                [b"content-type", b"text/plain"],
+                [_FUNCTION_STATUS_HEADER_FIELD.encode(), _CRASH.encode()],
+            ]
+
+            await send(
+                {
+                    "type": "http.response.start",
+                    "status": 500,
+                    "headers": headers,
+                }
+            )
+            await send(
+                {
+                    "type": "http.response.body",
+                    "body": b"Internal Server Error",
+                }
+            )
+            # Don't re-raise to prevent starlette from printing traceback again
 
 
 def create_asgi_app(target=None, source=None, signature_type=None):
@@ -175,6 +241,11 @@ def create_asgi_app(target=None, source=None, signature_type=None):
         )
 
     source_module, spec = _function_registry.load_function_module(source)
+
+    enable_id_logging = _enable_execution_id_logging()
+    if enable_id_logging:
+        _configure_app_execution_id_logging()
+
     spec.loader.exec_module(source_module)
     function = _function_registry.get_user_function(source, source_module, target)
     signature_type = _function_registry.get_func_signature_type(target, signature_type)
@@ -182,7 +253,7 @@ def create_asgi_app(target=None, source=None, signature_type=None):
     is_async = inspect.iscoroutinefunction(function)
     routes = []
     if signature_type == _function_registry.HTTP_SIGNATURE_TYPE:
-        http_handler = _http_func_wrapper(function, is_async)
+        http_handler = _http_func_wrapper(function, is_async, enable_id_logging)
         routes.append(
             Route(
                 "/",
@@ -202,7 +273,9 @@ def create_asgi_app(target=None, source=None, signature_type=None):
             )
         )
     elif signature_type == _function_registry.CLOUDEVENT_SIGNATURE_TYPE:
-        cloudevent_handler = _cloudevent_func_wrapper(function, is_async)
+        cloudevent_handler = _cloudevent_func_wrapper(
+            function, is_async, enable_id_logging
+        )
         routes.append(
             Route("/{path:path}", endpoint=cloudevent_handler, methods=["POST"])
         )
@@ -221,10 +294,14 @@ def create_asgi_app(target=None, source=None, signature_type=None):
             f"Unsupported signature type for ASGI server: {signature_type}"
         )
 
-    exception_handlers = {
-        500: _crash_handler,
-    }
-    app = Starlette(routes=routes, exception_handlers=exception_handlers)
+    app = Starlette(
+        routes=routes,
+        middleware=[
+            Middleware(ExceptionHandlerMiddleware),
+            Middleware(execution_id.AsgiMiddleware),
+        ],
+    )
+
     return app
 
 
