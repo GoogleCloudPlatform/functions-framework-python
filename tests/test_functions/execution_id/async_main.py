@@ -43,9 +43,7 @@ async def async_trace_test(request):
     }
 
 
-# Sync function to test the sync branch in async decorator
 def sync_function_in_async_context(request):
-    """A sync function that can be called from async context."""
     return {
         "execution_id": request.headers.get("Function-Execution-Id"),
         "type": "sync",
@@ -53,7 +51,6 @@ def sync_function_in_async_context(request):
 
 
 def sync_cloudevent_with_context(cloud_event):
-    """A sync CloudEvent function that accesses execution context."""
     context = execution_id._get_current_context()
     if context:
         logger.info(f"Execution ID in sync CloudEvent: {context.execution_id}")

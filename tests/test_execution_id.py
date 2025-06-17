@@ -224,11 +224,7 @@ def test_set_execution_context(
         execution_id, "_generate_execution_id", lambda: TEST_EXECUTION_ID
     )
 
-    # Use a simple object instead of Mock to properly test attribute assignment
-    class MockG:
-        pass
-
-    mock_g = MockG()
+    mock_g = Mock()
     monkeypatch.setattr(execution_id.flask, "g", mock_g)
     monkeypatch.setattr(execution_id.flask, "has_request_context", lambda: True)
     execution_id.set_execution_context(request)(view_func)()

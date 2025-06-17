@@ -164,7 +164,6 @@ async def _handle_not_found(request: Request):
 
 
 def _configure_app_execution_id_logging():
-    # Logging needs to be configured before app logger is accessed
     logging.config.dictConfig(
         {
             "version": 1,
