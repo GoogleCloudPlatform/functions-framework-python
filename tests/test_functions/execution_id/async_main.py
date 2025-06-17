@@ -56,3 +56,7 @@ def sync_cloudevent_with_context(cloud_event):
         logger.info(f"Execution ID in sync CloudEvent: {context.execution_id}")
     else:
         logger.error("No execution context in sync CloudEvent function!")
+
+
+async def async_cloudevent_error(cloudevent):
+    raise ValueError("This is a test error")

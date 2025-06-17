@@ -339,3 +339,27 @@ def test_sync_cloudevent_function_has_execution_context(monkeypatch, capsys):
     record = capsys.readouterr()
     assert f"Execution ID in sync CloudEvent: {TEST_EXECUTION_ID}" in record.err
     assert "No execution context in sync CloudEvent function!" not in record.err
+
+
+def test_cloudevent_returns_500(capsys, monkeypatch):
+    monkeypatch.setenv("LOG_EXECUTION_ID", "true")
+    source = TEST_FUNCTIONS_DIR / "execution_id" / "async_main.py"
+    target = "async_cloudevent_error"
+    app = create_asgi_app(target, source, signature_type="cloudevent")
+    client = TestClient(app, raise_server_exceptions=False)
+    resp = client.post(
+        "/",
+        headers={
+            "ce-specversion": "1.0",
+            "ce-type": "com.example.test",
+            "ce-source": "test-source",
+            "ce-id": "test-id",
+            "Function-Execution-Id": TEST_EXECUTION_ID,
+            "Content-Type": "application/json",
+        },
+    )
+    assert resp.status_code == 500
+    record = capsys.readouterr()
+    assert f'"execution_id": "{TEST_EXECUTION_ID}"' in record.err
+    assert '"logging.googleapis.com/labels"' in record.err
+    assert "ValueError" in record.err

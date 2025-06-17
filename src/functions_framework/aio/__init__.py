@@ -218,7 +218,7 @@ class ExceptionHandlerMiddleware:
                     "body": b"Internal Server Error",
                 }
             )
-            # Don't re-raise to prevent starlette from printing tracebak again
+            # Don't re-raise to prevent starlette from printing traceback again
 
 
 def create_asgi_app(target=None, source=None, signature_type=None):

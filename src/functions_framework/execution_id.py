@@ -77,17 +77,17 @@ def _generate_execution_id():
 
 def _extract_context_from_headers(headers):
     """Extract execution context from request headers."""
-    execution_id = headers.get(EXECUTION_ID_REQUEST_HEADER)
-
     trace_context = re.match(
         _TRACE_CONTEXT_REGEX_PATTERN,
         headers.get(TRACE_CONTEXT_REQUEST_HEADER, ""),
     )
+    execution_id = headers.get(EXECUTION_ID_REQUEST_HEADER)
     span_id = trace_context.group("span_id") if trace_context else None
 
     return ExecutionContext(execution_id, span_id)
 
 
+# Middleware to add execution id to request header if one does not already exist
 class WsgiMiddleware:
     def __init__(self, wsgi_app):
         self.wsgi_app = wsgi_app
