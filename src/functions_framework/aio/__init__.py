@@ -146,7 +146,6 @@ def _cloudevent_func_wrapper(function, is_async, enable_id_logging=False):
             raise HTTPException(
                 400, detail=f"Bad Request: Got CloudEvent exception: {repr(e)}"
             )
-
         if is_async:
             await function(event)
         else:
