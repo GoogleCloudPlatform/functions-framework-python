@@ -437,7 +437,7 @@ def _configure_app_execution_id_logging():
                     "stream": "ext://functions_framework.execution_id.logging_stream",
                 },
             },
-            "root": {"level": "WARNING", "handlers": ["wsgi"]},
+            "root": {"level": "INFO", "handlers": ["wsgi"]},
         }
     )
 
