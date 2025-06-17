@@ -178,42 +178,46 @@ def _configure_app_execution_id_logging():
     )
 
 
-
-
 class ExceptionHandlerMiddleware:
     def __init__(self, app):
         self.app = app
-    
+
     async def __call__(self, scope, receive, send):
         if scope["type"] != "http":  # pragma: no cover
             await self.app(scope, receive, send)
             return
-        
+
         try:
             await self.app(scope, receive, send)
         except Exception as exc:
             logger = logging.getLogger()
             tb_lines = traceback.format_exception(type(exc), exc, exc.__traceback__)
             tb_text = "".join(tb_lines)
-            
+
             path = scope.get("path", "/")
             method = scope.get("method", "GET")
             error_msg = f"Exception on {path} [{method}]\n{tb_text}".rstrip()
-            
+
             logger.error(error_msg)
-            
-            headers = [[b"content-type", b"text/plain"], 
-                      [_FUNCTION_STATUS_HEADER_FIELD.encode(), _CRASH.encode()]]
-            
-            await send({
-                "type": "http.response.start",
-                "status": 500,
-                "headers": headers,
-            })
-            await send({
-                "type": "http.response.body",
-                "body": b"Internal Server Error",
-            })
+
+            headers = [
+                [b"content-type", b"text/plain"],
+                [_FUNCTION_STATUS_HEADER_FIELD.encode(), _CRASH.encode()],
+            ]
+
+            await send(
+                {
+                    "type": "http.response.start",
+                    "status": 500,
+                    "headers": headers,
+                }
+            )
+            await send(
+                {
+                    "type": "http.response.body",
+                    "body": b"Internal Server Error",
+                }
+            )
             # Don't re-raise to prevent starlette from printing tracebak again
 
 
@@ -292,7 +296,7 @@ def create_asgi_app(target=None, source=None, signature_type=None):
         )
 
     from starlette.middleware import Middleware
-    
+
     app = Starlette(
         debug=False,
         routes=routes,
