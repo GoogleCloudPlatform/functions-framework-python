@@ -39,6 +39,7 @@ from functions_framework.exceptions import (
 try:
     from starlette.applications import Starlette
     from starlette.exceptions import HTTPException
+    from starlette.middleware import Middleware
     from starlette.requests import Request
     from starlette.responses import JSONResponse, Response
     from starlette.routing import Route
@@ -150,9 +151,9 @@ def _cloudevent_func_wrapper(function, is_async, enable_id_logging=False):
             await function(event)
         else:
             # TODO: Use asyncio.to_thread when we drop Python 3.8 support
-            # Python 3.8 compatible version of asyncio.to_thread
             loop = asyncio.get_event_loop()
-            await loop.run_in_executor(None, function, event)
+            ctx = contextvars.copy_context()
+            await loop.run_in_executor(None, ctx.run, function, event)
         return Response("OK")
 
     return handler
@@ -294,8 +295,6 @@ def create_asgi_app(target=None, source=None, signature_type=None):
         raise FunctionsFrameworkException(
             f"Unsupported signature type for ASGI server: {signature_type}"
         )
-
-    from starlette.middleware import Middleware
 
     app = Starlette(
         debug=False,

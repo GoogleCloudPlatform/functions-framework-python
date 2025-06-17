@@ -36,7 +36,6 @@ async def async_sleep(request):
 
 
 async def async_trace_test(request):
-    # Get current execution context
     context = execution_id._get_current_context()
     return {
         "execution_id": context.execution_id if context else None,
@@ -51,3 +50,12 @@ def sync_function_in_async_context(request):
         "execution_id": request.headers.get("Function-Execution-Id"),
         "type": "sync",
     }
+
+
+def sync_cloudevent_with_context(cloud_event):
+    """A sync CloudEvent function that accesses execution context."""
+    context = execution_id._get_current_context()
+    if context:
+        logger.info(f"Execution ID in sync CloudEvent: {context.execution_id}")
+    else:
+        logger.error("No execution context in sync CloudEvent function!")

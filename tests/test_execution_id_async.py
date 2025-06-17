@@ -295,23 +295,47 @@ async def test_maintains_execution_id_for_concurrent_requests(monkeypatch, capsy
 
 
 def test_async_decorator_with_sync_function():
-    """Test that the async decorator handles sync functions properly."""
-
-    # Create a sync function
     def sync_func(request):
         return {"status": "ok"}
 
-    # Apply the decorator
     wrapped = execution_id.set_execution_context_async(enable_id_logging=False)(
         sync_func
     )
 
-    # Create mock request
     request = Mock()
     request.headers = Mock()
     request.headers.get = Mock(return_value="")
 
-    # Call the wrapped function - it should be sync since the original was sync
     result = wrapped(request)
 
     assert result == {"status": "ok"}
+
+
+def test_sync_cloudevent_function_has_execution_context(monkeypatch, capsys):
+    """Test that sync CloudEvent functions can access execution context."""
+    monkeypatch.setenv("LOG_EXECUTION_ID", "true")
+
+    source = TEST_FUNCTIONS_DIR / "execution_id" / "async_main.py"
+    target = "sync_cloudevent_with_context"
+    app = create_asgi_app(target, source, signature_type="cloudevent")
+    client = TestClient(app)
+
+    response = client.post(
+        "/",
+        headers={
+            "ce-specversion": "1.0",
+            "ce-type": "com.example.test",
+            "ce-source": "test-source",
+            "ce-id": "test-id",
+            "Function-Execution-Id": TEST_EXECUTION_ID,
+            "Content-Type": "application/json",
+        },
+        json={"message": "test"},
+    )
+
+    assert response.status_code == 200
+    assert response.text == "OK"
+
+    record = capsys.readouterr()
+    assert f"Execution ID in sync CloudEvent: {TEST_EXECUTION_ID}" in record.err
+    assert "No execution context in sync CloudEvent function!" not in record.err
