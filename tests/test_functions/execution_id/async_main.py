@@ -53,7 +53,7 @@ def sync_function_in_async_context(request):
 def sync_cloudevent_with_context(cloud_event):
     context = execution_id._get_current_context()
     if context:
-        logger.info(f"Execution ID in sync CloudEvent: {context.execution_id}")
+        logger.warning(f"Execution ID in sync CloudEvent: {context.execution_id}")
     else:
         logger.error("No execution context in sync CloudEvent function!")
 
