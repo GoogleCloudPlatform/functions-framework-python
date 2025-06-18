@@ -34,7 +34,7 @@ from functions_framework._http import create_server
 @click.option("--debug", envvar="DEBUG", is_flag=True)
 @click.option(
     "--gateway",
-    envvar="GATEWAY",
+    envvar="FUNCTION_GATEWAY",
     type=click.Choice(["wsgi", "asgi"]),
     default="wsgi",
     help="Server gateway interface type (wsgi for sync, asgi for async)",
