@@ -33,14 +33,13 @@ from functions_framework._http import create_server
 @click.option("--port", envvar="PORT", type=click.INT, default=8080)
 @click.option("--debug", envvar="DEBUG", is_flag=True)
 @click.option(
-    "--gateway",
-    envvar="FUNCTION_GATEWAY",
-    type=click.Choice(["wsgi", "asgi"]),
-    default="wsgi",
-    help="Server gateway interface type (wsgi for sync, asgi for async)",
+    "--asgi",
+    envvar="FUNCTION_USE_ASGI",
+    is_flag=True,
+    help="Use ASGI server for function execution",
 )
-def _cli(target, source, signature_type, host, port, debug, gateway):
-    if gateway == "asgi":  # pragma: no cover
+def _cli(target, source, signature_type, host, port, debug, asgi):
+    if asgi:  # pragma: no cover
         from functions_framework.aio import create_asgi_app
 
         app = create_asgi_app(target, source, signature_type)
