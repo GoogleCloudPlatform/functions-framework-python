@@ -42,7 +42,7 @@ try:
     from starlette.middleware import Middleware
     from starlette.requests import Request
     from starlette.responses import JSONResponse, Response
-    from starlette.routing import Route
+    from starlette.routing import Mount, Route
 except ImportError:
     raise FunctionsFrameworkException(
         "Starlette is not installed. Install the framework with the 'async' extra: "
@@ -247,6 +247,22 @@ def create_asgi_app(target=None, source=None, signature_type=None):
         _configure_app_execution_id_logging()
 
     spec.loader.exec_module(source_module)
+
+    # Check if the target function is an ASGI app
+    if hasattr(source_module, target):
+        target_obj = getattr(source_module, target)
+        if _is_asgi_app(target_obj):
+            app = Starlette(
+                routes=[
+                    Mount("/", app=target_obj),
+                ],
+                middleware=[
+                    Middleware(ExceptionHandlerMiddleware),
+                    Middleware(execution_id.AsgiMiddleware),
+                ],
+            )
+            return app
+
     function = _function_registry.get_user_function(source, source_module, target)
     signature_type = _function_registry.get_func_signature_type(target, signature_type)
 
@@ -324,6 +340,25 @@ class LazyASGIApp:
             self.app = create_asgi_app(self.target, self.source, self.signature_type)
             self._app_initialized = True
         await self.app(scope, receive, send)
+
+
+def _is_asgi_app(target) -> bool:
+    """Check if an target looks like an ASGI application."""
+    if not callable(target):
+        return False
+
+    # Check for common ASGI framework attributes
+    #   FastAPI, Starlette, Quart all have these
+    if hasattr(target, "routes") or hasattr(target, "router"):
+        return True
+
+    # Check if it's a coroutine function with 3 params (scope, receive, send)
+    if inspect.iscoroutinefunction(target):
+        sig = inspect.signature(target)
+        params = list(sig.parameters.keys())
+        return len(params) == 3
+
+    return False
 
 
 app = LazyASGIApp()
