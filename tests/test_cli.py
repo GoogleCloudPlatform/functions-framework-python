@@ -119,7 +119,7 @@ def test_asgi_cli(monkeypatch):
     monkeypatch.setattr(functions_framework._cli, "create_server", create_server)
 
     runner = CliRunner()
-    result = runner.invoke(_cli, ["--target", "foo", "--gateway", "asgi"])
+    result = runner.invoke(_cli, ["--target", "foo", "--asgi"])
 
     assert result.exit_code == 0
     assert create_asgi_app.calls == [pretend.call("foo", None, "http")]
