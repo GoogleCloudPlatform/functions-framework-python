@@ -17,18 +17,18 @@ import re
 import sys
 import tempfile
 
-from unittest.mock import Mock, call
-
-if sys.version_info >= (3, 8):
-    from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, Mock, call
 
 import pytest
+
+from starlette.testclient import TestClient
 
 from functions_framework import exceptions
 from functions_framework.aio import (
     LazyASGIApp,
     _cloudevent_func_wrapper,
     _http_func_wrapper,
+    _is_asgi_app,
     create_asgi_app,
 )
 
@@ -192,3 +192,83 @@ async def test_cloudevent_func_wrapper_sync_function():
     assert called_with_event is not None
     assert called_with_event["type"] == "test.event"
     assert called_with_event["source"] == "test-source"
+
+
+def test_detects_starlette_app():
+    from starlette.applications import Starlette
+
+    app = Starlette()
+    assert _is_asgi_app(app) is True
+
+
+def test_detects_fastapi_app():
+    from fastapi import FastAPI
+
+    app = FastAPI()
+    assert _is_asgi_app(app) is True
+
+
+def test_detects_bare_asgi_callable():
+    async def asgi_app(scope, receive, send):
+        pass
+
+    assert _is_asgi_app(asgi_app) is True
+
+
+def test_rejects_non_asgi_functions():
+    def regular_function(request):
+        return "response"
+
+    async def async_function(request):
+        return "response"
+
+    async def wrong_params(a, b):
+        pass
+
+    assert _is_asgi_app(regular_function) is False
+    assert _is_asgi_app(async_function) is False
+    assert _is_asgi_app(wrong_params) is False
+    assert _is_asgi_app("not a function") is False
+
+
+def test_fastapi_app():
+    source = str(TEST_FUNCTIONS_DIR / "asgi_apps" / "fastapi_app.py")
+    app = create_asgi_app(target="app", source=source)
+    client = TestClient(app)
+
+    response = client.get("/")
+    assert response.status_code == 200
+    assert response.json() == {"message": "Hello World"}
+
+    response = client.get("/items/42")
+    assert response.status_code == 200
+    assert response.json() == {"item_id": 42}
+
+
+def test_bare_asgi_app():
+    source = str(TEST_FUNCTIONS_DIR / "asgi_apps" / "bare_asgi.py")
+    app = create_asgi_app(target="app", source=source)
+    client = TestClient(app)
+
+    response = client.get("/")
+    assert response.status_code == 200
+    assert response.text == "Hello from ASGI"
+
+
+def test_starlette_app():
+    source = str(TEST_FUNCTIONS_DIR / "asgi_apps" / "starlette_app.py")
+    app = create_asgi_app(target="app", source=source)
+    client = TestClient(app)
+
+    response = client.get("/")
+    assert response.status_code == 200
+    assert response.json() == {"message": "Hello from Starlette"}
+
+
+def test_error_handling_in_asgi_app():
+    source = str(TEST_FUNCTIONS_DIR / "asgi_apps" / "fastapi_app.py")
+    app = create_asgi_app(target="app", source=source)
+    client = TestClient(app)
+
+    response = client.get("/nonexistent")
+    assert response.status_code == 404

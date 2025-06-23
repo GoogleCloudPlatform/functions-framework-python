@@ -66,6 +66,7 @@ functions_framework = ["py.typed"]
 dev = [
     "black>=23.3.0",
     "build>=1.1.1",
+    "fastapi>=0.100.0",
     "isort>=5.11.5",
     "pretend>=1.0.9",
     "pytest>=7.4.4",
