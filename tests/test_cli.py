@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import sys
+import os
 
 import pretend
 import pytest
@@ -27,7 +28,6 @@ from functions_framework._cli import _cli
 def test_cli_no_arguments():
     runner = CliRunner()
     result = runner.invoke(_cli)
-
     assert result.exit_code == 2
     assert "Missing option '--target'" in result.output
 
@@ -124,3 +124,106 @@ def test_asgi_cli(monkeypatch):
     assert result.exit_code == 0
     assert create_asgi_app.calls == [pretend.call("foo", None, "http")]
     assert asgi_server.run.calls == [pretend.call("0.0.0.0", 8080)]
+
+
+def test_cli_sets_env(monkeypatch):
+    wsgi_server = pretend.stub(run=pretend.call_recorder(lambda *a, **kw: None))
+    wsgi_app = pretend.stub(run=pretend.call_recorder(lambda *a, **kw: None))
+    create_app = pretend.call_recorder(lambda *a, **kw: wsgi_app)
+    monkeypatch.setattr(functions_framework._cli, "create_app", create_app)
+    create_server = pretend.call_recorder(lambda *a, **kw: wsgi_server)
+    monkeypatch.setattr(functions_framework._cli, "create_server", create_server)
+
+    runner = CliRunner()
+    result = runner.invoke(
+        _cli,
+        ["--target", "foo", "--env", "API_KEY=123", "--env", "MODE=dev"]
+    )
+
+    assert result.exit_code == 0
+    assert create_app.calls == [pretend.call("foo", None, "http")]
+    assert wsgi_server.run.calls == [pretend.call("0.0.0.0", 8080)]
+    # Check environment variables are set
+    assert os.environ["API_KEY"] == "123"
+    assert os.environ["MODE"] == "dev"
+    # Cleanup
+    del os.environ["API_KEY"]
+    del os.environ["MODE"]
+
+
+def test_cli_sets_env_file(monkeypatch, tmp_path):
+    wsgi_server = pretend.stub(run=pretend.call_recorder(lambda *a, **kw: None))
+    wsgi_app = pretend.stub(run=pretend.call_recorder(lambda *a, **kw: None))
+    create_app = pretend.call_recorder(lambda *a, **kw: wsgi_app)
+    monkeypatch.setattr(functions_framework._cli, "create_app", create_app)
+    create_server = pretend.call_recorder(lambda *a, **kw: wsgi_server)
+    monkeypatch.setattr(functions_framework._cli, "create_server", create_server)
+
+    env_file = tmp_path / ".env"
+    env_file.write_text("""
+# This is a comment
+API_KEY=fromfile
+MODE=production
+
+# Another comment
+FOO=bar
+""")
+
+    runner = CliRunner()
+    result = runner.invoke(
+        _cli,
+        ["--target", "foo", f"--env-file={env_file}"]
+    )
+
+    assert result.exit_code == 0
+    assert create_app.calls == [pretend.call("foo", None, "http")]
+    assert wsgi_server.run.calls == [pretend.call("0.0.0.0", 8080)]
+    assert os.environ["API_KEY"] == "fromfile"
+    assert os.environ["MODE"] == "production"
+    assert os.environ["FOO"] == "bar"
+    # Cleanup
+    del os.environ["API_KEY"]
+    del os.environ["MODE"]
+    del os.environ["FOO"]
+
+
+def test_invalid_env_format(monkeypatch):
+    wsgi_server = pretend.stub(run=pretend.call_recorder(lambda *a, **kw: None))
+    wsgi_app = pretend.stub(run=pretend.call_recorder(lambda *a, **kw: None))
+    create_app = pretend.call_recorder(lambda *a, **kw: wsgi_app)
+    monkeypatch.setattr(functions_framework._cli, "create_app", create_app)
+    create_server = pretend.call_recorder(lambda *a, **kw: wsgi_server)
+    monkeypatch.setattr(functions_framework._cli, "create_server", create_server)
+
+    runner = CliRunner()
+    result = runner.invoke(
+        _cli,
+        ["--target", "foo", "--env", "INVALIDENV"]
+    )
+
+    assert result.exit_code != 0
+    assert "Invalid --env format: 'INVALIDENV'. Expected KEY=VALUE." in result.output
+
+
+def test_invalid_env_file_line(monkeypatch, tmp_path):
+    wsgi_server = pretend.stub(run=pretend.call_recorder(lambda *a, **kw: None))
+    wsgi_app = pretend.stub(run=pretend.call_recorder(lambda *a, **kw: None))
+    create_app = pretend.call_recorder(lambda *a, **kw: wsgi_app)
+    monkeypatch.setattr(functions_framework._cli, "create_app", create_app)
+    create_server = pretend.call_recorder(lambda *a, **kw: wsgi_server)
+    monkeypatch.setattr(functions_framework._cli, "create_server", create_server)
+
+    env_file = tmp_path / ".env"
+    env_file.write_text("""
+API_KEY=fromfile
+NOEQUALSIGN
+""")
+
+    runner = CliRunner()
+    result = runner.invoke(
+        _cli,
+        ["--target", "foo", f"--env-file={env_file}"]
+    )
+
+    assert result.exit_code != 0
+    assert f"Invalid line in env-file '{env_file}': NOEQUALSIGN" in result.output

@@ -1,0 +1,8 @@
+[run]
+omit =
+    src/functions_framework/_http/gunicorn.py
+    src/functions_framework/request_timeout.py
+
+[report]
+exclude_lines =
+    pragma: no cover 

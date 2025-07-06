@@ -38,10 +38,42 @@ from functions_framework._http import create_server
     is_flag=True,
     help="Use ASGI server for function execution",
 )
-def _cli(target, source, signature_type, host, port, debug, asgi):
+@click.option(
+    "--env",
+    multiple=True,
+    help="Set environment variables (can be used multiple times): --env KEY=VALUE",
+)
+@click.option(
+    "--env-file",
+    multiple=True,
+    type=click.Path(exists=True),
+    help="Path(s) to file(s) containing environment variables (KEY=VALUE format)",
+)
+def _cli(target, source, signature_type, host, port, debug, asgi, env, env_file):
+    # Load environment variables from all provided --env-file arguments
+    for file_path in env_file:
+        with open(file_path, "r") as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("#"):
+                    continue  # Skip comments and blank lines
+                if "=" in line:
+                    key, value = line.split("=", 1)
+                    os.environ[key.strip()] = value.strip()
+                else:
+                    raise click.BadParameter(f"Invalid line in env-file '{file_path}': {line}")
+
+    # Load environment variables from all --env flags
+    for item in env:
+        if "=" in item:
+            key, value = item.split("=", 1)
+            os.environ[key.strip()] = value.strip()
+        else:
+            raise click.BadParameter(f"Invalid --env format: '{item}'. Expected KEY=VALUE.")
+
+    # Launch ASGI or WSGI server
     if asgi:  # pragma: no cover
         from functions_framework.aio import create_asgi_app
-
         app = create_asgi_app(target, source, signature_type)
     else:
         app = create_app(target, source, signature_type)
