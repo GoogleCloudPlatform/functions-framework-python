@@ -52,7 +52,7 @@ jobs:
         functionType: 'http'
         useBuildpacks: false
         validateMapping: false
-        cmd: "'functions-framework --source tests/conformance/async_main.py --target write_http --signature-type http --gateway asgi'"
+        cmd: "'functions-framework --source tests/conformance/async_main.py --target write_http --signature-type http --asgi'"
 
     - name: Run CloudEvents conformance tests
       uses: GoogleCloudPlatform/functions-framework-conformance/action@72a4f36b10f1c6435ab1a86a9ea24bda464cc262 # v1.8.6
@@ -60,7 +60,7 @@ jobs:
         functionType: 'cloudevent'
         useBuildpacks: false
         validateMapping: false
-        cmd: "'functions-framework --source tests/conformance/async_main.py --target write_cloud_event --signature-type cloudevent --gateway asgi'"
+        cmd: "'functions-framework --source tests/conformance/async_main.py --target write_cloud_event --signature-type cloudevent --asgi'"
 
     - name: Run HTTP conformance tests declarative
       uses: GoogleCloudPlatform/functions-framework-conformance/action@72a4f36b10f1c6435ab1a86a9ea24bda464cc262 # v1.8.6
@@ -68,7 +68,7 @@ jobs:
         functionType: 'http'
         useBuildpacks: false
         validateMapping: false
-        cmd: "'functions-framework --source tests/conformance/async_main.py --target write_http_declarative --gateway asgi'"
+        cmd: "'functions-framework --source tests/conformance/async_main.py --target write_http_declarative --asgi'"
 
     - name: Run CloudEvents conformance tests declarative
       uses: GoogleCloudPlatform/functions-framework-conformance/action@72a4f36b10f1c6435ab1a86a9ea24bda464cc262 # v1.8.6
@@ -76,7 +76,7 @@ jobs:
         functionType: 'cloudevent'
         useBuildpacks: false
         validateMapping: false
-        cmd: "'functions-framework --source tests/conformance/async_main.py --target write_cloud_event_declarative --gateway asgi'"
+        cmd: "'functions-framework --source tests/conformance/async_main.py --target write_cloud_event_declarative --asgi'"
 
     - name: Run HTTP concurrency tests declarative
       uses: GoogleCloudPlatform/functions-framework-conformance/action@72a4f36b10f1c6435ab1a86a9ea24bda464cc262 # v1.8.6
@@ -84,7 +84,7 @@ jobs:
         functionType: 'http'
         useBuildpacks: false
         validateConcurrency: true
-        cmd: "'functions-framework --source tests/conformance/async_main.py --target write_http_declarative_concurrent --gateway asgi'"
+        cmd: "'functions-framework --source tests/conformance/async_main.py --target write_http_declarative_concurrent --asgi'"
 
     # Note: Event (legacy) and Typed tests are not supported in ASGI mode
     # Note: validateMapping is set to false for CloudEvent tests because ASGI mode
