@@ -154,9 +154,9 @@ def test_httpserver_asgi(monkeypatch, debug, uvicorn_missing, expected):
     }
     options = {"a": pretend.stub(), "b": pretend.stub()}
 
-    import functions_framework._http
+    from functions_framework._http import asgi
 
-    monkeypatch.setattr(functions_framework._http, "StarletteApplication", server_classes["starlette"])
+    monkeypatch.setattr(asgi, "StarletteApplication", server_classes["starlette"])
 
     if uvicorn_missing or platform.system() == "Windows":
         monkeypatch.setitem(sys.modules, "functions_framework._http.gunicorn", None)
