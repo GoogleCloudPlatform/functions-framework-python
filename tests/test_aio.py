@@ -35,27 +35,6 @@ from functions_framework.aio import (
 TEST_FUNCTIONS_DIR = pathlib.Path(__file__).resolve().parent / "test_functions"
 
 
-def test_import_error_without_starlette(monkeypatch):
-    import builtins
-
-    original_import = builtins.__import__
-
-    def mock_import(name, *args, **kwargs):
-        if name.startswith("starlette"):
-            raise ImportError(f"No module named '{name}'")
-        return original_import(name, *args, **kwargs)
-
-    monkeypatch.setattr(builtins, "__import__", mock_import)
-
-    # Remove the module from sys.modules to force re-import
-    if "functions_framework.aio" in sys.modules:
-        del sys.modules["functions_framework.aio"]
-
-    with pytest.raises(exceptions.FunctionsFrameworkException) as excinfo:
-        import functions_framework.aio
-
-    assert "Starlette is not installed" in str(excinfo.value)
-    assert "pip install functions-framework[async]" in str(excinfo.value)
 
 
 def test_invalid_function_definition_missing_function_file():

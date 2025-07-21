@@ -14,6 +14,7 @@
 
 from flask import Flask
 
+from functions_framework._http.asgi import StarletteApplication
 from functions_framework._http.flask import FlaskApplication
 
 
@@ -35,8 +36,6 @@ class HTTPServer:
                     self.server_class = FlaskApplication
         else:  # pragma: no cover
             if self.debug:
-                from functions_framework._http.asgi import StarletteApplication
-
                 self.server_class = StarletteApplication
             else:
                 try:
@@ -44,8 +43,6 @@ class HTTPServer:
 
                     self.server_class = UvicornApplication
                 except ImportError as e:
-                    from functions_framework._http.asgi import StarletteApplication
-
                     self.server_class = StarletteApplication
 
     def run(self, host, port):

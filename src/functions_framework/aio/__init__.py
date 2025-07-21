@@ -36,18 +36,12 @@ from functions_framework.exceptions import (
     MissingSourceException,
 )
 
-try:
-    from starlette.applications import Starlette
-    from starlette.exceptions import HTTPException
-    from starlette.middleware import Middleware
-    from starlette.requests import Request
-    from starlette.responses import JSONResponse, Response
-    from starlette.routing import Route
-except ImportError:
-    raise FunctionsFrameworkException(
-        "Starlette is not installed. Install the framework with the 'async' extra: "
-        "pip install functions-framework[async]"
-    )
+from starlette.applications import Starlette
+from starlette.exceptions import HTTPException
+from starlette.middleware import Middleware
+from starlette.requests import Request
+from starlette.responses import JSONResponse, Response
+from starlette.routing import Route
 
 HTTPResponse = Union[
     Response,  # Functions can return a full Starlette Response object

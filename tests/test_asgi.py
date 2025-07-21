@@ -19,11 +19,7 @@ import pretend
 import pytest
 
 import functions_framework._http
-
-try:
-    from starlette.applications import Starlette
-except ImportError:
-    pass
+from starlette.applications import Starlette
 
 
 def test_httpserver_detects_asgi_app():
