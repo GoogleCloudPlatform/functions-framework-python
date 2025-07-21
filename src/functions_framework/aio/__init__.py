@@ -69,6 +69,7 @@ def cloud_event(func: CloudEventFunction) -> CloudEventFunction:
     _function_registry.REGISTRY_MAP[func.__name__] = (
         _function_registry.CLOUDEVENT_SIGNATURE_TYPE
     )
+    _function_registry.ASGI_FUNCTIONS.add(func.__name__)
     if inspect.iscoroutinefunction(func):
 
         @functools.wraps(func)
@@ -89,6 +90,7 @@ def http(func: HTTPFunction) -> HTTPFunction:
     _function_registry.REGISTRY_MAP[func.__name__] = (
         _function_registry.HTTP_SIGNATURE_TYPE
     )
+    _function_registry.ASGI_FUNCTIONS.add(func.__name__)
 
     if inspect.iscoroutinefunction(func):
 

@@ -20,6 +20,8 @@ import pytest
 from click.testing import CliRunner
 
 import functions_framework
+import functions_framework._function_registry as _function_registry
+import functions_framework.aio
 
 from functions_framework._cli import _cli
 
@@ -124,3 +126,49 @@ def test_asgi_cli(monkeypatch):
     assert result.exit_code == 0
     assert create_asgi_app.calls == [pretend.call("foo", None, "http")]
     assert asgi_server.run.calls == [pretend.call("0.0.0.0", 8080)]
+
+
+def test_auto_asgi_for_aio_decorated_functions(monkeypatch):
+    original_asgi_functions = _function_registry.ASGI_FUNCTIONS.copy()
+    _function_registry.ASGI_FUNCTIONS.clear()
+    _function_registry.ASGI_FUNCTIONS.add("my_aio_func")
+
+    asgi_app = pretend.stub()
+    create_asgi_app = pretend.call_recorder(lambda *a, **k: asgi_app)
+    aio_module = pretend.stub(create_asgi_app=create_asgi_app)
+    monkeypatch.setitem(sys.modules, "functions_framework.aio", aio_module)
+
+    asgi_server = pretend.stub(run=pretend.call_recorder(lambda host, port: None))
+    create_server = pretend.call_recorder(lambda app, debug: asgi_server)
+    monkeypatch.setattr(functions_framework._cli, "create_server", create_server)
+
+    runner = CliRunner()
+    result = runner.invoke(_cli, ["--target", "my_aio_func"])
+
+    assert create_asgi_app.calls == [pretend.call("my_aio_func", None, "http")]
+    assert asgi_server.run.calls == [pretend.call("0.0.0.0", 8080)]
+    
+    _function_registry.ASGI_FUNCTIONS.clear()
+    _function_registry.ASGI_FUNCTIONS.update(original_asgi_functions)
+
+
+def test_no_auto_asgi_for_regular_functions(monkeypatch):
+    original_asgi_functions = _function_registry.ASGI_FUNCTIONS.copy()
+    _function_registry.ASGI_FUNCTIONS.clear()
+
+    app = pretend.stub()
+    create_app = pretend.call_recorder(lambda *a, **k: app)
+    monkeypatch.setattr(functions_framework._cli, "create_app", create_app)
+
+    flask_server = pretend.stub(run=pretend.call_recorder(lambda host, port: None))
+    create_server = pretend.call_recorder(lambda app, debug: flask_server)
+    monkeypatch.setattr(functions_framework._cli, "create_server", create_server)
+
+    runner = CliRunner()
+    result = runner.invoke(_cli, ["--target", "regular_func"])
+
+    assert create_app.calls == [pretend.call("regular_func", None, "http")]
+    assert flask_server.run.calls == [pretend.call("0.0.0.0", 8080)]
+    
+    _function_registry.ASGI_FUNCTIONS.clear()
+    _function_registry.ASGI_FUNCTIONS.update(original_asgi_functions)

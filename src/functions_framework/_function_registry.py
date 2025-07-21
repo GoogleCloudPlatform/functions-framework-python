@@ -40,6 +40,10 @@ REGISTRY_MAP = {}
 # Keys are the user function name, values are the type of the function input
 INPUT_TYPE_MAP = {}
 
+# ASGI_FUNCTIONS stores function names that require ASGI mode.
+# Functions decorated with @aio.http or @aio.cloud_event are added here.
+ASGI_FUNCTIONS = set()
+
 
 def get_user_function(source, source_module, target):
     """Returns user function, raises exception for invalid function."""
