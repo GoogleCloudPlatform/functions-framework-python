@@ -54,6 +54,7 @@ jobs:
           production.cloudflare.docker.com:443
           pypi.org:443
           registry-1.docker.io:443
+          release-assets.githubusercontent.com:443
 
     - name: Checkout
       uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2

@@ -25,6 +25,12 @@ from typing import Any, Awaitable, Callable, Dict, Tuple, Union
 
 from cloudevents.http import from_http
 from cloudevents.http.event import CloudEvent
+from starlette.applications import Starlette
+from starlette.exceptions import HTTPException
+from starlette.middleware import Middleware
+from starlette.requests import Request
+from starlette.responses import JSONResponse, Response
+from starlette.routing import Route
 
 from functions_framework import (
     _enable_execution_id_logging,
@@ -35,19 +41,6 @@ from functions_framework.exceptions import (
     FunctionsFrameworkException,
     MissingSourceException,
 )
-
-try:
-    from starlette.applications import Starlette
-    from starlette.exceptions import HTTPException
-    from starlette.middleware import Middleware
-    from starlette.requests import Request
-    from starlette.responses import JSONResponse, Response
-    from starlette.routing import Route
-except ImportError:
-    raise FunctionsFrameworkException(
-        "Starlette is not installed. Install the framework with the 'async' extra: "
-        "pip install functions-framework[async]"
-    )
 
 HTTPResponse = Union[
     Response,  # Functions can return a full Starlette Response object

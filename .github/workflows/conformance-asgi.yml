@@ -29,6 +29,7 @@ jobs:
           proxy.golang.org:443
           pypi.org:443
           storage.googleapis.com:443
+          release-assets.githubusercontent.com:443
 
     - name: Checkout code
       uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -38,8 +39,8 @@ jobs:
       with:
         python-version: ${{ matrix.python }}
 
-    - name: Install the framework with async extras
-      run: python -m pip install -e .[async]
+    - name: Install the framework
+      run: python -m pip install -e .
 
     - name: Setup Go
       uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
