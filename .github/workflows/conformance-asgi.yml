@@ -39,8 +39,8 @@ jobs:
       with:
         python-version: ${{ matrix.python }}
 
-    - name: Install the framework with async extras
-      run: python -m pip install -e .[async]
+    - name: Install the framework
+      run: python -m pip install -e .
 
     - name: Setup Go
       uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
