@@ -20,13 +20,18 @@ import pretend
 import pytest
 
 from click.testing import CliRunner
-from starlette.applications import Starlette
 
 import functions_framework
 import functions_framework._function_registry as _function_registry
 import functions_framework.aio
 
 from functions_framework._cli import _cli
+
+# Conditional import for Starlette (Python 3.8+)
+if sys.version_info >= (3, 8):
+    from starlette.applications import Starlette
+else:
+    Starlette = None
 
 
 @pytest.fixture(autouse=True)
