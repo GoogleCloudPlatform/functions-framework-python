@@ -18,6 +18,7 @@ import pytest
 
 from cloudevents import conversion as ce_conversion
 from cloudevents.http import CloudEvent
+
 import functions_framework._function_registry as registry
 
 # Conditional import for Starlette
@@ -138,7 +139,7 @@ def test_aio_decorators_register_asgi_functions():
     registry.REGISTRY_MAP.clear()
     registry.ASGI_FUNCTIONS.clear()
 
-    from functions_framework.aio import http, cloud_event
+    from functions_framework.aio import cloud_event, http
 
     @http
     async def test_http_func(request):
@@ -164,7 +165,7 @@ def test_aio_decorators_register_asgi_functions():
 
     assert "test_http_sync" in registry.ASGI_FUNCTIONS
     assert "test_cloud_event_sync" in registry.ASGI_FUNCTIONS
-    
+
     registry.REGISTRY_MAP.clear()
     registry.REGISTRY_MAP.update(original_registry_map)
     registry.ASGI_FUNCTIONS.clear()

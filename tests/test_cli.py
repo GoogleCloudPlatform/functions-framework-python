@@ -147,7 +147,7 @@ def test_auto_asgi_for_aio_decorated_functions(monkeypatch):
 
     assert create_asgi_app.calls == [pretend.call("my_aio_func", None, "http")]
     assert asgi_server.run.calls == [pretend.call("0.0.0.0", 8080)]
-    
+
     _function_registry.ASGI_FUNCTIONS.clear()
     _function_registry.ASGI_FUNCTIONS.update(original_asgi_functions)
 
@@ -169,6 +169,6 @@ def test_no_auto_asgi_for_regular_functions(monkeypatch):
 
     assert create_app.calls == [pretend.call("regular_func", None, "http")]
     assert flask_server.run.calls == [pretend.call("0.0.0.0", 8080)]
-    
+
     _function_registry.ASGI_FUNCTIONS.clear()
     _function_registry.ASGI_FUNCTIONS.update(original_asgi_functions)

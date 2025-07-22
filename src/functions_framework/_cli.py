@@ -16,7 +16,7 @@ import os
 
 import click
 
-from functions_framework import create_app, _function_registry
+from functions_framework import _function_registry, create_app
 from functions_framework._http import create_server
 
 
