@@ -18,8 +18,9 @@ import flask
 import pretend
 import pytest
 
-import functions_framework._http
 from starlette.applications import Starlette
+
+import functions_framework._http
 
 
 def test_httpserver_detects_asgi_app():
