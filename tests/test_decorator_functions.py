@@ -37,6 +37,21 @@ else:
 
 TEST_FUNCTIONS_DIR = pathlib.Path(__file__).resolve().parent / "test_functions"
 
+
+@pytest.fixture
+def clean_registries():
+    """Clean up both REGISTRY_MAP and ASGI_FUNCTIONS registries."""
+    original_registry_map = registry.REGISTRY_MAP.copy()
+    original_asgi = registry.ASGI_FUNCTIONS.copy()
+    registry.REGISTRY_MAP.clear()
+    registry.ASGI_FUNCTIONS.clear()
+    yield
+    registry.REGISTRY_MAP.clear()
+    registry.REGISTRY_MAP.update(original_registry_map)
+    registry.ASGI_FUNCTIONS.clear()
+    registry.ASGI_FUNCTIONS.update(original_asgi)
+
+
 # Python 3.5: ModuleNotFoundError does not exist
 try:
     _ModuleNotFoundError = ModuleNotFoundError
@@ -132,23 +147,7 @@ def test_aio_http_dict_response():
     assert resp.json() == {"message": "hello", "count": 42, "success": True}
 
 
-@pytest.fixture
-def clean_registry():
-    """Save and restore registry state."""
-    original_registry_map = registry.REGISTRY_MAP.copy()
-    original_asgi_functions = registry.ASGI_FUNCTIONS.copy()
-    registry.REGISTRY_MAP.clear()
-    registry.ASGI_FUNCTIONS.clear()
-
-    yield
-
-    registry.REGISTRY_MAP.clear()
-    registry.REGISTRY_MAP.update(original_registry_map)
-    registry.ASGI_FUNCTIONS.clear()
-    registry.ASGI_FUNCTIONS.update(original_asgi_functions)
-
-
-def test_aio_decorators_register_asgi_functions(clean_registry):
+def test_aio_decorators_register_asgi_functions(clean_registries):
     """Test that @aio decorators add function names to ASGI_FUNCTIONS registry."""
     from functions_framework.aio import cloud_event, http
 

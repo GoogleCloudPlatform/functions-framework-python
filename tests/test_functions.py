@@ -495,7 +495,7 @@ def test_error_paths(http_trigger_client, path):
 def test_lazy_wsgi_app(monkeypatch, target, source, signature_type):
     actual_app_stub = pretend.stub()
     wsgi_app = pretend.call_recorder(lambda *a, **kw: actual_app_stub)
-    create_app = pretend.call_recorder(lambda *a: wsgi_app)
+    create_app = pretend.call_recorder(lambda *a, **kw: wsgi_app)
     monkeypatch.setattr(functions_framework, "create_app", create_app)
 
     # Test that it's lazy

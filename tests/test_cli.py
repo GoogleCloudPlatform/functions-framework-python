@@ -12,18 +12,35 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+import pathlib
 import sys
 
 import pretend
 import pytest
 
 from click.testing import CliRunner
+from starlette.applications import Starlette
 
 import functions_framework
 import functions_framework._function_registry as _function_registry
 import functions_framework.aio
 
 from functions_framework._cli import _cli
+
+
+@pytest.fixture
+def clean_registries():
+    """Clean up both REGISTRY_MAP and ASGI_FUNCTIONS registries."""
+    original_registry_map = _function_registry.REGISTRY_MAP.copy()
+    original_asgi = _function_registry.ASGI_FUNCTIONS.copy()
+    _function_registry.REGISTRY_MAP.clear()
+    _function_registry.ASGI_FUNCTIONS.clear()
+    yield
+    _function_registry.REGISTRY_MAP.clear()
+    _function_registry.REGISTRY_MAP.update(original_registry_map)
+    _function_registry.ASGI_FUNCTIONS.clear()
+    _function_registry.ASGI_FUNCTIONS.update(original_asgi)
 
 
 def test_cli_no_arguments():
@@ -128,47 +145,17 @@ def test_asgi_cli(monkeypatch):
     assert asgi_server.run.calls == [pretend.call("0.0.0.0", 8080)]
 
 
-@pytest.fixture
-def clean_registry():
-    """Save and restore function registry state."""
-    original_asgi = _function_registry.ASGI_FUNCTIONS.copy()
-    _function_registry.ASGI_FUNCTIONS.clear()
-    yield
-    _function_registry.ASGI_FUNCTIONS.clear()
-    _function_registry.ASGI_FUNCTIONS.update(original_asgi)
+def test_cli_auto_detects_asgi_decorator(clean_registries):
+    """Test that CLI auto-detects @aio decorated functions without --asgi flag."""
+    # Use the actual async_decorator.py test file which has @aio.http decorated functions
+    test_functions_dir = pathlib.Path(__file__).parent / "test_functions" / "decorators"
+    source = test_functions_dir / "async_decorator.py"
 
+    # Call create_app without any asgi flag - should auto-detect
+    app = functions_framework.create_app(target="function_http", source=str(source))
 
-def test_auto_asgi_for_aio_decorated_functions(monkeypatch, clean_registry):
-    _function_registry.ASGI_FUNCTIONS.add("my_aio_func")
+    # Verify it created a Starlette app (ASGI)
+    assert isinstance(app, Starlette)
 
-    asgi_app = pretend.stub()
-    create_asgi_app = pretend.call_recorder(lambda *a, **k: asgi_app)
-    aio_module = pretend.stub(create_asgi_app=create_asgi_app)
-    monkeypatch.setitem(sys.modules, "functions_framework.aio", aio_module)
-
-    asgi_server = pretend.stub(run=pretend.call_recorder(lambda host, port: None))
-    create_server = pretend.call_recorder(lambda app, debug: asgi_server)
-    monkeypatch.setattr(functions_framework._cli, "create_server", create_server)
-
-    runner = CliRunner()
-    result = runner.invoke(_cli, ["--target", "my_aio_func"])
-
-    assert create_asgi_app.calls == [pretend.call("my_aio_func", None, "http")]
-    assert asgi_server.run.calls == [pretend.call("0.0.0.0", 8080)]
-
-
-def test_no_auto_asgi_for_regular_functions(monkeypatch, clean_registry):
-
-    app = pretend.stub()
-    create_app = pretend.call_recorder(lambda *a, **k: app)
-    monkeypatch.setattr(functions_framework._cli, "create_app", create_app)
-
-    flask_server = pretend.stub(run=pretend.call_recorder(lambda host, port: None))
-    create_server = pretend.call_recorder(lambda app, debug: flask_server)
-    monkeypatch.setattr(functions_framework._cli, "create_server", create_server)
-
-    runner = CliRunner()
-    result = runner.invoke(_cli, ["--target", "regular_func"])
-
-    assert create_app.calls == [pretend.call("regular_func", None, "http")]
-    assert flask_server.run.calls == [pretend.call("0.0.0.0", 8080)]
+    # Verify the function was registered in ASGI_FUNCTIONS
+    assert "function_http" in _function_registry.ASGI_FUNCTIONS
