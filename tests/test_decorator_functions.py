@@ -38,7 +38,7 @@ else:
 TEST_FUNCTIONS_DIR = pathlib.Path(__file__).resolve().parent / "test_functions"
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def clean_registries():
     """Clean up both REGISTRY_MAP and ASGI_FUNCTIONS registries."""
     original_registry_map = registry.REGISTRY_MAP.copy()
@@ -147,7 +147,7 @@ def test_aio_http_dict_response():
     assert resp.json() == {"message": "hello", "count": 42, "success": True}
 
 
-def test_aio_decorators_register_asgi_functions(clean_registries):
+def test_aio_decorators_register_asgi_functions():
     """Test that @aio decorators add function names to ASGI_FUNCTIONS registry."""
     from functions_framework.aio import cloud_event, http
 

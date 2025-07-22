@@ -229,7 +229,7 @@ def create_asgi_app_from_module(target, source, signature_type, source_module, s
         A Starlette ASGI application instance
     """
     enable_id_logging = _enable_execution_id_logging()
-    if enable_id_logging:
+    if enable_id_logging:  # pragma: no cover
         _configure_app_execution_id_logging()
 
     function = _function_registry.get_user_function(source, source_module, target)

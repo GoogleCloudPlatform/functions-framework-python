@@ -13,7 +13,23 @@
 # limitations under the License.
 import os
 
+import pytest
+
 from functions_framework import _function_registry
+
+
+@pytest.fixture(autouse=True)
+def clean_registries():
+    """Clean up both REGISTRY_MAP and ASGI_FUNCTIONS registries."""
+    original_registry_map = _function_registry.REGISTRY_MAP.copy()
+    original_asgi = _function_registry.ASGI_FUNCTIONS.copy()
+    _function_registry.REGISTRY_MAP.clear()
+    _function_registry.ASGI_FUNCTIONS.clear()
+    yield
+    _function_registry.REGISTRY_MAP.clear()
+    _function_registry.REGISTRY_MAP.update(original_registry_map)
+    _function_registry.ASGI_FUNCTIONS.clear()
+    _function_registry.ASGI_FUNCTIONS.update(original_asgi)
 
 
 def test_get_function_signature():
