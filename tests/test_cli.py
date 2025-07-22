@@ -128,9 +128,17 @@ def test_asgi_cli(monkeypatch):
     assert asgi_server.run.calls == [pretend.call("0.0.0.0", 8080)]
 
 
-def test_auto_asgi_for_aio_decorated_functions(monkeypatch):
-    original_asgi_functions = _function_registry.ASGI_FUNCTIONS.copy()
+@pytest.fixture
+def clean_registry():
+    """Save and restore function registry state."""
+    original_asgi = _function_registry.ASGI_FUNCTIONS.copy()
     _function_registry.ASGI_FUNCTIONS.clear()
+    yield
+    _function_registry.ASGI_FUNCTIONS.clear()
+    _function_registry.ASGI_FUNCTIONS.update(original_asgi)
+
+
+def test_auto_asgi_for_aio_decorated_functions(monkeypatch, clean_registry):
     _function_registry.ASGI_FUNCTIONS.add("my_aio_func")
 
     asgi_app = pretend.stub()
@@ -148,13 +156,8 @@ def test_auto_asgi_for_aio_decorated_functions(monkeypatch):
     assert create_asgi_app.calls == [pretend.call("my_aio_func", None, "http")]
     assert asgi_server.run.calls == [pretend.call("0.0.0.0", 8080)]
 
-    _function_registry.ASGI_FUNCTIONS.clear()
-    _function_registry.ASGI_FUNCTIONS.update(original_asgi_functions)
 
-
-def test_no_auto_asgi_for_regular_functions(monkeypatch):
-    original_asgi_functions = _function_registry.ASGI_FUNCTIONS.copy()
-    _function_registry.ASGI_FUNCTIONS.clear()
+def test_no_auto_asgi_for_regular_functions(monkeypatch, clean_registry):
 
     app = pretend.stub()
     create_app = pretend.call_recorder(lambda *a, **k: app)
@@ -169,6 +172,3 @@ def test_no_auto_asgi_for_regular_functions(monkeypatch):
 
     assert create_app.calls == [pretend.call("regular_func", None, "http")]
     assert flask_server.run.calls == [pretend.call("0.0.0.0", 8080)]
-
-    _function_registry.ASGI_FUNCTIONS.clear()
-    _function_registry.ASGI_FUNCTIONS.update(original_asgi_functions)
