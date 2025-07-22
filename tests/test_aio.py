@@ -35,8 +35,6 @@ from functions_framework.aio import (
 TEST_FUNCTIONS_DIR = pathlib.Path(__file__).resolve().parent / "test_functions"
 
 
-
-
 def test_invalid_function_definition_missing_function_file():
     source = TEST_FUNCTIONS_DIR / "missing_function_file" / "main.py"
     target = "function"
