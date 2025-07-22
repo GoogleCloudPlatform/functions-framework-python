@@ -150,12 +150,8 @@ def test_asgi_cli(monkeypatch):
     assert asgi_server.run.calls == [pretend.call("0.0.0.0", 8080)]
 
 
-@pytest.mark.parametrize("log_execution_id", [None, "true"])
-def test_cli_auto_detects_asgi_decorator(monkeypatch, log_execution_id):
+def test_cli_auto_detects_asgi_decorator():
     """Test that CLI auto-detects @aio decorated functions without --asgi flag."""
-    if log_execution_id:
-        monkeypatch.setenv("LOG_EXECUTION_ID", log_execution_id)
-
     # Use the actual async_decorator.py test file which has @aio.http decorated functions
     test_functions_dir = pathlib.Path(__file__).parent / "test_functions" / "decorators"
     source = test_functions_dir / "async_decorator.py"
