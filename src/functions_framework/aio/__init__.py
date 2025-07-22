@@ -215,6 +215,29 @@ class ExceptionHandlerMiddleware:
             # Don't re-raise to prevent starlette from printing traceback again
 
 
+def create_asgi_app_from_module(target, source, signature_type, source_module, spec):
+    """Create an ASGI application from an already-loaded module.
+
+    Args:
+        target: The name of the target function to invoke
+        source: The source file containing the function
+        signature_type: The signature type of the function
+        source_module: The already-loaded module
+        spec: The module spec
+
+    Returns:
+        A Starlette ASGI application instance
+    """
+    enable_id_logging = _enable_execution_id_logging()
+    if enable_id_logging:
+        _configure_app_execution_id_logging()
+
+    function = _function_registry.get_user_function(source, source_module, target)
+    signature_type = _function_registry.get_func_signature_type(target, signature_type)
+
+    return _create_asgi_app_with_function(function, signature_type, enable_id_logging)
+
+
 def create_asgi_app(target=None, source=None, signature_type=None):
     """Create an ASGI application for the function.
 
@@ -245,6 +268,11 @@ def create_asgi_app(target=None, source=None, signature_type=None):
     function = _function_registry.get_user_function(source, source_module, target)
     signature_type = _function_registry.get_func_signature_type(target, signature_type)
 
+    return _create_asgi_app_with_function(function, signature_type, enable_id_logging)
+
+
+def _create_asgi_app_with_function(function, signature_type, enable_id_logging):
+    """Create an ASGI app with the given function and signature type."""
     is_async = inspect.iscoroutinefunction(function)
     routes = []
     if signature_type == _function_registry.HTTP_SIGNATURE_TYPE:

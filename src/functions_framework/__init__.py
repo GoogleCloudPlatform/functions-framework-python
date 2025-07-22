@@ -327,6 +327,16 @@ def crash_handler(e):
 
 
 def create_app(target=None, source=None, signature_type=None):
+    """Create an app for the function.
+
+    Args:
+        target: The name of the target function to invoke
+        source: The source file containing the function
+        signature_type: The signature type of the function
+
+    Returns:
+        A Flask WSGI app or Starlette ASGI app depending on function decorators
+    """
     target = _function_registry.get_function_target(target)
     source = _function_registry.get_function_source(source)
 
@@ -370,6 +380,7 @@ def create_app(target=None, source=None, signature_type=None):
         setup_logging()
 
     _app.wsgi_app = execution_id.WsgiMiddleware(_app.wsgi_app)
+
     # Execute the module, within the application context
     with _app.app_context():
         try:
@@ -393,6 +404,23 @@ def create_app(target=None, source=None, signature_type=None):
                 # When not reloading, raise the error immediately so the
                 # command fails.
                 raise e from None
+
+    use_asgi = target in _function_registry.ASGI_FUNCTIONS
+    if use_asgi:
+        # This function needs ASGI, delegate to create_asgi_app
+        # Note: @aio decorators only register functions in ASGI_FUNCTIONS when the
+        # module is imported. We can't know if a function uses @aio until after
+        # we load the module.
+        #
+        # To avoid loading modules twice, we always create a Flask app first, load the
+        # module within its context, then check if ASGI is needed. This results in an
+        # unused Flask app for ASGI functions, but we accept this memory overhead as a
+        # trade-off.
+        from functions_framework.aio import create_asgi_app_from_module
+
+        return create_asgi_app_from_module(
+            target, source, signature_type, source_module, spec
+        )
 
     # Get the configured function signature type
     signature_type = _function_registry.get_func_signature_type(target, signature_type)
