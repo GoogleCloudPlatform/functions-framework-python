@@ -23,7 +23,6 @@ from click.testing import CliRunner
 
 import functions_framework
 import functions_framework._function_registry as _function_registry
-import functions_framework.aio
 
 from functions_framework._cli import _cli
 
