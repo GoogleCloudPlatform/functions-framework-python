@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.9.0](https://github.com/GoogleCloudPlatform/functions-framework-python/compare/v3.8.3...v3.9.0) (2025-07-23)
+
+
+### Features
+
+* add execution_id support for async stack ([#377](https://github.com/GoogleCloudPlatform/functions-framework-python/issues/377)) ([1123eea](https://github.com/GoogleCloudPlatform/functions-framework-python/commit/1123eeac8cedae23af8980a928f01f5ad100d9de))
+* add flag to run functions framework in asgi stack ([#376](https://github.com/GoogleCloudPlatform/functions-framework-python/issues/376)) ([268acf1](https://github.com/GoogleCloudPlatform/functions-framework-python/commit/268acf121015bf2a5592715e4cfe582f9d236ff8))
+* add support for async functions ([#364](https://github.com/GoogleCloudPlatform/functions-framework-python/issues/364)) ([49f6985](https://github.com/GoogleCloudPlatform/functions-framework-python/commit/49f698517a06d0e47b2aadc2d603e0b193770440))
+* auto-detect ASGI mode for [@aio](https://github.com/aio) decorated functions ([#387](https://github.com/GoogleCloudPlatform/functions-framework-python/issues/387)) ([ef48e70](https://github.com/GoogleCloudPlatform/functions-framework-python/commit/ef48e70ee21432a5c7ff014e064b8424254ef289))
+
+
+### Bug Fixes
+
+* **ci:** specify python version in tox environment ([#375](https://github.com/GoogleCloudPlatform/functions-framework-python/issues/375)) ([37e0bf7](https://github.com/GoogleCloudPlatform/functions-framework-python/commit/37e0bf764ff24ebb82ba18bcac1bee6b03cecb13))
+* Pin cloudevent sdk version to support python3.7. ([#373](https://github.com/GoogleCloudPlatform/functions-framework-python/issues/373)) ([cc2b9b5](https://github.com/GoogleCloudPlatform/functions-framework-python/commit/cc2b9b584fcc3daaa2762ae62a3ce1277a488a1c))
+* resolve CI failures for egress policies and Python 3.7 buildpack support ([#388](https://github.com/GoogleCloudPlatform/functions-framework-python/issues/388)) ([2de6eec](https://github.com/GoogleCloudPlatform/functions-framework-python/commit/2de6eec6fae132b8b1fb41e7024a2260a05bc072))
+* set default log level for asgi logger to WARNING to match default python behavior ([#381](https://github.com/GoogleCloudPlatform/functions-framework-python/issues/381)) ([a576a8f](https://github.com/GoogleCloudPlatform/functions-framework-python/commit/a576a8f28a6029fc5b5ab0725d2aa9c6c5f4304f))
+
 ## [3.8.3](https://github.com/GoogleCloudPlatform/functions-framework-python/compare/v3.8.2...v3.8.3) (2025-05-14)
 
 
