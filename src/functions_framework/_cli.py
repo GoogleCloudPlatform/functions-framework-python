@@ -16,7 +16,7 @@ import os
 
 import click
 
-from functions_framework import create_app
+from functions_framework import _function_registry, create_app
 from functions_framework._http import create_server
 
 
@@ -39,11 +39,10 @@ from functions_framework._http import create_server
     help="Use ASGI server for function execution",
 )
 def _cli(target, source, signature_type, host, port, debug, asgi):
-    if asgi:  # pragma: no cover
+    if asgi:
         from functions_framework.aio import create_asgi_app
 
         app = create_asgi_app(target, source, signature_type)
     else:
         app = create_app(target, source, signature_type)
-
     create_server(app, debug).run(host, port)

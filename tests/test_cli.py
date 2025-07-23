@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+import pathlib
 import sys
 
 import pretend
@@ -20,8 +22,29 @@ import pytest
 from click.testing import CliRunner
 
 import functions_framework
+import functions_framework._function_registry as _function_registry
 
 from functions_framework._cli import _cli
+
+# Conditional import for Starlette (Python 3.8+)
+if sys.version_info >= (3, 8):
+    from starlette.applications import Starlette
+else:
+    Starlette = None
+
+
+@pytest.fixture(autouse=True)
+def clean_registries():
+    """Clean up both REGISTRY_MAP and ASGI_FUNCTIONS registries."""
+    original_registry_map = _function_registry.REGISTRY_MAP.copy()
+    original_asgi = _function_registry.ASGI_FUNCTIONS.copy()
+    _function_registry.REGISTRY_MAP.clear()
+    _function_registry.ASGI_FUNCTIONS.clear()
+    yield
+    _function_registry.REGISTRY_MAP.clear()
+    _function_registry.REGISTRY_MAP.update(original_registry_map)
+    _function_registry.ASGI_FUNCTIONS.clear()
+    _function_registry.ASGI_FUNCTIONS.update(original_asgi)
 
 
 def test_cli_no_arguments():
@@ -124,3 +147,19 @@ def test_asgi_cli(monkeypatch):
     assert result.exit_code == 0
     assert create_asgi_app.calls == [pretend.call("foo", None, "http")]
     assert asgi_server.run.calls == [pretend.call("0.0.0.0", 8080)]
+
+
+def test_cli_auto_detects_asgi_decorator():
+    """Test that CLI auto-detects @aio decorated functions without --asgi flag."""
+    # Use the actual async_decorator.py test file which has @aio.http decorated functions
+    test_functions_dir = pathlib.Path(__file__).parent / "test_functions" / "decorators"
+    source = test_functions_dir / "async_decorator.py"
+
+    # Call create_app without any asgi flag - should auto-detect
+    app = functions_framework.create_app(target="function_http", source=str(source))
+
+    # Verify it created a Starlette app (ASGI)
+    assert isinstance(app, Starlette)
+
+    # Verify the function was registered in ASGI_FUNCTIONS
+    assert "function_http" in _function_registry.ASGI_FUNCTIONS
