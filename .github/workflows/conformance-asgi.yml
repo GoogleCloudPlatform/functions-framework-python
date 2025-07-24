@@ -54,6 +54,7 @@ jobs:
         useBuildpacks: false
         validateMapping: false
         cmd: "'functions-framework --source tests/conformance/async_main.py --target write_http --signature-type http --asgi'"
+        startDelay: 5
 
     - name: Run CloudEvents conformance tests
       uses: GoogleCloudPlatform/functions-framework-conformance/action@c7b9c8798fb35e454f76da185a40547ee55c784e # v1.8.7
@@ -62,6 +63,7 @@ jobs:
         useBuildpacks: false
         validateMapping: false
         cmd: "'functions-framework --source tests/conformance/async_main.py --target write_cloud_event --signature-type cloudevent --asgi'"
+        startDelay: 5
 
     - name: Run HTTP conformance tests declarative
       uses: GoogleCloudPlatform/functions-framework-conformance/action@c7b9c8798fb35e454f76da185a40547ee55c784e # v1.8.7
@@ -70,6 +72,7 @@ jobs:
         useBuildpacks: false
         validateMapping: false
         cmd: "'functions-framework --source tests/conformance/async_main.py --target write_http_declarative --asgi'"
+        startDelay: 5
 
     - name: Run CloudEvents conformance tests declarative
       uses: GoogleCloudPlatform/functions-framework-conformance/action@c7b9c8798fb35e454f76da185a40547ee55c784e # v1.8.7
@@ -78,6 +81,7 @@ jobs:
         useBuildpacks: false
         validateMapping: false
         cmd: "'functions-framework --source tests/conformance/async_main.py --target write_cloud_event_declarative --asgi'"
+        startDelay: 5
 
     - name: Run HTTP concurrency tests declarative
       uses: GoogleCloudPlatform/functions-framework-conformance/action@c7b9c8798fb35e454f76da185a40547ee55c784e # v1.8.7
@@ -86,6 +90,7 @@ jobs:
         useBuildpacks: false
         validateConcurrency: true
         cmd: "'functions-framework --source tests/conformance/async_main.py --target write_http_declarative_concurrent --asgi'"
+        startDelay: 5
 
     # Note: Event (legacy) and Typed tests are not supported in ASGI mode
     # Note: validateMapping is set to false for CloudEvent tests because ASGI mode
