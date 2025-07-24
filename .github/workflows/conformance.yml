@@ -22,7 +22,7 @@ jobs:
     runs-on: ${{ matrix.platform }}
     steps:
     - name: Harden Runner
-      uses: step-security/harden-runner@0634a2670c59f64b4a01f0f96f84700a4088b9f0 # v2.12.0
+      uses: step-security/harden-runner@ec9f2d5744a09debf3a187a3f4f675c53b671911 # v2.13.0
       with:
         disable-sudo: true
         egress-policy: block
@@ -53,7 +53,7 @@ jobs:
         go-version: '1.24'
 
     - name: Run HTTP conformance tests
-      uses: GoogleCloudPlatform/functions-framework-conformance/action@72a4f36b10f1c6435ab1a86a9ea24bda464cc262 # v1.8.6
+      uses: GoogleCloudPlatform/functions-framework-conformance/action@c7b9c8798fb35e454f76da185a40547ee55c784e # v1.8.7
       with:
         functionType: 'http'
         useBuildpacks: false
@@ -61,7 +61,7 @@ jobs:
         cmd: "'functions-framework --source tests/conformance/main.py --target write_http --signature-type http'"
 
     - name: Run event conformance tests
-      uses: GoogleCloudPlatform/functions-framework-conformance/action@72a4f36b10f1c6435ab1a86a9ea24bda464cc262 # v1.8.6
+      uses: GoogleCloudPlatform/functions-framework-conformance/action@c7b9c8798fb35e454f76da185a40547ee55c784e # v1.8.7
       with:
         functionType: 'legacyevent'
         useBuildpacks: false
@@ -69,7 +69,7 @@ jobs:
         cmd: "'functions-framework --source tests/conformance/main.py --target write_legacy_event --signature-type event'"
 
     - name: Run CloudEvents conformance tests
-      uses: GoogleCloudPlatform/functions-framework-conformance/action@72a4f36b10f1c6435ab1a86a9ea24bda464cc262 # v1.8.6
+      uses: GoogleCloudPlatform/functions-framework-conformance/action@c7b9c8798fb35e454f76da185a40547ee55c784e # v1.8.7
       with:
         functionType: 'cloudevent'
         useBuildpacks: false
@@ -77,7 +77,7 @@ jobs:
         cmd: "'functions-framework --source tests/conformance/main.py --target write_cloud_event --signature-type cloudevent'"
 
     - name: Run HTTP conformance tests declarative
-      uses: GoogleCloudPlatform/functions-framework-conformance/action@72a4f36b10f1c6435ab1a86a9ea24bda464cc262 # v1.8.6
+      uses: GoogleCloudPlatform/functions-framework-conformance/action@c7b9c8798fb35e454f76da185a40547ee55c784e # v1.8.7
       with:
         functionType: 'http'
         useBuildpacks: false
@@ -85,7 +85,7 @@ jobs:
         cmd: "'functions-framework --source tests/conformance/main.py --target write_http_declarative'"
 
     - name: Run CloudEvents conformance tests declarative
-      uses: GoogleCloudPlatform/functions-framework-conformance/action@72a4f36b10f1c6435ab1a86a9ea24bda464cc262 # v1.8.6
+      uses: GoogleCloudPlatform/functions-framework-conformance/action@c7b9c8798fb35e454f76da185a40547ee55c784e # v1.8.7
       with:
         functionType: 'cloudevent'
         useBuildpacks: false
@@ -93,7 +93,7 @@ jobs:
         cmd: "'functions-framework --source tests/conformance/main.py --target write_cloud_event_declarative'"
 
     - name: Run HTTP concurrency tests declarative
-      uses: GoogleCloudPlatform/functions-framework-conformance/action@72a4f36b10f1c6435ab1a86a9ea24bda464cc262 # v1.8.6
+      uses: GoogleCloudPlatform/functions-framework-conformance/action@c7b9c8798fb35e454f76da185a40547ee55c784e # v1.8.7
       with:
         functionType: 'http'
         useBuildpacks: false
@@ -101,7 +101,7 @@ jobs:
         cmd: "'functions-framework --source tests/conformance/main.py --target write_http_declarative_concurrent'"
 
     - name: Run Typed tests declarative
-      uses: GoogleCloudPlatform/functions-framework-conformance/action@72a4f36b10f1c6435ab1a86a9ea24bda464cc262 # v1.8.6
+      uses: GoogleCloudPlatform/functions-framework-conformance/action@c7b9c8798fb35e454f76da185a40547ee55c784e # v1.8.7
       with:
         functionType: 'http'
         declarativeType: 'typed'
