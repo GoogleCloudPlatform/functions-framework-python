@@ -1,6 +1,6 @@
 [project]
 name = "functions-framework"
-version = "3.9.1"
+version = "3.9.2"
 description = "An open source FaaS (Function as a service) framework for writing portable Python functions -- brought to you by the Google Cloud Functions team."
 readme = "README.md"
 requires-python = ">=3.7, <4"
