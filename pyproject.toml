@@ -29,7 +29,6 @@ dependencies = [
   "gunicorn>=22.0.0; platform_system!='Windows'",
   "cloudevents>=1.2.0,<=1.11.0",                  # Must support python 3.7
   "Werkzeug>=0.14,<4.0.0",
-  "httpx>=0.24.1",
   "starlette>=0.37.0,<1.0.0; python_version>='3.8'",
   "uvicorn>=0.18.0,<1.0.0; python_version>='3.8'",
   "uvicorn-worker>=0.2.0,<1.0.0; python_version>='3.8'",
