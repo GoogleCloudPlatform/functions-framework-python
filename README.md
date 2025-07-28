@@ -44,6 +44,11 @@ Install the Functions Framework via `pip`:
 ```sh
 pip install functions-framework
 ```
+Or conda:
+
+```sh
+conda install conda-forge::functions-framework
+```
 
 Or, for deployment, add the Functions Framework to your `requirements.txt` file:
 
