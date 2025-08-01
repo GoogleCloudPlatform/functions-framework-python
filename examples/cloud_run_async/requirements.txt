@@ -1,0 +1,5 @@
+# Function dependencies
+functions-framework
+
+# For testing
+httpx
