@@ -39,8 +39,7 @@ gcloud run deploy streaming-function \
     --source . \
     --function hello_stream \
     --base-image python312 \
-    --region <YOUR_REGION> \
-    --allow-unauthenticated
+    --region <YOUR_REGION>
 ```
 
 ### Asynchronous Streaming
@@ -49,8 +48,7 @@ gcloud run deploy streaming-async-function \
     --source . \
     --function hello_stream_async \
     --base-image python312 \
-    --region <YOUR_REGION> \
-    --allow-unauthenticated
+    --region <YOUR_REGION>
 ```
 
 ```

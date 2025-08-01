@@ -1,6 +1,6 @@
 # Deploying async functions to Cloud Run
 
-This sample shows how to deploy asynchronous functions to [Cloud Run](http://cloud.google.com/run) with the Functions Framework. It includes examples for both HTTP and CloudEvent functions, which can be found in the `main.py` file.
+This sample shows how to deploy asynchronous functions to [Cloud Run functions](https://cloud.google.com/functions) with the Functions Framework. It includes examples for both HTTP and CloudEvent functions, which can be found in the `main.py` file.
 
 ## Dependencies
 Install the dependencies for this example:
@@ -40,8 +40,7 @@ gcloud run deploy async-http-function \
     --source . \
     --function hello_async_http \
     --base-image python312 \
-    --region <YOUR_REGION> \
-    --allow-unauthenticated
+    --region <YOUR_REGION>
 ```
 
 ### CloudEvent Function
@@ -51,8 +50,8 @@ gcloud run deploy async-cloudevent-function \
     --function hello_async_cloudevent \
     --base-image python312 \
     --region <YOUR_REGION> \
-    --set-env-vars=FUNCTION_SIGNATURE_TYPE=cloudevent \
-    --allow-unauthenticated
+    --set-env-vars=FUNCTION_SIGNATURE_TYPE=cloudevent
 ```
 After deploying, you can invoke the CloudEvent function by sending an HTTP POST request with a CloudEvent payload to its URL.
+```
 
