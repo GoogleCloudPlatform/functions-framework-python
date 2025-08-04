@@ -1,2 +1,1 @@
-# Function dependencies
-functions-framework>=3.9.2
+functions-framework>=3.9.2,<4.0.0

@@ -18,8 +18,8 @@ import httpx
 
 from cloudevents.http import CloudEvent, to_structured
 
+
 async def main():
-    # Create a cloudevent
     attributes = {
         "Content-Type": "application/json",
         "source": "from-galaxy-far-far-away",
@@ -29,9 +29,8 @@ async def main():
 
     event = CloudEvent(attributes, data)
 
-    # Send the event to the local functions-framework server
     headers, data = to_structured(event)
-    
+
     async with httpx.AsyncClient() as client:
         await client.post("http://localhost:8080/", headers=headers, data=data)
 

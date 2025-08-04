@@ -1,5 +1,4 @@
-# Function dependencies
-functions-framework
+functions-framework>=3.9.2,<4.0.0
 
 # For testing
-httpx
+httpx<=0.28.1
