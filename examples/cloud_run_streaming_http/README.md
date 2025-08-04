@@ -63,6 +63,3 @@ gcloud run deploy streaming-async-function \
     --base-image python312 \
     --region <YOUR_REGION>
 ```
-
-```
-

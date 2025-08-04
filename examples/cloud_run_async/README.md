@@ -66,6 +66,3 @@ gcloud run deploy async-cloudevent-function \
 ```
 
 After deploying, you can invoke the CloudEvent function by sending an HTTP POST request with a CloudEvent payload to its URL.
-
-```
-
