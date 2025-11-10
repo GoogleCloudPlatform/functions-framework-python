@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.10.0](https://github.com/GoogleCloudPlatform/functions-framework-python/compare/v3.9.2...v3.10.0) (2025-11-10)
+
+
+### Features
+
+* Add async and streaming examples ([#393](https://github.com/GoogleCloudPlatform/functions-framework-python/issues/393)) ([a07b1e4](https://github.com/GoogleCloudPlatform/functions-framework-python/commit/a07b1e4f81d84424189488022e5f3d59c06014cc))
+
+
+### Bug Fixes
+
+* **ci:** Add release-assets.githubusercontent.com to allowed endpoints ([#394](https://github.com/GoogleCloudPlatform/functions-framework-python/issues/394)) ([9b37f85](https://github.com/GoogleCloudPlatform/functions-framework-python/commit/9b37f85f6c37078119c2ea3cc91e6b3c00954a8c))
+* remove Python 3.7 test execution ([#402](https://github.com/GoogleCloudPlatform/functions-framework-python/issues/402)) ([ef45fae](https://github.com/GoogleCloudPlatform/functions-framework-python/commit/ef45fae46896b50a7a3e0e5c3cb4813519e3cb76))
+
 ## [3.9.2](https://github.com/GoogleCloudPlatform/functions-framework-python/compare/v3.9.1...v3.9.2) (2025-07-24)
 
 
