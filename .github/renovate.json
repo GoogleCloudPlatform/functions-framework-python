@@ -1,15 +1,29 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["group:allNonMajor", "schedule:monthly"],
+  "extends": [
+    "group:allNonMajor",
+    "schedule:monthly"
+  ],
+  "semanticCommits": "enabled",
   "packageRules": [
     {
       "description": "Create a PR whenever there is a new major version",
-      "matchUpdateTypes": [
-        "major"
-      ]
+      "matchUpdateTypes": ["major"]
+    },
+    {
+      "description": "Use releasable commit type for runtime dependency updates",
+      "matchManagers": ["pep621", "pip_setup"],
+      "matchDepTypes": ["dependencies"],
+      "semanticCommitType": "fix",
+      "semanticCommitScope": "deps"
+    },
+    {
+      "description": "Keep development-only dependency updates non-releasable",
+      "matchManagers": ["pep621"],
+      "matchDepTypes": ["dependency-groups"],
+      "semanticCommitType": "chore",
+      "semanticCommitScope": "deps"
     }
   ],
-  "ignorePaths": [
-    "examples/**"
-  ]
+  "ignorePaths": ["examples/**"]
 }
