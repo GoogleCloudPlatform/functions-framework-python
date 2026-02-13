@@ -26,6 +26,7 @@ jobs:
       builder-runtime-version: '3.8'
       start-delay: 5
       conformance-action-version: 'dl-fix-ci'
+      conformance-client-version: 'dl-fix-ci'
   python39:
     uses: GoogleCloudPlatform/functions-framework-conformance/.github/workflows/buildpack-integration-test.yml@dl-fix-ci
     with:
@@ -38,6 +39,7 @@ jobs:
       builder-runtime-version: '3.9'
       start-delay: 5
       conformance-action-version: 'dl-fix-ci'
+      conformance-client-version: 'dl-fix-ci'
   python310:
     uses: GoogleCloudPlatform/functions-framework-conformance/.github/workflows/buildpack-integration-test.yml@dl-fix-ci
     with:
@@ -50,6 +52,7 @@ jobs:
       builder-runtime-version: '3.10'
       start-delay: 5
       conformance-action-version: 'dl-fix-ci'
+      conformance-client-version: 'dl-fix-ci'
   python311:
     uses: GoogleCloudPlatform/functions-framework-conformance/.github/workflows/buildpack-integration-test.yml@dl-fix-ci
     with:
@@ -62,6 +65,7 @@ jobs:
       builder-runtime-version: '3.11'
       start-delay: 5
       conformance-action-version: 'dl-fix-ci'
+      conformance-client-version: 'dl-fix-ci'
 # Python 3.12 conformance tests are disabled due to the buildpack defaulting to
 # Ubuntu 18.04, which has no Python 3.12 version, and being unable to specify
 # the OS/stack via the conformance test configuration
