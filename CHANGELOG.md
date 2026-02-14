@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.10.1](https://github.com/GoogleCloudPlatform/functions-framework-python/compare/v3.10.0...v3.10.1) (2026-02-13)
+
+
+### Bug Fixes
+
+* Correct cloudevents dependency to allow 1.11.0 ([#405](https://github.com/GoogleCloudPlatform/functions-framework-python/issues/405)) ([8d74a7b](https://github.com/GoogleCloudPlatform/functions-framework-python/commit/8d74a7b9ecead58df77208d6e4717419a9aa9447))
+* pin lint tool versions to avoid surprise breakages ([#413](https://github.com/GoogleCloudPlatform/functions-framework-python/issues/413)) ([43e63f6](https://github.com/GoogleCloudPlatform/functions-framework-python/commit/43e63f6f847d89eeb018add028fb6222f2fac38c))
+
 ## [3.10.0](https://github.com/GoogleCloudPlatform/functions-framework-python/compare/v3.9.2...v3.10.0) (2025-11-10)
 
 
