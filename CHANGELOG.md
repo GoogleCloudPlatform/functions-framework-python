@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.10.2](https://github.com/GoogleCloudPlatform/functions-framework-python/compare/v3.10.1...v3.10.2) (2026-06-17)
+
+
+### Bug Fixes
+
+* **ci:** update allowed endpoints for harden-runner ([#427](https://github.com/GoogleCloudPlatform/functions-framework-python/issues/427)) ([715ba9a](https://github.com/GoogleCloudPlatform/functions-framework-python/commit/715ba9a4a8075eed73d78c28209763a7eb67f01f))
+* **deps:** bump starlette to &gt;=1.0.1 on Python 3.10+ to fix PYSEC-2026-161 ([#423](https://github.com/GoogleCloudPlatform/functions-framework-python/issues/423)) ([c650171](https://github.com/GoogleCloudPlatform/functions-framework-python/commit/c6501715bb57348ead817ee90c18622b3c1c31ab))
+* remove macos-13 from test matrix (runner retired) ([#414](https://github.com/GoogleCloudPlatform/functions-framework-python/issues/414)) ([b41ee77](https://github.com/GoogleCloudPlatform/functions-framework-python/commit/b41ee77d6fb61a9e0a76f17d561a221e50fe788a))
+
 ## [3.10.1](https://github.com/GoogleCloudPlatform/functions-framework-python/compare/v3.10.0...v3.10.1) (2026-02-17)
 
 
