@@ -40,6 +40,12 @@ from functions_framework._http import create_server
 )
 def _cli(target, source, signature_type, host, port, debug, asgi):
     if asgi:
+        import sys
+        if sys.version_info < (3, 10):
+            raise click.BadOptionUsage(
+                "asgi",
+                "ASGI mode (async) is only supported on Python 3.10+ due to security constraints.",
+            )
         from functions_framework.aio import create_asgi_app
 
         app = create_asgi_app(target, source, signature_type)

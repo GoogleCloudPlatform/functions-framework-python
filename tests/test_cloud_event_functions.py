@@ -20,14 +20,14 @@ import pytest
 from cloudevents import conversion as ce_conversion
 from cloudevents.http import CloudEvent
 
-if sys.version_info >= (3, 8):
+if sys.version_info >= (3, 10):
     from starlette.testclient import TestClient as StarletteTestClient
 else:
     StarletteTestClient = None
 
 from functions_framework import create_app
 
-if sys.version_info >= (3, 8):
+if sys.version_info >= (3, 10):
     from functions_framework.aio import create_asgi_app
 else:
     create_asgi_app = None

@@ -22,7 +22,7 @@ from cloudevents.http import CloudEvent
 import functions_framework._function_registry as registry
 
 # Conditional import for Starlette
-if sys.version_info >= (3, 8):
+if sys.version_info >= (3, 10):
     from starlette.testclient import TestClient as StarletteTestClient
 else:
     StarletteTestClient = None
@@ -30,7 +30,7 @@ else:
 from functions_framework import create_app
 
 # Conditional import for async functionality
-if sys.version_info >= (3, 8):
+if sys.version_info >= (3, 10):
     from functions_framework.aio import create_asgi_app
 else:
     create_asgi_app = None

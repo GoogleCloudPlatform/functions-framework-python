@@ -26,8 +26,8 @@ import functions_framework._function_registry as _function_registry
 
 from functions_framework._cli import _cli
 
-# Conditional import for Starlette (Python 3.8+)
-if sys.version_info >= (3, 8):
+# Conditional import for Starlette (Python 3.10+)
+if sys.version_info >= (3, 10):
     from starlette.applications import Starlette
 else:
     Starlette = None
@@ -130,6 +130,10 @@ def test_cli(monkeypatch, args, env, create_app_calls, run_calls):
     assert wsgi_server.run.calls == run_calls
 
 
+@pytest.mark.skipif(
+    sys.version_info < (3, 10),
+    reason="Async is only supported on Python 3.10+",
+)
 def test_asgi_cli(monkeypatch):
     asgi_server = pretend.stub(run=pretend.call_recorder(lambda *a, **kw: None))
     asgi_app = pretend.stub()
@@ -149,6 +153,10 @@ def test_asgi_cli(monkeypatch):
     assert asgi_server.run.calls == [pretend.call("0.0.0.0", 8080)]
 
 
+@pytest.mark.skipif(
+    sys.version_info < (3, 10),
+    reason="Async is only supported on Python 3.10+",
+)
 def test_cli_auto_detects_asgi_decorator():
     """Test that CLI auto-detects @aio decorated functions without --asgi flag."""
     # Use the actual async_decorator.py test file which has @aio.http decorated functions

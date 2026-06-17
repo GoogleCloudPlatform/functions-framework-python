@@ -44,10 +44,10 @@ def isolate_logging():
         reload(logging)
 
 
-# Safe to remove when we drop Python 3.7 support
+# Safe to remove when we drop Python 3.9 support
 def pytest_ignore_collect(collection_path, config):
-    """Ignore async test files on Python 3.7 since Starlette requires Python 3.8+"""
-    if sys.version_info >= (3, 8):
+    """Ignore async test files on Python < 3.10 since Starlette requires Python 3.10+"""
+    if sys.version_info >= (3, 10):
         return None
 
     # Skip test_aio.py, test_asgi.py, and test_execution_id_async.py entirely on Python 3.7
@@ -61,14 +61,14 @@ def pytest_ignore_collect(collection_path, config):
     return None
 
 
-# Safe to remove when we drop Python 3.7 support
+# Safe to remove when we drop Python 3.9 support
 def pytest_collection_modifyitems(config, items):
-    """Skip async-related tests on Python 3.7 since Starlette requires Python 3.8+"""
-    if sys.version_info >= (3, 8):
+    """Skip async-related tests on Python < 3.10 since Starlette requires Python 3.10+"""
+    if sys.version_info >= (3, 10):
         return
 
     skip_async = pytest.mark.skip(
-        reason="Async features require Python 3.8+ (Starlette dependency)"
+        reason="Async features require Python 3.10+ (Starlette dependency)"
     )
 
     # Keywords that indicate async-related tests
