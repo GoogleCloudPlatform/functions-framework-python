@@ -33,12 +33,25 @@ from functions_framework._http import create_server
 @click.option("--port", envvar="PORT", type=click.INT, default=8080)
 @click.option("--debug", envvar="DEBUG", is_flag=True)
 @click.option(
+    "--env",
+    "env_vars",
+    multiple=True,
+    metavar="KEY=VALUE",
+    help="Set a runtime environment variable for local execution.",
+)
+@click.option(
     "--asgi",
     envvar="FUNCTION_USE_ASGI",
     is_flag=True,
     help="Use ASGI server for function execution",
 )
-def _cli(target, source, signature_type, host, port, debug, asgi):
+def _cli(target, source, signature_type, host, port, debug, env_vars, asgi):
+    for env_var in env_vars:
+        key, separator, value = env_var.partition("=")
+        if not key or not separator:
+            raise click.BadParameter("must be in KEY=VALUE format", param_hint="--env")
+        os.environ[key] = value
+
     if asgi:
         from functions_framework.aio import create_asgi_app
 
