@@ -27,10 +27,9 @@ EOF
 ### Install dependencies
 pip install \
   --only-binary :all: \
-  twine \
-  build \
-  wheel \
-  keyrings.google-artifactregistry-auth \
+  --require-hashes \
+  --no-deps \
+  -r .kokoro/requirements/build.txt \
   --verbose # shows it is pulling from Airlock
 
 ### Build and Publish
