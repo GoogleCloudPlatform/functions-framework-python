@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-cd "${KOKORO_ARTIFACTS_DIR}/git/serverless.git.corp.google.com/functions-framework-python"
+cd "${KOKORO_ARTIFACTS_DIR}/git/serverless/functions-framework-python"
 
 ### Set up Airlock for Bookworm
 rm -f /etc/apt/sources.list.d/* /etc/apt/sources.list
