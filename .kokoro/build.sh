@@ -43,6 +43,6 @@ for pkg in "${pkgs[@]}"; do
 done
 
 twine upload \
-    --repository-url "https://us-python.pkg.dev/oss-exit-gate-prod/functions-framework-releases--pypi" \
+    --repository-url "https://us-python.pkg.dev/oss-exit-gate-prod/ff-releases--pypi" \
     --verbose \
     "${artifacts_dir}/*"
