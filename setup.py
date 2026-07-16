@@ -54,7 +54,7 @@ setup(
         "click>=7.0,<9.0",
         "watchdog>=1.0.0",
         "gunicorn>=22.0.0; platform_system!='Windows'",
-        "cloudevents>=1.2.0,<2.0.0",
+        "cloudevents>=2.1.0,<2.2.0",
         "Werkzeug>=0.14,<4.0.0",
     ],
     extras_require={
