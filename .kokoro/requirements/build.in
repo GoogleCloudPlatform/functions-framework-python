@@ -1,6 +1,6 @@
 --only-binary :all:
 twine>=6.2.0
 build>=1.3.0
-wheel>=0.45.1
+wheel>=0.46.2
 keyring>=25.7.0
 keyrings.google-artifactregistry-auth>=1.1.2

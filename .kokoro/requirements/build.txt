@@ -448,6 +448,6 @@ urllib3==2.6.3 \
     # via
     #   requests
     #   twine
-wheel==0.46.1 \
-    --hash=sha256:f796f65d72750ccde090663e466d0ca37cd72b62870f7520b96d34cdc07d86d8
+wheel==0.46.2 \
+    --hash=sha256:33ae60725d69eaa249bc1982e739943c23b34b58d51f1cb6253453773aca6e65
     # via -r build.in
