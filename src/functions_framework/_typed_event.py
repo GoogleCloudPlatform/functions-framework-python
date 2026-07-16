@@ -12,13 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import sys
 
 import inspect
+import types
 
-from inspect import signature
+from inspect import signature as _signature
+if sys.version_info.major == 3 and sys.version_info.minor < 10:
+    signature = _signature
+else:
+    from functools import partial
+    signature = partial(_signature, eval_str=True)
+
 
 from functions_framework import _function_registry
 from functions_framework.exceptions import FunctionsFrameworkException
+
+try:
+    from pydantic import BaseModel
+except ModuleNotFoundError:
+    BaseModel = types.NoneType
 
 """Registers user function in the REGISTRY_MAP and the INPUT_TYPE_MAP.
 Also performs some validity checks for the input type of the function
@@ -96,10 +109,13 @@ def _select_input_type(decorator_type, annotation_type):
 
 
 def _validate_input_type(input_type):
-    if not (
-        hasattr(input_type, "from_dict") and callable(getattr(input_type, "from_dict"))
-    ):
-        raise AttributeError(
-            "The type {decorator_type} does not have the required method called "
-            " 'from_dict'.".format(decorator_type=input_type)
-        )
+    if BaseModel and issubclass(input_type, BaseModel):
+        # Pydantic model - we are good
+        return
+    if (hasattr(input_type, "from_dict") and callable(getattr(input_type, "from_dict"))):
+        # Use our customer from/to_doct protocol - we are good
+        return
+    raise AttributeError(
+        "The type {decorator_type} is neither Pydantic model no has the required method called "
+        " 'from_dict'.".format(decorator_type=input_type)
+    )

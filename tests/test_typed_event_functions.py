@@ -121,3 +121,12 @@ def test_missing_parameter_typed_decorator():
 def test_missing_to_dict_typed_decorator(typed_decorator_missing_to_dict):
     resp = typed_decorator_missing_to_dict.post("/", json={"name": "john", "age": 10})
     assert resp.status_code == 500
+
+
+def test_typed_decorator_pydantic():
+    source = TEST_FUNCTIONS_DIR / "typed_events" / "pydantic_event.py"
+    target = "function_typed_pydantic"
+    client = create_app(target, source).test_client()
+    resp = client.post("/", json={"name": "jane", "age": 20})
+    assert resp.status_code == 200
+    assert resp.json["name"] == "jane" and resp.json["age"] == 20
