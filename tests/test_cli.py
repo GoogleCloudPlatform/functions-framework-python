@@ -130,6 +130,34 @@ def test_cli(monkeypatch, args, env, create_app_calls, run_calls):
     assert wsgi_server.run.calls == run_calls
 
 
+def test_cli_sets_runtime_env(monkeypatch):
+    wsgi_server = pretend.stub(run=pretend.call_recorder(lambda *a, **kw: None))
+    wsgi_app = pretend.stub(run=pretend.call_recorder(lambda *a, **kw: None))
+    create_app = pretend.call_recorder(lambda *a, **kw: wsgi_app)
+    monkeypatch.setattr(functions_framework._cli, "create_app", create_app)
+    create_server = pretend.call_recorder(lambda *a, **kw: wsgi_server)
+    monkeypatch.setattr(functions_framework._cli, "create_server", create_server)
+    monkeypatch.delenv("LOCAL_ONLY", raising=False)
+    monkeypatch.delenv("EMPTY_VALUE", raising=False)
+
+    runner = CliRunner()
+    result = runner.invoke(
+        _cli, ["--target", "foo", "--env", "LOCAL_ONLY=1", "--env", "EMPTY_VALUE="]
+    )
+
+    assert result.exit_code == 0
+    assert os.environ["LOCAL_ONLY"] == "1"
+    assert os.environ["EMPTY_VALUE"] == ""
+
+
+def test_cli_rejects_invalid_runtime_env():
+    runner = CliRunner()
+    result = runner.invoke(_cli, ["--target", "foo", "--env", "LOCAL_ONLY"])
+
+    assert result.exit_code == 2
+    assert "must be in KEY=VALUE format" in result.output
+
+
 def test_asgi_cli(monkeypatch):
     asgi_server = pretend.stub(run=pretend.call_recorder(lambda *a, **kw: None))
     asgi_app = pretend.stub()
