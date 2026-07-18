@@ -25,7 +25,7 @@ import sys
 import types
 
 from inspect import signature
-from typing import Callable, Type
+from typing import Callable, Type, TypeVar
 
 import cloudevents.exceptions as cloud_exceptions
 import flask
@@ -56,6 +56,11 @@ _CLOUDEVENT_MIME_TYPE = "application/cloudevents+json"
 CloudEventFunction = Callable[[CloudEvent], None]
 HTTPFunction = Callable[[flask.Request], flask.typing.ResponseReturnValue]
 
+# TypeVars used by decorators to preserve the user function's exact type, so
+# that type checkers (mypy, pyright) can still verify call sites after decoration.
+_CloudEventFunctionT = TypeVar("_CloudEventFunctionT", bound=CloudEventFunction)
+_HTTPFunctionT = TypeVar("_HTTPFunctionT", bound=HTTPFunction)
+
 
 class _LoggingHandler(io.TextIOWrapper):
     """Logging replacement for stdout and stderr in GCF Python 3.7."""
@@ -70,7 +75,7 @@ class _LoggingHandler(io.TextIOWrapper):
         return self.stderr.write(json.dumps(payload) + "\n")
 
 
-def cloud_event(func: CloudEventFunction) -> CloudEventFunction:
+def cloud_event(func: _CloudEventFunctionT) -> _CloudEventFunctionT:
     """Decorator that registers cloudevent as user function signature type."""
     _function_registry.REGISTRY_MAP[func.__name__] = (
         _function_registry.CLOUDEVENT_SIGNATURE_TYPE
@@ -80,7 +85,7 @@ def cloud_event(func: CloudEventFunction) -> CloudEventFunction:
     def wrapper(*args, **kwargs):
         return func(*args, **kwargs)
 
-    return wrapper
+    return wrapper  # type: ignore[return-value]
 
 
 def typed(*args):
@@ -110,7 +115,7 @@ def typed(*args):
         return _typed
 
 
-def http(func: HTTPFunction) -> HTTPFunction:
+def http(func: _HTTPFunctionT) -> _HTTPFunctionT:
     """Decorator that registers http as user function signature type."""
     _function_registry.REGISTRY_MAP[func.__name__] = (
         _function_registry.HTTP_SIGNATURE_TYPE
@@ -120,7 +125,7 @@ def http(func: HTTPFunction) -> HTTPFunction:
     def wrapper(*args, **kwargs):
         return func(*args, **kwargs)
 
-    return wrapper
+    return wrapper  # type: ignore[return-value]
 
 
 def setup_logging():
