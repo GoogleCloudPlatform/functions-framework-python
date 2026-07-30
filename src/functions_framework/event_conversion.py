@@ -20,8 +20,8 @@ from cloudevents.exceptions import MissingRequiredFields
 from cloudevents.http import CloudEvent, from_http, is_binary
 
 from functions_framework.background_event import BackgroundEvent
+from functions_framework.context import Context
 from functions_framework.exceptions import EventConversionException
-from google.cloud.functions.context import Context
 
 _CLOUD_EVENT_SPEC_VERSION = "1.0"
 

@@ -21,8 +21,8 @@ import pytest
 from cloudevents.http import from_json, to_binary
 
 from functions_framework import event_conversion
+from functions_framework.context import Context
 from functions_framework.exceptions import EventConversionException
-from google.cloud.functions.context import Context
 
 TEST_DATA_DIR = pathlib.Path(__file__).resolve().parent / "test_data"
 
