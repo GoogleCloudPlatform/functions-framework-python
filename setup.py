@@ -46,7 +46,6 @@ setup(
     keywords="functions-framework",
     packages=find_packages(where="src"),
     package_data={"functions_framework": ["py.typed"]},
-    namespace_packages=["google", "google.cloud"],
     package_dir={"": "src"},
     python_requires=">=3.5, <4",
     install_requires=[

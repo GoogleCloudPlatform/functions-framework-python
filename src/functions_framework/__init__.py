@@ -41,12 +41,12 @@ from functions_framework import (
     execution_id,
 )
 from functions_framework.background_event import BackgroundEvent
+from functions_framework.context import Context
 from functions_framework.exceptions import (
     EventConversionException,
     FunctionsFrameworkException,
     MissingSourceException,
 )
-from google.cloud.functions.context import Context
 
 _FUNCTION_STATUS_HEADER_FIELD = "X-Google-Status"
 _CRASH = "crash"
