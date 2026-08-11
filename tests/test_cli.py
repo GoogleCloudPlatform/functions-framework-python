@@ -163,3 +163,120 @@ def test_cli_auto_detects_asgi_decorator():
 
     # Verify the function was registered in ASGI_FUNCTIONS
     assert "function_http" in _function_registry.ASGI_FUNCTIONS
+
+
+def test_cli_sets_runtime_env(monkeypatch):
+    """Test that --env KEY=VALUE sets environment variables."""
+    wsgi_server = pretend.stub(run=pretend.call_recorder(lambda *a, **kw: None))
+    wsgi_app = pretend.stub(run=pretend.call_recorder(lambda *a, **kw: None))
+    create_app = pretend.call_recorder(lambda *a, **kw: wsgi_app)
+    monkeypatch.setattr(functions_framework._cli, "create_app", create_app)
+    create_server = pretend.call_recorder(lambda *a, **kw: wsgi_server)
+    monkeypatch.setattr(functions_framework._cli, "create_server", create_server)
+
+    runner = CliRunner()
+    result = runner.invoke(
+        _cli,
+        ["--target", "foo", "--env", "MY_VAR=hello", "--env", "OTHER=world"],
+    )
+
+    assert result.exit_code == 0
+    assert os.environ.get("MY_VAR") == "hello"
+    assert os.environ.get("OTHER") == "world"
+
+
+def test_cli_sets_env_from_file(monkeypatch, tmp_path):
+    """Test that --env-file loads environment variables from a .env file."""
+    wsgi_server = pretend.stub(run=pretend.call_recorder(lambda *a, **kw: None))
+    wsgi_app = pretend.stub(run=pretend.call_recorder(lambda *a, **kw: None))
+    create_app = pretend.call_recorder(lambda *a, **kw: wsgi_app)
+    monkeypatch.setattr(functions_framework._cli, "create_app", create_app)
+    create_server = pretend.call_recorder(lambda *a, **kw: wsgi_server)
+    monkeypatch.setattr(functions_framework._cli, "create_server", create_server)
+
+    env_file = tmp_path / ".env"
+    env_file.write_text(
+        "# Comment line\n"
+        "FILE_VAR=from_file\n"
+        "QUOTED_VAR=\"double_quoted\"\n"
+        "SINGLE_QUOTED='single_quoted'\n"
+        "\n"
+        "TRIMMED=  trimmed_value  \n"
+    )
+
+    runner = CliRunner()
+    result = runner.invoke(
+        _cli,
+        ["--target", "foo", "--env-file", str(env_file)],
+    )
+
+    assert result.exit_code == 0
+    assert os.environ.get("FILE_VAR") == "from_file"
+    assert os.environ.get("QUOTED_VAR") == "double_quoted"
+    assert os.environ.get("SINGLE_QUOTED") == "single_quoted"
+    assert os.environ.get("TRIMMED") == "trimmed_value"
+
+
+def test_cli_env_overrides_env_file(monkeypatch, tmp_path):
+    """Test that --env overrides values from --env-file."""
+    wsgi_server = pretend.stub(run=pretend.call_recorder(lambda *a, **kw: None))
+    wsgi_app = pretend.stub(run=pretend.call_recorder(lambda *a, **kw: None))
+    create_app = pretend.call_recorder(lambda *a, **kw: wsgi_app)
+    monkeypatch.setattr(functions_framework._cli, "create_app", create_app)
+    create_server = pretend.call_recorder(lambda *a, **kw: wsgi_server)
+    monkeypatch.setattr(functions_framework._cli, "create_server", create_server)
+
+    env_file = tmp_path / ".env"
+    env_file.write_text("MY_VAR=from_file\nOTHER=file_value\n")
+
+    runner = CliRunner()
+    result = runner.invoke(
+        _cli,
+        [
+            "--target", "foo",
+            "--env-file", str(env_file),
+            "--env", "MY_VAR=overridden",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert os.environ.get("MY_VAR") == "overridden"
+    assert os.environ.get("OTHER") == "file_value"
+
+
+def test_cli_env_bad_format(monkeypatch):
+    """Test that --env with invalid format raises an error."""
+    runner = CliRunner()
+    result = runner.invoke(
+        _cli,
+        ["--target", "foo", "--env", "INVALID_FORMAT"],
+    )
+
+    assert result.exit_code != 0
+    assert "KEY=VALUE" in result.output
+
+
+def test_cli_env_file_not_found(monkeypatch):
+    """Test that --env-file with nonexistent file raises an error."""
+    runner = CliRunner()
+    result = runner.invoke(
+        _cli,
+        ["--target", "foo", "--env-file", "/nonexistent/.env"],
+    )
+
+    assert result.exit_code != 0
+
+
+def test_cli_env_file_bad_format(monkeypatch, tmp_path):
+    """Test that --env-file with invalid line format raises an error."""
+    env_file = tmp_path / ".env"
+    env_file.write_text("VALID=value\nNO_EQUALS_SIGN\n")
+
+    runner = CliRunner()
+    result = runner.invoke(
+        _cli,
+        ["--target", "foo", "--env-file", str(env_file)],
+    )
+
+    assert result.exit_code != 0
+    assert "KEY=VALUE" in result.output
