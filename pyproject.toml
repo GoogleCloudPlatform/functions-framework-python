@@ -32,7 +32,7 @@ dependencies = [
   "starlette>=0.37.0,<1.0.0; python_version>='3.8' and python_version<'3.10'",
   "starlette>=1.0.1,<2.0.0; python_version>='3.10'",
   "uvicorn>=0.18.0,<1.0.0; python_version>='3.8'",
-  "uvicorn-worker>=0.2.0,<1.0.0; python_version>='3.8'",
+  "uvicorn-worker>=0.2.0,<1.0.0; python_version>='3.8' and platform_system!='Windows'",
 ]
 
 [project.urls]
