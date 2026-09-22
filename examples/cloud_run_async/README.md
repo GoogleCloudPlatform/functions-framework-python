@@ -66,3 +66,30 @@ gcloud run deploy async-cloudevent-function \
 ```
 
 After deploying, you can invoke the CloudEvent function by sending an HTTP POST request with a CloudEvent payload to its URL.
+
+
+## Handling exceptions
+
+Define handlers in the same source module as your function with
+`functions_framework.aio.errorhandler`. Handlers receive the exception and may
+be synchronous or asynchronous. Return a Starlette response or any value accepted
+by an HTTP function (such as a string, dictionary, or `(body, status)` tuple).
+
+```python
+from functions_framework import aio
+
+
+@aio.errorhandler(ZeroDivisionError)
+async def handle_zero_division(error):
+    return {"error": "Cannot divide by zero"}, 400
+
+
+@aio.http
+async def function(request):
+    return str(1 / int(request.query_params["divisor"]))
+```
+
+Register exception classes, not HTTP status codes. Subclasses match their nearest
+registered exception class; `Exception` can provide a fallback for otherwise
+unhandled exceptions. Handlers also apply to exceptions raised by CloudEvent
+functions. Exceptions without a handler retain the default error response.

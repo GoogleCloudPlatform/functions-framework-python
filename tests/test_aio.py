@@ -169,3 +169,133 @@ async def test_cloudevent_func_wrapper_sync_function():
     assert called_with_event is not None
     assert called_with_event["type"] == "test.event"
     assert called_with_event["source"] == "test-source"
+
+
+@pytest.fixture
+def isolated_function_registry(monkeypatch):
+    from functions_framework import _function_registry
+
+    monkeypatch.setattr(
+        _function_registry, "ASGI_FUNCTIONS", set(_function_registry.ASGI_FUNCTIONS)
+    )
+    monkeypatch.setattr(
+        _function_registry, "REGISTRY_MAP", dict(_function_registry.REGISTRY_MAP)
+    )
+
+
+@pytest.mark.parametrize("signature", ["http", "cloud_event"])
+@pytest.mark.parametrize("async_handler", [False, True])
+@pytest.mark.parametrize(
+    "exception_class", ["ZeroDivisionError", "ArithmeticError", "Exception"]
+)
+@pytest.mark.parametrize("factory", ["direct", "auto"])
+def test_registered_error_handler(
+    tmp_path,
+    async_handler,
+    exception_class,
+    factory,
+    signature,
+    isolated_function_registry,
+):
+    from starlette.testclient import TestClient
+
+    from functions_framework import create_app
+
+    source = tmp_path / "main.py"
+    handler_prefix = "async " if async_handler else ""
+    source.write_text(
+        "from functions_framework import aio\n"
+        f"@aio.errorhandler({exception_class})\n"
+        f"{handler_prefix}def handle_error(exc):\n"
+        "    return {'error': type(exc).__name__}, 418\n"
+        f"@aio.{signature}\n"
+        "async def function(request):\n"
+        "    raise ZeroDivisionError('test')\n"
+    )
+    app_factory = create_asgi_app if factory == "direct" else create_app
+    app = app_factory("function", str(source))
+    with TestClient(app) as client:
+        if signature == "http":
+            response = client.get("/")
+        else:
+            response = client.post(
+                "/",
+                json={
+                    "specversion": "1.0",
+                    "id": "test",
+                    "source": "test",
+                    "type": "test",
+                    "data": {},
+                },
+                headers={"content-type": "application/cloudevents+json"},
+            )
+    assert response.status_code == 418
+    assert response.json() == {"error": "ZeroDivisionError"}
+    assert "X-Google-Status" not in response.headers
+
+
+def test_error_handlers_do_not_leak_between_apps(tmp_path, isolated_function_registry):
+    from starlette.testclient import TestClient
+
+    source = tmp_path / "main.py"
+    source.write_text(
+        "from functions_framework import aio\n"
+        "@aio.errorhandler(ValueError)\n"
+        "def handle_error(exc):\n"
+        "    return 'handled', 418\n"
+        "@aio.http\n"
+        "async def function(request):\n"
+        "    raise ValueError('test')\n"
+    )
+    first_app = create_asgi_app("function", str(source))
+    other = tmp_path / "other.py"
+    other.write_text(
+        "from functions_framework import aio\n"
+        "@aio.http\n"
+        "async def function(request):\n"
+        "    raise ValueError('test')\n"
+    )
+    second_app = create_asgi_app("function", str(other))
+    with TestClient(second_app) as client:
+        response = client.get("/")
+        assert response.status_code == 500
+        assert response.headers["X-Google-Status"] == "crash"
+    with TestClient(first_app) as client:
+        assert client.get("/").status_code == 418
+
+
+def test_error_handler_precedence_and_stacked_registration(
+    tmp_path, isolated_function_registry
+):
+    from starlette.testclient import TestClient
+
+    source = tmp_path / "main.py"
+    source.write_text(
+        "from functions_framework import aio\n"
+        "from starlette.responses import Response\n"
+        "@aio.errorhandler(ArithmeticError)\n"
+        "def broad(exc):\n"
+        "    return 'broad', 400\n"
+        "@aio.errorhandler(ZeroDivisionError)\n"
+        "@aio.errorhandler(ValueError)\n"
+        "def specific(exc):\n"
+        "    return Response('specific', status_code=422)\n"
+        "@aio.http\n"
+        "async def function(request):\n"
+        "    if request.url.path == '/value':\n"
+        "        raise ValueError('test')\n"
+        "    raise ZeroDivisionError('test')\n"
+    )
+    with TestClient(create_asgi_app("function", str(source))) as client:
+        for path in ["/", "/value"]:
+            response = client.get(path)
+            assert response.status_code == 422
+            assert response.text == "specific"
+
+
+@pytest.mark.parametrize("invalid", [500, BaseException, object, "ValueError"])
+def test_error_handler_requires_exception_class(invalid):
+    from functions_framework.aio import errorhandler
+
+    with pytest.raises(TypeError, match="Exception subclass"):
+        errorhandler(invalid)
