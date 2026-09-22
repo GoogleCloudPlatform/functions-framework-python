@@ -45,4 +45,19 @@ def _cli(target, source, signature_type, host, port, debug, asgi):
         app = create_asgi_app(target, source, signature_type)
     else:
         app = create_app(target, source, signature_type)
+    if debug and (asgi or target in _function_registry.ASGI_FUNCTIONS):
+        # Uvicorn reload needs an importable factory so each child process loads
+        # the function again. Preserve CLI configuration for that factory.
+        source = os.path.abspath(_function_registry.get_function_source(source))
+        os.environ["FUNCTION_SOURCE"] = source
+        os.environ["FUNCTION_TARGET"] = target
+        _function_registry.get_func_signature_type(target, signature_type)
+        create_server(
+            "functions_framework.aio:create_asgi_app",
+            debug,
+            factory=True,
+            reload=True,
+            reload_dirs=[os.path.dirname(source)],
+        ).run(host, port)
+        return
     create_server(app, debug).run(host, port)

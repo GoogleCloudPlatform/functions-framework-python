@@ -27,6 +27,16 @@ curl localhost:8080
 # Output: Hello, async world!
 ```
 
+### Reloading during development
+
+Add `--debug` to reload the async function when Python files in its source
+folder change. This works with automatic async detection and with `--asgi`.
+For a non-default source file, include `--source path/to/function.py`.
+
+```sh
+functions-framework --target=hello_async_http --debug
+```
+
 ### CloudEvent Function
 
 To run the CloudEvent function, specify the target and set the signature type:

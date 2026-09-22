@@ -163,3 +163,53 @@ def test_cli_auto_detects_asgi_decorator():
 
     # Verify the function was registered in ASGI_FUNCTIONS
     assert "function_http" in _function_registry.ASGI_FUNCTIONS
+
+
+@pytest.mark.parametrize("explicit_asgi", [False, True])
+@pytest.mark.parametrize("debug", [False, True])
+def test_cli_asgi_reload_configuration(monkeypatch, tmp_path, explicit_asgi, debug):
+    import os
+
+    from functions_framework import _function_registry
+
+    monkeypatch.setattr(_function_registry, "ASGI_FUNCTIONS", set())
+    monkeypatch.setattr(_function_registry, "REGISTRY_MAP", {})
+    source = tmp_path / "custom.py"
+    source.write_text(
+        "from functions_framework import aio\n"
+        "@aio.cloud_event\n"
+        "async def reload_target(event):\n"
+        "    pass\n"
+    )
+    server = pretend.stub(run=pretend.call_recorder(lambda *a, **kw: None))
+    reload_env = {}
+
+    @pretend.call_recorder
+    def create_server(*args, **kwargs):
+        reload_env.update(os.environ)
+        return server
+
+    monkeypatch.setattr(functions_framework._cli, "create_server", create_server)
+    args = ["--target", "reload_target", "--source", str(source)]
+    if explicit_asgi:
+        args.append("--asgi")
+    if debug:
+        args.append("--debug")
+    # Conflicting inherited source must not win over the explicit CLI argument.
+    monkeypatch.setenv("FUNCTION_SOURCE", "other.py")
+    result = CliRunner().invoke(_cli, args)
+    assert result.exit_code == 0, result.output
+    server_call = create_server.calls[0]
+    if debug:
+        assert server_call.args == ("functions_framework.aio:create_asgi_app", True)
+        assert server_call.kwargs == {
+            "factory": True,
+            "reload": True,
+            "reload_dirs": [str(tmp_path)],
+        }
+        assert reload_env["FUNCTION_SOURCE"] == str(source)
+        assert reload_env["FUNCTION_TARGET"] == "reload_target"
+        assert reload_env["FUNCTION_SIGNATURE_TYPE"] == "cloudevent"
+    else:
+        assert not isinstance(server_call.args[0], str)
+        assert server_call.kwargs == {}
