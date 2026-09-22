@@ -100,6 +100,61 @@ def http(func: HTTPFunction) -> HTTPFunction:
     return wrapper
 
 
+def errorhandler(exception_class):
+    """Register an exception handler defined in the function's source module.
+
+    Handlers receive the exception and may be synchronous or asynchronous.
+    Their return values follow the same rules as HTTP functions.
+    """
+    if not isinstance(exception_class, type) or not issubclass(
+        exception_class, Exception
+    ):
+        raise TypeError("errorhandler requires an Exception subclass")
+
+    def register(handler):
+        exceptions = getattr(handler, "_functions_framework_exceptions", ())
+        handler._functions_framework_exceptions = exceptions + (exception_class,)
+        return handler
+
+    return register
+
+
+def _exception_handlers(source_module):
+    handlers = {}
+    for value in vars(source_module).values():
+        for exception_class in getattr(value, "_functions_framework_exceptions", ()):
+            handlers[exception_class] = _exception_handler_wrapper(value)
+    return handlers
+
+
+def _exception_handler_wrapper(function):
+    async def handler(request, exc):
+        if inspect.iscoroutinefunction(function):
+            result = await function(exc)
+        else:
+            loop = asyncio.get_event_loop()
+            ctx = contextvars.copy_context()
+            result = await loop.run_in_executor(None, ctx.run, function, exc)
+        return _make_response(result)
+
+    return handler
+
+
+def _make_response(result):
+    if isinstance(result, str):
+        return Response(result)
+    elif isinstance(result, dict):
+        return JSONResponse(result)
+    elif isinstance(result, tuple) and len(result) == 2:
+        content, status_code = result
+        if isinstance(content, dict):
+            return JSONResponse(content, status_code=status_code)
+        return Response(content, status_code=status_code)
+    elif result is None:
+        raise HTTPException(status_code=500, detail="No response returned")
+    return result
+
+
 def _http_func_wrapper(function, is_async, enable_id_logging=False):
     @execution_id.set_execution_context_async(enable_id_logging)
     @functools.wraps(function)
@@ -111,20 +166,7 @@ def _http_func_wrapper(function, is_async, enable_id_logging=False):
             loop = asyncio.get_event_loop()
             ctx = contextvars.copy_context()
             result = await loop.run_in_executor(None, ctx.run, function, request)
-        if isinstance(result, str):
-            return Response(result)
-        elif isinstance(result, dict):
-            return JSONResponse(result)
-        elif isinstance(result, tuple) and len(result) == 2:
-            content, status_code = result
-            if isinstance(content, dict):
-                return JSONResponse(content, status_code=status_code)
-            else:
-                return Response(content, status_code=status_code)
-        elif result is None:
-            raise HTTPException(status_code=500, detail="No response returned")
-        else:
-            return result
+        return _make_response(result)
 
     return handler
 
@@ -173,8 +215,9 @@ def _configure_app_execution_id_logging():
 
 
 class ExceptionHandlerMiddleware:
-    def __init__(self, app):
+    def __init__(self, app, error_handler=None):
         self.app = app
+        self.error_handler = error_handler
 
     async def __call__(self, scope, receive, send):
         if scope["type"] != "http":  # pragma: no cover
@@ -184,6 +227,10 @@ class ExceptionHandlerMiddleware:
         try:
             await self.app(scope, receive, send)
         except Exception as exc:
+            if self.error_handler is not None:
+                response = await self.error_handler(Request(scope), exc)
+                await response(scope, receive, send)
+                return
             logger = logging.getLogger()
             tb_lines = traceback.format_exception(type(exc), exc, exc.__traceback__)
             tb_text = "".join(tb_lines)
@@ -235,7 +282,9 @@ def create_asgi_app_from_module(target, source, signature_type, source_module, s
     function = _function_registry.get_user_function(source, source_module, target)
     signature_type = _function_registry.get_func_signature_type(target, signature_type)
 
-    return _create_asgi_app_with_function(function, signature_type, enable_id_logging)
+    return _create_asgi_app_with_function(
+        function, signature_type, enable_id_logging, _exception_handlers(source_module)
+    )
 
 
 def create_asgi_app(target=None, source=None, signature_type=None):
@@ -268,10 +317,14 @@ def create_asgi_app(target=None, source=None, signature_type=None):
     function = _function_registry.get_user_function(source, source_module, target)
     signature_type = _function_registry.get_func_signature_type(target, signature_type)
 
-    return _create_asgi_app_with_function(function, signature_type, enable_id_logging)
+    return _create_asgi_app_with_function(
+        function, signature_type, enable_id_logging, _exception_handlers(source_module)
+    )
 
 
-def _create_asgi_app_with_function(function, signature_type, enable_id_logging):
+def _create_asgi_app_with_function(
+    function, signature_type, enable_id_logging, exception_handlers=None
+):
     """Create an ASGI app with the given function and signature type."""
     is_async = inspect.iscoroutinefunction(function)
     routes = []
@@ -317,10 +370,13 @@ def _create_asgi_app_with_function(function, signature_type, enable_id_logging):
             f"Unsupported signature type for ASGI server: {signature_type}"
         )
 
+    exception_handlers = dict(exception_handlers or {})
+    error_handler = exception_handlers.pop(Exception, None)
     app = Starlette(
         routes=routes,
+        exception_handlers=exception_handlers,
         middleware=[
-            Middleware(ExceptionHandlerMiddleware),
+            Middleware(ExceptionHandlerMiddleware, error_handler=error_handler),
             Middleware(execution_id.AsgiMiddleware),
         ],
     )
