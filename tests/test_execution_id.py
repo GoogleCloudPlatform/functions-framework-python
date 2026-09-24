@@ -201,6 +201,14 @@ def test_generate_execution_id():
             TEST_EXECUTION_ID,
             TEST_SPAN_ID,
         ),
+        (
+            {
+                "X-Cloud-Trace-Context": f"TRACE_ID/{TEST_SPAN_ID}",
+                "Function-Execution-Id": TEST_EXECUTION_ID,
+            },
+            TEST_EXECUTION_ID,
+            TEST_SPAN_ID,
+        ),
         ({}, None, None),
         (
             {

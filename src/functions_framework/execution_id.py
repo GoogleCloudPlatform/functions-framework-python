@@ -32,8 +32,9 @@ _EXECUTION_ID_LENGTH = 12
 _EXECUTION_ID_CHARSET = string.digits + string.ascii_letters
 _LOGGING_API_LABELS_FIELD = "logging.googleapis.com/labels"
 _LOGGING_API_SPAN_ID_FIELD = "logging.googleapis.com/spanId"
+# The ";o=OPTIONS" suffix of the trace context header is optional.
 _TRACE_CONTEXT_REGEX_PATTERN = re.compile(
-    r"^(?P<trace_id>[\w\d]+)/(?P<span_id>\d+);o=(?P<options>[01])$"
+    r"^(?P<trace_id>[\w\d]+)/(?P<span_id>\d+)(?:;o=(?P<options>[01]))?$"
 )
 EXECUTION_ID_REQUEST_HEADER = "Function-Execution-Id"
 TRACE_CONTEXT_REQUEST_HEADER = "X-Cloud-Trace-Context"
