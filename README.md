@@ -91,6 +91,24 @@ Or send requests to this function using `curl` from another terminal window:
 curl localhost:8080
 # Output: Hello world!
 ```
+### Quickstart: Async HTTP Function
+
+The Functions Framework supports asynchronous HTTP functions using the `aio` decorator.
+
+```python
+import logging
+import functions_framework
+
+logger = logging.getLogger(__name__)
+
+
+@functions_framework.aio.http
+async def hello(request):
+    logger.warning("Received async HTTP request")
+    return "Hello from an async function!"
+```
+
+Standard Python logging can be used inside async HTTP handlers just as with synchronous handlers.
 
 ### Quickstart: CloudEvent Function
 
