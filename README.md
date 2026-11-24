@@ -341,6 +341,35 @@ documentation on
 
 See the [running example](examples/cloud_run_event).
 
+## Structured Logging
+
+When running in Cloud Run or Cloud Run Functions, log entries written as plain
+text to stdout won't have a severity level parsed by Cloud Logging. To enable
+structured logging with correct severity and automatic trace correlation, install
+[`google-cloud-logging`](https://pypi.org/project/google-cloud-logging/) and
+attach its `StructuredLogHandler` to the Python root logger:
+
+```python
+import logging
+import functions_framework
+from google.cloud.logging_v2.handlers import StructuredLogHandler
+
+logging.basicConfig(handlers=[StructuredLogHandler()], level=logging.INFO)
+
+
+@functions_framework.http
+def hello(request):
+    logging.info("Processing request")
+    return "Hello world!"
+```
+
+`StructuredLogHandler` formats each log record as a JSON object with a
+`severity` field, which Cloud Logging uses to set the entry's severity level.
+When inside a request handler, it also automatically populates
+`logging.googleapis.com/trace` and `spanId` from the `X-Cloud-Trace-Context`
+request header so your function's log entries are correlated with the parent
+request trace.
+
 ## Advanced Examples
 
 More advanced guides can be found in the [`examples/`](examples/) directory.
